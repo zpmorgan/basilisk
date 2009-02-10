@@ -1,0 +1,14 @@
+[%  INCLUDE header %]
+Hi there.
+<br>
+
+Here's a number:
+[% num %]
+<br>
+    
+And here's a board:
+<br>
+[% board %]
+<br>
+    
+[% INCLUDE footer %]

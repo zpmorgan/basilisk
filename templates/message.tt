@@ -1,0 +1,13 @@
+[%  INCLUDE header %]
+<div align="center">
+Hi there.
+<br>
+
+Here's a number:<br>
+  88<br>
+    
+And here's a message from the server:
+<br>
+<span style="color: #88b;">[% err %][% message %]</span></b><br>
+</div>
+[% INCLUDE footer %]

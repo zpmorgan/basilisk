@@ -1,0 +1,72 @@
+<html>
+
+  <head>
+        <title>[% title %]</title>
+  </head>
+  
+ <STYLE TYPE="text/css">
+img.brdx{ width:25px; height:25px;}
+img.brdl{ width:25px; height:25px;}
+img.brdn{ width:31px; height:25px;}
+img.capt{ width:25px; height:25px;}
+td.brdx{ width:25px; height:25px;}
+td.brdl{ width:25px; height:25px;}
+td.brdn{ width:31px; height:25px;}
+
+table.Goban {
+   border: 0px solid red;
+   background-repeat: repeat;
+   background-position: top left; /* 0% 0% - top left */
+   background: white;
+   empty-cells: hide;
+   border-collapse: collapse;
+   border-spacing: 0px;
+   margin: 0px auto;
+}
+table.Goban tr {
+}
+
+table.Goban td {
+   border-width: 0px;
+   text-align: left;
+   color: black;
+   padding: 0px;
+   line-height: 0px;
+   white-space: nowrap;
+
+}
+ </STYLE>
+ 
+<body>
+<table id="pageMenu" align="left">
+
+[% IF logged_in %]
+ <tr><td>
+   <a href="/status">Status</a>
+ </tr></td>
+ <tr><td>
+   <a href="/userinfo">User info</a>
+ </tr></td>
+[% ELSE %]
+ <tr><td>
+   <a href="/login">Log in</a>
+ </tr></td>
+ <tr><td>
+   <a href="/register">Register</a>
+ </tr></td>
+[% END %]
+
+ <tr><td>
+   <a href="/games">Games</a>
+ </tr></td>
+ <tr><td>
+   <a href="/players">Players</a>
+ </tr></td>
+
+[% IF logged_in %]
+ <tr><td>
+   <a href="/logout">Log out</a>
+ </tr></td>
+[% END %]
+
+</table>

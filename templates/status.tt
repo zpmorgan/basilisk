@@ -1,0 +1,26 @@
+[%  INCLUDE header %]
+<div align="center">
+Hi there.
+<br>
+
+Here's a number:
+6
+<br>
+
+And here's your status:<br>
+<table border="2">
+<tr><td>rank </td><td> pretty bad</td></tr>
+<tr><td>current games </td><td> looking grim</td></tr>
+<tr><td>also </td><td> you may as well give up.</td></tr>
+</table>
+<br>
+
+[% IF message %]
+  And here's a message from server: <br>
+  <b><span style="color: #0006">[% message %]</span></b>
+[% END %]
+
+
+</div>
+
+[% INCLUDE footer %]

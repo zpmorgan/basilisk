@@ -1,0 +1,31 @@
+[%  INCLUDE header %]
+<div align="center">
+Hi there.
+<br>
+
+Here's a number:
+4
+<br>
+
+[% IF err %]
+ <div style="background-color:#aaaaff; width:280px">
+  And here's what went wrong: <br>
+  <b><span style="color: #040;">[% err %]</span></b><br>
+  </div>
+[% END %]
+
+And here's a register form:
+<br>
+<table>
+  <form action="register" method="POST">
+   <tr> <td>username:</td> <td><input name="username" value="" tabindex="1" size="16" maxlength="16" type="text"></td> </tr> 
+   <tr> <td>password:</td> <td><input name="passwd" tabindex="2" size="16" maxlength="16" type="password"></td> </tr> 
+   <tr> <td>retype password:</td> <td><input name="passwd2" tabindex="2" size="16" maxlength="16" type="password"></td> </tr> 
+   <tr> <td colspan="2" align="center"><input value="Log in" tabindex="3" type="submit"> </td><tr>
+  </form>
+</table>
+<small>Please make up a new password for this site.</small>
+
+</div>
+
+[% INCLUDE footer %]
