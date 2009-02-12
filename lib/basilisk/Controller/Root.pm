@@ -40,7 +40,8 @@ sub game : Local {
 sub players :Global{
    my ( $self, $c ) = @_;
    
-   $c->stash->{message} = 'hey.';
+   $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
+      '<img src="/g/wood.gif" />';
    $c->stash->{template} = 'message.tt';
 }
 sub games :Global{
