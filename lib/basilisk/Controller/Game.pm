@@ -21,12 +21,13 @@ sub game : Global {
       $c->stash->{message} = 'invalid request: no game with that id';
       $c->stash->{template} = 'message.tt';return;
    }
+   $c->stash->{players_html} = display_players_html($c);
    $c->stash->{last_move} = $c->stash->{game}->last_move;
    $c->stash->{template} = 'game.tt';
    $c->stash->{title}= "Game ".$c->stash->{gameid}.", move ".$c->stash->{last};
    $c->session->{num}++;
    $c->stash->{num} = $c->session->{'num'};
-   $c->stash->{board} = render_board_html($c,$gameid);
+   $c->stash->{board_html} = render_board_html($c,$gameid);
    
    #$c->stash->{render_board} = sub{render_board_html($c,$gameid)};
    #my $page = $c->forward('basilisk::View::TT', {gamenum => 4});
@@ -53,6 +54,35 @@ sub select_g_file{ #default board
    return 'el.gif' if $col == 0;
    return 'er.gif' if $col == $size-1;
    return 'e.gif'
+}
+
+sub display_players_html{
+   my ($c) = @_;
+   my @lines;
+   #get player-game data
+   my @players = $c->model('DB::Player_to_game')->search( 
+      {gid => $c->stash->{gameid}},
+      {join => 'player',
+         '+select' => ['player.name', 'player.id'],
+         '+as'     => ['name', 'id']
+      }
+   );
+   
+   
+   push @lines, q|<table>|;
+   for my $p (@players){
+      push @lines, q|<tr>|;
+      #stone graphic
+      push @lines, q| <td> <img src="/g/| . ($p->side==0 ? 'b' : 'w') . q|.gif"> </td>|;
+      #player name
+      push @lines, q| <td> <b>| . $p->get_column('name') . q|</b> </td>|;
+      #player time remaining
+      push @lines, q| <td> <b>| . $p->time_remaining . q|</b> </td>|;
+      
+      push @lines, q|</tr>|;
+   }
+   push @lines, q|</table>|;
+   return join "\n", @lines;
 }
 
 sub render_board_html{

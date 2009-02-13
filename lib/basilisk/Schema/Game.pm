@@ -12,21 +12,29 @@ __PACKAGE__->add_columns(
 #    'black'      => { data_type => 'INTEGER', is_nullable => 1 },
 #    'size'          => { data_type => 'INTEGER', is_nullable => 0 },
     'ruleset'      => { data_type => 'INTEGER', is_nullable => 0 },
-    #turn--player currently with the initiative(index from player_to_game)
+    #turn--player currently with the initiative(index as 'side' col from player_to_game)
     'turn'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
 
 );
 
-sub next_move{
-   my $self = shift;
-   my $mv_count = $self->moves->count({});
-   return $mv_count + 1;
-}
 sub last_move{
    my $self = shift;
    my $mv_count = $self->moves->count({});
    return $mv_count;
 }
+sub next_move{
+   my $self = shift;
+   my $mv_count = $self->moves->count({});
+   return $mv_count + 1;
+}
+sub player_to_move_next{
+   my $self = shift;
+   my $player = $self->players->search({side => $self->turn})->next;
+   return $player if $player;
+   die "no player as side ".$self->turn." in game ".$self->id;
+}
+
+
 sub current_position{
    my $self = shift;
    my $lastmove = $self->last_move;
@@ -53,6 +61,6 @@ sub size{
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid');
-__PACKAGE__->many_to_many( players => 'basilisk::Schema::Player_to_game', 'pid');
+__PACKAGE__->many_to_many( players => 'player_to_game', 'player');
 __PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
 1;

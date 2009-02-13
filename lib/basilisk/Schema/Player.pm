@@ -10,6 +10,10 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'pid');
-__PACKAGE__->many_to_many( games => 'basilisk::Schema::Player_to_game', 'gid');
+__PACKAGE__->many_to_many( games => 'player_to_game', 'game');
+
+#sub games{
+#   
+#}
 
 1;

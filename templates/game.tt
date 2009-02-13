@@ -1,15 +1,14 @@
 [%  INCLUDE header %]
 
-Hi there.
 <br>
 
-Here's a number:
-[% num %]
+Players:
 <br>
-    
-And here's a board:
+[% players_html %]
 <br>
-[% board %]
+
+<br>
+[% board_html %]
 <br>
     
 [% INCLUDE footer %]
