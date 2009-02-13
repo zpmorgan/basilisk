@@ -4,10 +4,9 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
-#
-# Sets the actions in this controller to be registered with no prefix
-# so they function identically to actions created in MyApp.pm
-#wait what?
+
+# this is so the path doesn't need prefix /root/
+# but I'm only using global actions anyways..
 __PACKAGE__->config->{namespace} = '';
 
 
@@ -23,20 +22,8 @@ sub index :Path :Args(0) {
    }
 }
 
-sub game : Local {
-   my ( $self, $c ) = @_;
-   
-   # Hello World 
-   $c->stash->{'title'}= "Game 34343, move 12";
-   $c->session->{'num'}++;
-   $c->stash->{'num'} = $c->session->{'num'};
-   $c->stash->{'board'} = \&board_html;
-   #my $page = $c->forward('basilisk::View::TT', {gamenum => 4});
-   #$c->response->body( $page );
-   #die $page;
-}
 
-
+#list of all registered players
 sub players :Global{
    my ( $self, $c ) = @_;
    
@@ -44,6 +31,7 @@ sub players :Global{
       '<img src="/g/wood.gif" />';
    $c->stash->{template} = 'message.tt';
 }
+#list of all games on server
 sub games :Global{
    my ( $self, $c ) = @_;
    
@@ -86,10 +74,6 @@ sub end : ActionClass('RenderView') {
    #set some tt var for header
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
    $c->stash->{name} = $c->session->{logged_in} ? $c->session->{name} : 'you';
-}
-
-sub board_html{
-   return "<br>And here'sn't a board!<br>";
 }
 
 1;

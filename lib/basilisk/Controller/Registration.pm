@@ -5,6 +5,8 @@ use warnings;
 use parent 'Catalyst::Controller';
 
 
+__PACKAGE__->config->{namespace} = '';
+
 sub login :Global{
    my ( $self, $c ) = @_;
    $c->stash->{'template'} = 'login.tt';

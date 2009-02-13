@@ -70,3 +70,4 @@ table.Goban td {
 [% END %]
 
 </table>
+<div align="center">

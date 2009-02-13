@@ -1,5 +1,5 @@
 [%  INCLUDE header %]
-<div align="center">
+
 Hi there.
 <br>
 
@@ -15,5 +15,5 @@ And here's a login form:
    <input name="login" value="Log in" tabindex="3" type="submit">
 </form>
 Or, go <a href="register">here</a> to register a new account.<br><br>
-</div>
+
 [% INCLUDE footer %]

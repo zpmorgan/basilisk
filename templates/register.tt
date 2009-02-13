@@ -1,5 +1,5 @@
 [%  INCLUDE header %]
-<div align="center">
+
 Hi there.
 <br>
 
@@ -26,6 +26,5 @@ And here's a register form:
 </table>
 <small>Please make up a new password for this site.</small>
 
-</div>
 
 [% INCLUDE footer %]

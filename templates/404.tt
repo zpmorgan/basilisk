@@ -1,5 +1,5 @@
 [%  INCLUDE header %]
-<div align="center">
+
 Hi there.
 <br>
 
@@ -7,6 +7,5 @@ This Page'sn't found,<br>
 but here's some data:<br>
 [% body %]
 
-</div>
 
 [% INCLUDE footer %]
