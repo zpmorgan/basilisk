@@ -1,0 +1,15 @@
+[%  INCLUDE header %]
+
+Hi there.
+<br>
+
+Here's a number:
+[% num %]
+<br>
+    
+And here's every running game here:
+<br>
+[% games_table %]
+<br>
+    
+[% INCLUDE footer %]
