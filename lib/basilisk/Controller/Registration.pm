@@ -9,6 +9,12 @@ __PACKAGE__->config->{namespace} = '';
 
 sub login :Global{
    my ( $self, $c ) = @_;
+   if ($c->session->{logged_in}){
+      $c->stash->{message} = "You are already logged in, ".$c->session->{name} .
+        '.<br><a href="/logout">Log out.';
+      $c->stash->{template} = 'message.tt';
+      return;
+   }
    $c->stash->{'template'} = 'login.tt';
    my $req = $c->request;
    if ($req->param('username')){

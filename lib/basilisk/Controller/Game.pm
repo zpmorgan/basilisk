@@ -77,7 +77,7 @@ sub display_players_html{
       #player name
       push @lines, q| <td> <b>| . $p->get_column('name') . q|</b> </td>|;
       #player time remaining
-      push @lines, q| <td> <b>| . $p->time_remaining . q|</b> </td>|;
+      push @lines, q| <td> Remaining time: | . $p->time_remaining . q| </td>|;
       
       push @lines, q|</tr>|;
    }

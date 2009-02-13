@@ -56,9 +56,36 @@ sub status :Global{
    $c->stash->{title} = $c->session->{name} . '\'s status';
    #$c->stash->{username} = $c->session->{name};
    $c->stash->{'template'} = 'status.tt';
-   
 }
 
+sub userinfo :Global{
+   my ( $self, $c ) = @_;
+   #my ($userid) = $c->req->path =~ m|user/(\d*)|;
+   my ($name) = $c->req->path =~ m|user/(\w*)|;
+   unless ($name){
+      $name = $c->session->{logged_in} ? $c->session->{name} : 'guest';
+   }
+   my $row = $c->model('DB::Player')->find({name => $name});
+   my $id = $row->id;
+   
+   $c->stash->{title} = $name . '\'s info';
+   my @lines;
+   push @lines, $row->name . '\'s info:';
+   push @lines, '<table>';
+   #link to player's games table
+   push @lines, '<tr> <td>Games</td> <td><a href="/games?playerid='.$id.'">games</a></td> </tr>';
+   push @lines, '<tr> <td>Rank</td> <td>' .int rand()*30+1 .'k</td> </tr>';
+   
+   
+   push @lines, '</table>';
+   $c->stash->{message} = join "\n", @lines;
+   $c->stash->{template} = 'message.tt';
+}
+
+
+
+
+# 404
 sub default :Path {
    my ( $self, $c ) = @_;
    my $req = $c->request;
@@ -77,14 +104,13 @@ sub default :Path {
    $c->response->status(404);
 }
 
-
-
 # end -- Attempt to render a view.
 #this is a RenderView action, so this is called right before we're sent to the view
 sub end : ActionClass('RenderView') {
    my ( $self, $c ) = @_;
    #set some tt var for header
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
+   #$c->stash->{name} seems to be basilisk, and unchangeable.
    $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';
    $c->session->{num}++;
    $c->stash->{num} = $c->session->{num};

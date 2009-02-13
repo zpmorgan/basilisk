@@ -5,6 +5,12 @@
   </head>
   
  <STYLE TYPE="text/css">
+a:link { 
+	color: green;
+	}
+a:visited { 
+	color: darkgreen;
+	}
 img.brdx{ width:25px; height:25px;}
 img.brdl{ width:25px; height:25px;}
 img.brdn{ width:31px; height:25px;}
@@ -38,6 +44,19 @@ table.Goban td {
  </STYLE>
  
 <body>
+
+<table id="pagehead" style="background: #0C41C9;color: #FFFC70;width: 100%;">
+ <tr>
+  <td align="left">Basilisk Go Server</td>
+[% IF logged_in %]
+   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="/status">Logged in as: [%username%] <a></td>
+[% ELSE %]
+   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="/login">Log in</a> </td>
+[% END %]
+ </tr>
+</table>
+
+
 <table id="pageMenu" align="left">
 
 [% IF logged_in %]
