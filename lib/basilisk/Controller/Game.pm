@@ -34,9 +34,29 @@ sub game : Global {
    #die $page;
 }
 
+sub select_g_file{ #default board
+   my ($stone, $size, $row, $col) = @_;
+   return 'b.gif' if $stone == 1;
+   return 'w.gif' if $stone == 2;
+   #$stone==0 -- so it's an empty intersection
+   #several empties to choose from:
+   if ($row == 0){
+      return 'ul.gif' if $col == 0;
+      return 'ur.gif' if $col == $size-1;
+      return 'u.gif' ;
+   }
+   if ($row == $size-1){
+      return 'dl.gif' if $col == 0;
+      return 'dr.gif' if $col == $size-1;
+      return 'd.gif' ;
+   }
+   return 'el.gif' if $col == 0;
+   return 'er.gif' if $col == $size-1;
+   return 'e.gif'
+}
 
 sub render_board_html{
-   my ($c,$gameid) = @_;
+   my ($c) = @_;
    my $size = $c->stash->{game}->size;
    my @lines;
    push @lines, "<br>And here's a pseudoboard!<br>";
@@ -46,10 +66,12 @@ sub render_board_html{
    
    #render board position as a table
    push @lines, q|<table  class="Goban" style="background-image: url(/g/wood.gif);">|;
-   for my $row (@$board){
+   for my $rownum (0..$size-1){
       push @lines, q|<tr>|;
-      for my $i (@$row){
-         push @lines, q|<td class="brdx"> <img class="brdx" src="/g/e.gif" /> </td>|;
+      for my $colnum (0..$size-1){
+         push @lines, q|<td class="brdx"> <img class="brdx" src="/g/| . 
+            select_g_file ($board->[$rownum]->[$colnum], $size, $rownum, $colnum)
+            . q|" /> </td>|;
       }
       push @lines, q|</tr>|;
    }

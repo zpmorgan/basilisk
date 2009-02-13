@@ -7,7 +7,7 @@ Here's a number:
 [% num %]
 <br>
     
-And here's every running game here:
+And here's every running game on this server:
 <br>
 [% games_table %]
 <br>
