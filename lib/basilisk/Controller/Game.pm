@@ -13,21 +13,22 @@ sub game : Global {
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
    $c->stash->{gameid} = $gameid;
    $c->stash->{game} = $c->model('DB::Game')->search( 'id' => $c->stash->{gameid})->next;
-   #die $c->stash->{game};
    unless ($gameid ){
       $c->stash->{message} = 'invalid request: please supply a game id';
       $c->stash->{template} = 'message.tt';return;
    }
-   unless (game_exists($c,$gameid) ){
+   unless ($c->stash->{game}){
       $c->stash->{message} = 'invalid request: no game with that id';
       $c->stash->{template} = 'message.tt';return;
    }
-   $c->stash->{current_move} = current_move($c);
+   $c->stash->{last_move} = $c->stash->{game}->last_move;
    $c->stash->{template} = 'game.tt';
-   $c->stash->{title}= "Game ".$c->stash->{gameid}.", move ".$c->stash->{current_move};
+   $c->stash->{title}= "Game ".$c->stash->{gameid}.", move ".$c->stash->{last};
    $c->session->{num}++;
    $c->stash->{num} = $c->session->{'num'};
-   $c->stash->{render_board} = sub{render_board_html($c,$gameid)};
+   $c->stash->{board} = render_board_html($c,$gameid);
+   
+   #$c->stash->{render_board} = sub{render_board_html($c,$gameid)};
    #my $page = $c->forward('basilisk::View::TT', {gamenum => 4});
    #$c->response->body( $page );
    #die $page;
@@ -38,14 +39,22 @@ sub render_board_html{
    my ($c,$gameid) = @_;
    my $size = $c->stash->{game}->size;
    my @lines;
-   push @lines, "<br>And here'sn't a board!<br>";
-   push @lines, "Here's size of game 1: ";
-   
-   my $size = $c->stash->{game}->size;
-   push @lines, $size."<br>";
+   push @lines, "<br>And here's a pseudoboard!<br>";
+   push @lines, "board size: $size<br>";
    my $pos = $c->stash->{game}->current_position;
    my $board = Util::unpack_position($pos, $size);
-   push @lines, join "<br>\n",map{join" ",@$_} @$board;
+   
+   #render board position as a table
+   push @lines, q|<table  class="Goban" style="background-image: url(/g/wood.gif);">|;
+   for my $row (@$board){
+      push @lines, q|<tr>|;
+      for my $i (@$row){
+         push @lines, q|<td class="brdx"> <img class="brdx" src="/g/e.gif" /> </td>|;
+      }
+      push @lines, q|</tr>|;
+   }
+   #push @lines, join "<br>\n",map{join" ",@$_} @$board;
+   push @lines, '</table>';
    return join "\n", @lines;
 }
 
@@ -60,12 +69,6 @@ sub game_exists{
    my ($c) = @_;
    return 1 if $c->model('DB::Game')->count( 'id' => $c->stash->{gameid});
    return 0;
-}
-
-sub current_move{
-   my ($c) = @_;
-   my $mv_count = $c->model('DB::Move')->count( 'gid' => $c->stash->{gameid});
-   return $mv_count + 1;
 }
 
 1;

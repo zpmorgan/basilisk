@@ -4,7 +4,7 @@ Hi there.
 <br>
 
 Here's a number:
-4
+[% num %]
 <br>
     
 And here's a login form:

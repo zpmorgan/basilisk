@@ -17,26 +17,32 @@ __PACKAGE__->add_columns(
 
 );
 
-sub current_move{
+sub next_move{
    my $self = shift;
    my $mv_count = $self->moves->count({});
    return $mv_count + 1;
 }
+sub last_move{
+   my $self = shift;
+   my $mv_count = $self->moves->count({});
+   return $mv_count;
+}
 sub current_position{
    my $self = shift;
-   my $curmove = $self->current_move;
-   if ($curmove == 1){
+   my $lastmove = $self->last_move;
+   if ($lastmove == 0){
       return Util::empty_pos($self->size); #blob
    }
    my $pos = $self->moves->search({
       gid => $self->id,
-      movenum => $curmove-1,
+      movenum => $lastmove,
    });
    return $pos->position;#blob
 }
 
-sub id_of_current_player{
-   
+sub board{
+   my $self = shift;
+   return Util::unpack_position($self->current_position, $self->size);
 }
 
 sub size{

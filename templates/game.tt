@@ -9,7 +9,7 @@ Here's a number:
     
 And here's a board:
 <br>
-[% render_board() %]
+[% board %]
 <br>
     
 [% INCLUDE footer %]

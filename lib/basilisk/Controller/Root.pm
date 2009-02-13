@@ -14,11 +14,14 @@ sub index :Path :Args(0) {
    my ( $self, $c ) = @_;
    
    # Hello World
-   if ($c->session->{'username'}){
-      $c->stash->{'template'} = 'welcome.tt'
+   if ($c->session->{name}){
+      $c->stash->{message} = 'Hello, ' . $c->session->{name};
+      $c->stash->{template} = 'message.tt';
    }
    else{
-     $c->stash->{'template'} = 'login.tt';
+      $c->stash->{title} = 'log in';
+      $c->stash->{name} = $c->session->{name};
+      $c->stash->{template} = 'login.tt';
    }
 }
 
@@ -35,13 +38,23 @@ sub players :Global{
 sub games :Global{
    my ( $self, $c ) = @_;
    
-   $c->stash->{message} = 'Sorry, you are about to lose the game';
-   $c->stash->{template} = 'message.tt';
+   $c->stash->{title} = 'All games';
+   $c->stash->{template} = 'all_games.tt';
+   my @lines = ('<table>');
+   my $rs = $c->model('DB::Game')->search({}, {rows=>25})->page(0);
+   for my $game($rs->all) {
+      my $id = $game->id;
+      push @lines, qq|<tr><td><a href="/game/$id">$id</a></td></tr>|;
+   }
+   push @lines , '</table>';
+   $c->stash->{games_table} = join "\n", @lines;
 }
 
 
 sub status :Global{
    my ( $self, $c ) = @_;
+   $c->stash->{title} = $c->session->{name} . '\'s status';
+   #$c->stash->{username} = $c->session->{name};
    $c->stash->{'template'} = 'status.tt';
    
 }
@@ -67,13 +80,14 @@ sub default :Path {
 
 
 # end -- Attempt to render a view.
-
+#this is a RenderView action, so this is called right before we're sent to the view
 sub end : ActionClass('RenderView') {
-    #this is a RenderView action, so it's called afterwards
    my ( $self, $c ) = @_;
    #set some tt var for header
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
-   $c->stash->{name} = $c->session->{logged_in} ? $c->session->{name} : 'you';
+   $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';
+   $c->session->{num}++;
+   $c->stash->{num} = $c->session->{num};
 }
 
 1;

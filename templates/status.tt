@@ -1,10 +1,10 @@
 [%  INCLUDE header %]
 
-Hi there.
+Hi there, <b>[% username %]</b>.
 <br>
 
-Here's a number:
-6
+Here's a number:<br>
+[% num %]
 <br>
 
 And here's your status:<br>
