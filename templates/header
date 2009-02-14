@@ -104,6 +104,9 @@ a:hover     {color:#000000}
    <a href="/games">Games</a>
  </tr></td>
  <tr><td>
+   <a href="/waiting_room">Waiting room</a>
+ </tr></td>
+ <tr><td>
    <a href="/players">Players</a>
  </tr></td>
 

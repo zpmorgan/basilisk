@@ -59,7 +59,7 @@ sub evaluate_move{
    my $c = shift;
    return '';
 }
-sub do_move{
+sub do_move{#todo:mv to game class
    my $c = shift;
    my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
    my $board = $c->stash->{board};

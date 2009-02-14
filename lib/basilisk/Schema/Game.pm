@@ -8,9 +8,6 @@ __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
-#    'white'      => { data_type => 'INTEGER', is_nullable => 1 },
-#    'black'      => { data_type => 'INTEGER', is_nullable => 1 },
-#    'size'          => { data_type => 'INTEGER', is_nullable => 0 },
     'ruleset'      => { data_type => 'INTEGER', is_nullable => 0 },
     #turn--player currently with the initiative(index as 'side' col from player_to_game)
     'turn'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },

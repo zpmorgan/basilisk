@@ -1,0 +1,38 @@
+<FORM id="addgameForm" name="addgame" class="FormClass" action="/waiting_room" method="POST">
+<table>
+ <tr>
+   <td align="right">Number of games to add:</td>
+   <td align="left"><INPUT type="text" name="quantity" value="1" size="1" maxlength="1"></td>
+ </tr>
+ <tr>
+   <td align="right">Board size:</td>
+   <td align="left"><SELECT name="size" size="1">
+      <OPTION value="5">5</OPTION>
+      <OPTION value="6">6</OPTION>
+      <OPTION value="7">7</OPTION>
+
+      <OPTION value="8">8</OPTION>
+      <OPTION value="9">9</OPTION>
+      <OPTION value="10">10</OPTION>
+      <OPTION value="11">11</OPTION>
+      <OPTION value="12">12</OPTION>
+      <OPTION value="13">13</OPTION>
+      <OPTION value="14">14</OPTION>
+      <OPTION value="15">15</OPTION>
+      <OPTION value="16">16</OPTION>
+
+      <OPTION value="17">17</OPTION>
+      <OPTION value="18">18</OPTION>
+      <OPTION value="19" selected>19</OPTION>
+      <OPTION value="20">20</OPTION>
+      <OPTION value="21">21</OPTION>
+      <OPTION value="22">22</OPTION>
+      <OPTION value="23">23</OPTION>
+      <OPTION value="24">24</OPTION>
+      <OPTION value="25">25</OPTION>
+     </SELECT></td>
+  </tr>
+  <tr>
+   <td colspan="2" align="center">  <INPUT type="submit" name="add_game" value="Add Game">  </td>
+  </tr>
+</table>

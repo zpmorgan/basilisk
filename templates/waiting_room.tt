@@ -1,0 +1,19 @@
+[%  INCLUDE header %]
+
+Hi there.
+<br>
+
+Here's a number:
+[% num %]
+<br>
+    
+Potential games:
+<br>
+[% waiting_games_table %]
+<hr>
+[% IF proposal_info %]
+ [% proposal_info %]
+[% ELSE %]
+ [% INCLUDE proposal_form %]
+[% END %]
+[% INCLUDE footer %]

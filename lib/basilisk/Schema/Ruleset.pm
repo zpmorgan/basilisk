@@ -19,6 +19,7 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (games => 'basilisk::Schema::Game', 'ruleset');
+__PACKAGE__->has_many (proposed_games => 'basilisk::Schema::Game_proposal', 'ruleset');
 __PACKAGE__->might_have(initial_pos => 'basilisk::Schema::Position', 'id');
 
 1
