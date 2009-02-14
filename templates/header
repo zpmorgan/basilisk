@@ -11,6 +11,18 @@ a:link {
 a:visited { 
 	color: darkgreen;
 	}
+
+
+table.pagehead a
+{
+   color: yellow;
+} 
+table.pagehead {
+   background: #0C41C9;
+   color: #FFFC70;
+   width: 100%;"
+}
+
 img.brdx{ width:25px; height:25px;}
 img.brdl{ width:25px; height:25px;}
 img.brdn{ width:31px; height:25px;}
@@ -41,23 +53,31 @@ table.Goban td {
    white-space: nowrap;
 
 }
+a:link {color:#FF0000}
+a:visited {color:#990000}
+a:active    {color:#0000FF}
+a:hover     {color:#000000}
+
  </STYLE>
  
 <body>
 
-<table id="pagehead" style="background: #0C41C9;color: #FFFC70;width: 100%;">
+<table id="pagehead" class="pagehead" style="background: #0C41C9;color: #FFFC70;width: 100%;">
  <tr>
-  <td align="left">Basilisk Go Server</td>
+  <td align="left"><b>Basilisk Go Server</b></td>
 [% IF logged_in %]
-   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="/status">Logged in as: [%username%] <a></td>
+   <td align="right" style="A:link:#ffff22; A:visited:#aaeeaa;"> <a href="/status"><b>Logged in as: [%username%] </b></a></td>
 [% ELSE %]
-   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="/login">Log in</a> </td>
+   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="/login"><b>Log in</b></a> </td>
 [% END %]
  </tr>
 </table>
 
 
 <table id="pageMenu" align="left">
+ <tr><td>
+   <img src="/g/Baziliszkusz.jpg" width="100px">
+ </tr></td>
 
 [% IF logged_in %]
  <tr><td>
