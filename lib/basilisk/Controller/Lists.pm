@@ -28,13 +28,58 @@ sub games :Global{
    push @lines , '</table>';
    $c->stash->{games_table} = join "\n", @lines;
 }
+
+sub add_wgame{
+   my $c = shift;
+   my $row = $c->model('DB::Game_proposal')->create({
+      quantity => $c->req->param('quantity'),
+      proposer => $c->session->{userid},
+      #size => $c->req->param('size'),
+      ruleset => 1,
+   });
+   return ''; #no err
+}
+sub join_wgame{
+   my $c = shift;
+   my $wgame_id = $c->req->param('wgameid');
+   my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
+   return "wgame $wgame_id doesn't exist." unless $wgame;
+   my $game = $c->model('DB::Game')->create({
+      ruleset => $wgame->ruleset,
+   });
+   $c->model('DB::Player_to_game')->create({
+      gid => $game->id,
+      pid => $wgame->proposer,
+      side => 1, #black
+   });
+   $c->model('DB::Player_to_game')->create({
+      gid => $game->id,
+      pid => $c->session->{userid},
+      side => 2, #white
+   });
+   $wgame->decrease_quantity;
+   return ''; #no err
+}
+
 sub waiting_room :Global{
    my ( $self, $c ) = @_;
-   
-   if ($c->req->param('action')){
-      my $err = add_waiting_game($c);
-      $c->stash->{message} = $err ? $err : 'Game added';
-      $c->stash->{template} = 'message.tt'; return
+   $c->stash->{msg} = $c->session->{userid};
+   if ($c->req->param('action') eq 'add_wgame'){
+      my $err = add_wgame($c);
+      if ($err){
+         $c->stash->{message} = "error: $err";
+         $c->stash->{template} = 'message.tt'; return
+      }
+      $c->stash->{msg} = 'Game added';
+   }
+   elsif ($c->req->param('action') eq 'join'){
+      my $err = join_wgame($c);
+      if ($err){
+         $c->stash->{message} = "error: $err";
+         $c->stash->{template} = 'message.tt'; return
+      }
+      $c->stash->{msg} = 'Game joined!';
+      #TODO: forward to joined game
    }
    
    $c->stash->{title} = 'Waiting room';
@@ -51,7 +96,7 @@ sub waiting_room :Global{
    for my $row(@rows) {
       my $id = $row->id;
       my $size = $row->size;
-      my $from = $row->from;
+      my $name = $row->get_column('name');
       push @lines, qq|<tr>|;
        push @lines, qq|<td><a href="/waiting_room/$id">$id</a></td>|;
        push @lines, q|<td> <a href="/userinfo/| . $row->get_column('proposer_id') . q|">| . $row->get_column('name') . q|</a></td>|;
@@ -60,7 +105,8 @@ sub waiting_room :Global{
    }
    push @lines , '</table>';
    $c->stash->{waiting_games_table} = join "\n", @lines;
-   my ($wgame_id) = $c->req->path() =~ m|/\d*|;#extract wgame id from path
+   
+   my ($wgame_id) = $c->req->path() =~ m|/(\d*)|;#extract wgame id from path
    if ($wgame_id){ #display a ruleset and a join button
       my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
       unless ($wgame){ #err
@@ -70,6 +116,8 @@ sub waiting_room :Global{
       #reuse @lines
       #@lines = ();
       #push @lines, ""
+      $c->stash->{proposal_info}->{id} = $wgame_id;
+      $c->stash->{proposal_info}->{quantity} = $wgame->quantity;
       $c->stash->{proposal_info}->{size} = $wgame->size;
       $c->stash->{proposal_info}->{proposer} = $wgame->proposer;
    }
@@ -102,7 +150,7 @@ sub userinfo :Global{
    push @lines, '<table>';
    #link to player's games table
    push @lines, '<tr> <td>Games</td> <td><a href="/games?playerid='.$id.'">games</a></td> </tr>';
-   push @lines, '<tr> <td>Rank</td> <td>' .int rand()*30+1 .'k</td> </tr>';
+   push @lines, '<tr> <td>Rank</td> <td>' .int rand()*30+1 . 'k</td> </tr>';
    
    
    push @lines, '</table>';

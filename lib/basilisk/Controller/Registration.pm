@@ -35,6 +35,7 @@ sub login :Global{
       $c->stash->{message} = 'login successful';
       $c->stash->{template} = 'message.tt';
       $c->session->{name} = $username;
+      $c->session->{userid} = $c->model('DB::Player')->find (name=>$username)->id;
       $c->session->{logged_in} = 1;
       return;
    }
@@ -81,6 +82,7 @@ sub register :Global {
       $c->stash->{message} = "Registration successful! You have 15 $passwd points!";
       $c->stash->{template} = 'message.tt';
       $c->session->{name} = $username;
+      $c->session->{userid} = $c->model('DB::Player')->find (name=>$username)->id;
       $c->session->{logged_in} = 1;
    }
 }

@@ -11,9 +11,30 @@ Potential games:
 <br>
 [% waiting_games_table %]
 <hr>
+
 [% IF proposal_info %]
- [% proposal_info %]
+Info on proposal [%proposal_info.id%]:<br>
+ <table border="1px">
+  <tr>
+   <td>instigator</td>
+   <td>[% proposal_info.proposer.name %]</td>
+  </tr>
+  <tr>
+   <td>quantity</td>
+   <td>[% proposal_info.quantity %]</td>
+  </tr>
+  <tr> 
+   <td>size</td>
+   <td>[% proposal_info.size %]</td>
+  </tr> 
+  <tr>
+   <td colspan="2" align="center">  <a href=/waiting_room?action=join&wgameid=[%proposal_info.id%]>Join!</a>  <td>
+  </tr> 
+ </table>
 [% ELSE %]
+
  [% INCLUDE proposal_form %]
+
 [% END %]
+
 [% INCLUDE footer %]

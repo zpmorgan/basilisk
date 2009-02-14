@@ -18,6 +18,11 @@ sub size{
    my $self = shift;
    return $self->ruleset->size
 }
+sub decrease_quantity{
+   my $self = shift;
+   #$self->quantity--;
+   #$self->delete if $self->quantity < 1
+}
 
 
 __PACKAGE__->set_primary_key('id');

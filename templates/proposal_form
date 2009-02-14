@@ -35,4 +35,6 @@
   <tr>
    <td colspan="2" align="center">  <INPUT type="submit" name="add_game" value="Add Game">  </td>
   </tr>
+  <input type="hidden" name="action" value="add_wgame">
+  </form>
 </table>
