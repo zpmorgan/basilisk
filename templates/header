@@ -51,7 +51,12 @@ table.Goban td {
    padding: 0px;
    line-height: 0px;
    white-space: nowrap;
-
+}
+table.Goban a img,
+table.Goban img {
+   border-width: 0px;
+   margin: 0px;
+   padding: 0px;
 }
 a:link {color:#FF0000}
 a:visited {color:#990000}
@@ -110,3 +115,8 @@ a:hover     {color:#000000}
 
 </table>
 <div align="center">
+[% IF msg %]
+ special msg: <span style="color:blue; font-weight: bold;">[%msg%]</span><br>
+[% END %]
+
+

@@ -1,14 +1,13 @@
 [%  INCLUDE header %]
 
-<br>
-
-Players:
-<br>
-[% players_html %]
-<br>
 
 <br>
 [% board_html %]
 <br>
+
+<br>
+[% players_html %]
+<br>
+
     
 [% INCLUDE footer %]
