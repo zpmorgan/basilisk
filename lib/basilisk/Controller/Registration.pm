@@ -11,11 +11,10 @@ sub login :Global{
    my ( $self, $c ) = @_;
    if ($c->session->{logged_in}){
       $c->stash->{message} = "You are already logged in, ".$c->session->{name} .
-        '.<br><a href="/logout">Log out.';
+        '.<br><a href="/logout">Log out.</a>';
       $c->stash->{template} = 'message.tt';
       return;
    }
-   $c->stash->{'template'} = 'login.tt';
    my $req = $c->request;
    if ($req->param('username')){
       #login attempt
@@ -44,7 +43,7 @@ sub login :Global{
       #just display login form
       $c->stash->{'template'} = 'login.tt';
    }
-   return;
+   $c->stash->{'template'} = 'login.tt';
 }
 
 sub logout :Global {

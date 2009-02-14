@@ -18,7 +18,7 @@ table.pagehead a
    color: yellow;
 } 
 table.pagehead {
-   background: #0C41C9;
+   background: #0C7311;
    color: #FFFC70;
    width: 100%;"
 }
@@ -62,7 +62,7 @@ a:hover     {color:#000000}
  
 <body>
 
-<table id="pagehead" class="pagehead" style="background: #0C41C9;color: #FFFC70;width: 100%;">
+<table id="pagehead" class="pagehead" >
  <tr>
   <td align="left"><b>Basilisk Go Server</b></td>
 [% IF logged_in %]
