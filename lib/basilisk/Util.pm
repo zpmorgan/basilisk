@@ -31,7 +31,7 @@ sub pack_board{
    $w = $h unless $w;
    my $blob = '';
    for my $row (@$board){
-      $blob .= pack ('C*',@$_)
+      $blob .= pack ('C*',@$row)
    }
    return $blob;
 }

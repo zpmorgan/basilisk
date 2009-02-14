@@ -6,7 +6,7 @@ __PACKAGE__->table('Position');
 __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_nullable => 0},
     'size'          => { data_type => 'INTEGER', is_nullable => 0, default_value => '19'},
-    'position'            => { data_type => 'TEXT', is_nullable => 0},
+    'position'            => { data_type => 'BLOB', is_nullable => 0},
     #'ruleset' or size?            => { data_type => 'INTEGER', is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key('id');

@@ -41,11 +41,11 @@ sub current_position{
    if ($lastmove == 0){
       return Util::empty_pos($self->size); #blob
    }
-   my $pos = $self->moves->search({
+   my $move = $self->moves->find({
       gid => $self->id,
       movenum => $lastmove,
    });
-   return $pos->position;#blob
+   return $move->position->position;#blob
 }
 
 sub board{

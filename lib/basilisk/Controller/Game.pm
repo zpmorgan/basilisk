@@ -8,16 +8,21 @@ use basilisk::Util;
 
 __PACKAGE__->config->{namespace} = '';
 
-# /game/14?foo=bar
+# /game/14?action=move&co=4-4
+#co=(row).(col) starting with 0
 sub game : Global {
    my ( $self, $c ) = @_;
    #extract game id from path
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
+   
    my $action = $c->req->param('action');
    #$c->stash->{msg} = 'action is '.$action.',co is '.$c->req->param('co');
+   if ($action eq 'move'){ #extract coordinates from url
+      ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
+   }
    
    $c->stash->{gameid} = $gameid;
-   $c->stash->{game} = $c->model('DB::Game')->search( 'id' => $c->stash->{gameid})->next;
+   $c->stash->{game} = $c->model('DB::Game')->find( 'id' => $c->stash->{gameid});
    unless ($gameid ){
       $c->stash->{message} = 'invalid request: please supply a game id';
       $c->stash->{template} = 'message.tt';return;
@@ -26,20 +31,56 @@ sub game : Global {
       $c->stash->{message} = 'invalid request: no game with that id';
       $c->stash->{template} = 'message.tt';return;
    }
-   $c->stash->{players_html} = display_players_html($c);
-   $c->stash->{last_move} = $c->stash->{game}->last_move;
-   $c->stash->{template} = 'game.tt';
-   $c->stash->{title}= "Game ".$c->stash->{gameid}.", move ".$c->stash->{last_move};
-   $c->session->{num}++;
-   $c->stash->{num} = $c->session->{'num'};
-   $c->stash->{board_html} = render_board_html($c,$gameid);
+   #die $c->stash->{game}->last_move;
+   my $pos_data = $c->stash->{game}->current_position;
+   #my $pos_data = $pos->position;
+   my $size = $c->stash->{game}->size;
+   my $board = Util::unpack_position($pos_data, $size);
+   @{$c->stash}{qw/pos_data board/} = ($pos_data, $board); #put board data in stash
    
-   #$c->stash->{render_board} = sub{render_board_html($c,$gameid)};
-   #my $page = $c->forward('basilisk::View::TT', {gamenum => 4});
-   #$c->response->body( $page );
-   #die $page;
+   if ($action eq 'move'){#evaluate & do move:
+      my $err = evaluate_move($c);
+      if ($err){
+         $c->stash->{msg} = 'move is failure';
+      }
+      else {
+         do_move($c);
+         $c->stash->{msg} = 'move is success';
+      }
+   }
+   $c->stash->{last_move} = $c->stash->{game}->last_move;
+   $c->stash->{title} = "Game ".$c->stash->{gameid}.", move ".$c->stash->{last_move};
+   $c->stash->{players_html} = display_players_html($c);
+   $c->stash->{board_html} = render_board_html($c,$gameid);
 }
 
+#todo: separate into some ruleset module
+sub evaluate_move{
+   my $c = shift;
+   return '';
+}
+sub do_move{
+   my $c = shift;
+   my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
+   my $board = $c->stash->{board};
+   $board->[$row]->[$col] = 1; #black always
+   my $size = $c->stash->{game}->size;
+   my $new_pos_data = Util::pack_board($board, $size);
+   
+   $c->stash->{new_pos_data} = $new_pos_data;
+   my $posrow = $c->model('DB::Position')->create( {
+      size => $size,
+      position => $new_pos_data,
+   });
+   my $moverow = $c->model('DB::Move')->create( {
+      gid => $c->stash->{game}->id,
+      position_id => $posrow->id,
+      move => "b $row, $col",
+      movenum => $c->stash->{game}->next_move,
+      time => time,
+   });
+   return;
+}
 
 sub display_players_html{
    my ($c) = @_;
@@ -75,10 +116,9 @@ sub render_board_html{
    my ($c) = @_;
    my $size = $c->stash->{game}->size;
    my @lines;
-   push @lines, "<br>And here's a pseudoboard!<br>";
-   push @lines, "board size: $size<br>";
-   my $pos = $c->stash->{game}->current_position;
-   my $board = Util::unpack_position($pos, $size);
+   #push @lines, "<br>And here's a pseudoboard!<br>";
+   #push @lines, "board size: $size<br>";
+   my $board = $c->stash->{board};
    
    #render this board as a html table
    push @lines, q|<table  class="Goban" style="background-image: url(/g/wood.gif);">|;
@@ -91,7 +131,7 @@ sub render_board_html{
          my $image = select_g_file ($stone, $size, $rownum, $colnum);
          $image = "<img class='brdx' src='/g/$image'>";
          if ($stone==0){ #empty, so clickable
-            my $url = "/game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'.'.$colnum;
+            my $url = "/game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
             $image = "<a href='$url'>$image</a>";
          }
          my $cell = q|<td class="brdx"> |;
