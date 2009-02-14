@@ -51,11 +51,13 @@ sub join_wgame{
       gid => $game->id,
       pid => $wgame->proposer,
       side => 1, #black
+      time_remaining => 0,
    });
    $c->model('DB::Player_to_game')->create({
       gid => $game->id,
       pid => $c->session->{userid},
       side => 2, #white
+      time_remaining => 0,
    });
    $wgame->decrease_quantity;
    return ''; #no err

@@ -1,7 +1,11 @@
 </div>
 
-<small>
-<span style="color: #070"> Save the basilisks.</span>
-</small>
+<table id="pagefoot" class="pagefoot">
+ <tr>
+  <td align="left"> <span style="color: #070"> Save the basilisks.</span> </td>
+  <td align="right"> <span style="color: #007"> 
+     <a href="http://senseis.xmp.net/?random=1">Wisdom.</a></span> </td>
+ </tr>
+</table>
 </body>
 </html>

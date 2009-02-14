@@ -22,6 +22,11 @@ table.pagehead {
    color: #FFFC70;
    width: 100%;"
 }
+table.pagefoot {
+   background: #f0f0ff;
+   color: #111111;
+   width: 100%;"
+}
 
 img.brdx{ width:25px; height:25px;}
 img.brdl{ width:25px; height:25px;}
