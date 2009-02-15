@@ -41,7 +41,8 @@ sub game : Global {
    if ($action eq 'move'){#evaluate & do move:
       my $err = evaluate_move($c);
       if ($err){
-         $c->stash->{msg} = 'move is failure';
+         $c->stash->{message} = "move is failure: $err";
+         $c->stash->{template} = 'message.tt';
       }
       else {
          do_move($c);
@@ -54,11 +55,32 @@ sub game : Global {
    $c->stash->{board_html} = render_board_html($c,$gameid);
 }
 
-#todo: separate into some ruleset module
+#todo: all mv eval into some ruleset module
+
+sub would_string{
+   my ($board, $row, $col, $color) = @_;
+   #if stone played here, get list of its strongly connected stones
+   
+}
+
 sub evaluate_move{
    my $c = shift;
-   return '';
+   my ($row, $col, $board) = @{$c->stash}{qw/move_row move_col board/};
+   my $size = $c->stash->{game}->size;
+   if ($board->[$row][$col]){
+      return "stone exists at row $row col $col";
+   }
+   
+   #produce copy of board for evaluation -> add stone at $row $col
+   my $newboard = [ map {[@$_]} @$board ];
+   $newboard->[$row][$col] = 1;
+   my ($string, $libs) = Util::get_string($newboard, $row, $col);
+   # $string is a list of strongly connected stones.
+   return '';#no err
 }
+#die join';',map{@$_}@$libs; #err list of coordinates
+
+
 sub do_move{#todo:mv to game class
    my $c = shift;
    my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});

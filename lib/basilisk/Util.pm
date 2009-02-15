@@ -2,7 +2,7 @@ package Util;
 use strict;
 use warnings;
 
-#let's use 1 byte per intersection. This leaves room for more data
+# using 1 byte per intersection in storage.
 sub EMPTY{0}
 sub BLACK{1}
 sub WHITE{2}
@@ -76,6 +76,37 @@ sub board_to_text{
    }
    my $text = join "\n", @lines;
    $text =~ tr/12/XO/;
+}
+
+#use a floodfill algorithm
+sub get_string { #for vanilla boards
+   my ($board, $srow, $scol) = @_; #start row/column
+   my $size = scalar @$board; #assuming square
+   
+   my @seen;
+   my @found;
+   my @libs; #liberties
+   my $color = $board->[$srow][$scol];
+   return if $color==0; #empty
+   #color 0 has to mean empty, (1 black, 2 white.)
+   my @nodes = ([$srow,$scol]); #array of adjacent intersections to consider
+   
+   while (@nodes) {
+      my ($row, $col) = @{pop @nodes};
+      next if $seen[$row][$col];
+      $seen[$row][$col] = 1;
+      if ($board->[$row][$col] == $color){
+         push @found, [$row, $col];
+         push @nodes, [$row-1, $col] unless $row <= 0;
+         push @nodes, [$row+1, $col] unless $row >= $size;
+         push @nodes, [$row, $col-1] unless $col <= 0;
+         push @nodes, [$row, $col+1] unless $col >= $size;
+      }
+      elsif ($board->[$row][$col] == 0){ #empty
+         push @libs, [$row, $col];
+      }
+   }
+   return (\@found, \@libs);
 }
 
 1;
