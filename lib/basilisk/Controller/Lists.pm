@@ -13,6 +13,8 @@ sub players :Global{
       '<img src="/g/wood.gif" />';
    $c->stash->{template} = 'message.tt';
 }
+
+
 #list of all games on server
 sub games :Global{
    my ( $self, $c ) = @_;
@@ -31,6 +33,8 @@ sub games :Global{
 
 sub add_wgame{
    my $c = shift;
+   return 'log in first' unless $c->session->{logged_in};
+   
    my $row = $c->model('DB::Game_proposal')->create({
       quantity => $c->req->param('quantity'),
       proposer => $c->session->{userid},
@@ -39,31 +43,50 @@ sub add_wgame{
    });
    return ''; #no err
 }
-sub join_wgame{
-   my $c = shift;
-   my $wgame_id = $c->req->param('wgameid');
-   my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
-   return "wgame $wgame_id doesn't exist." unless $wgame;
+
+#join a game, from waiting room
+
+sub create_game{
+   my ($c, $b, $w, $ruleset_id) = @_;
+   
+   #die $w;
+   $c->model('DB')->schema->txn_do(\&create_2player_game, $c, $b, $w, $ruleset_id)
+}
+
+sub create_2player_game{ # called as one transaction
+   my ($c, $b, $w, $ruleset_id) = @_;
    my $game = $c->model('DB::Game')->create({
-      ruleset => $wgame->ruleset,
+      ruleset => $ruleset_id,
    });
    $c->model('DB::Player_to_game')->create({
       gid => $game->id,
-      pid => $wgame->proposer,
+      pid => $b,
       side => 1, #black
       time_remaining => 0,
    });
    $c->model('DB::Player_to_game')->create({
       gid => $game->id,
-      pid => $c->session->{userid},
+      pid => $w,
       side => 2, #white
       time_remaining => 0,
    });
+}
+
+
+sub join_wgame{
+   my $c = shift;
+   return 'log in first' unless $c->session->{logged_in};
+   my $wgame_id = $c->req->param('wgameid');
+   my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
+   return "wgame $wgame_id doesn't exist." unless $wgame;
+   my $ruleset_id = $wgame->ruleset;
+   
+   create_game ($c, $wgame->proposer->id, $c->session->{userid}, $ruleset_id) ;
    $wgame->decrease_quantity;
    return ''; #no err
 }
 
-sub waiting_room :Global{
+sub waiting_room :Global{ #TODO: @lines is wrong, use TT
    my ( $self, $c ) = @_;
    $c->stash->{msg} = $c->session->{userid};
    if ($c->req->param('action') eq 'add_wgame'){
@@ -115,9 +138,6 @@ sub waiting_room :Global{
          $c->stash->{message} = "Sorry no waiting game with id $wgame_id";
          $c->stash->{message} = 'message.tt';  return;
       }
-      #reuse @lines
-      #@lines = ();
-      #push @lines, ""
       $c->stash->{proposal_info}->{id} = $wgame_id;
       $c->stash->{proposal_info}->{quantity} = $wgame->quantity;
       $c->stash->{proposal_info}->{size} = $wgame->size;

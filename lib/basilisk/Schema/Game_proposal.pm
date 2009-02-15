@@ -2,6 +2,8 @@ package basilisk::Schema::Game_proposal;
 
 #use basilisk::Util;
 
+#games are created elsewhere, since creation data depends heavily on the ruleset used
+
 use base qw/DBIx::Class/;
 
 __PACKAGE__->load_components(qw/PK::Auto Core/);
@@ -11,16 +13,22 @@ __PACKAGE__->add_columns(
     'quantity'      => { data_type => 'INTEGER', default_value => 1},
     'ruleset'      => { data_type => 'INTEGER', is_nullable => 0 },
     'proposer'        => { data_type => 'INTEGER', is_nullable => 0 },
-    #'to'        => { data_type => 'INTEGER', is_nullable => 0 }, #to all for now
+    #'to'        => { data_type => 'INTEGER', default => 0 }, #to all for now
 );
 
 sub size{
    my $self = shift;
    return $self->ruleset->size
 }
-sub decrease_quantity{
+sub decrease_quantity{ #by just one
    my $self = shift;
-   #$self->quantity--;
+   my $q = $self->quantity;
+   if ($q==1){ #remove.
+      $self->delete;
+      return;
+   }
+   $self->set_column('quantity', $q-1);
+   $self->update;
    #$self->delete if $self->quantity < 1
 }
 
