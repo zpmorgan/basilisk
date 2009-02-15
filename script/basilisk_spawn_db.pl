@@ -50,13 +50,13 @@ $p2g_rs->create({
    pid  => $players[1],
    gid  => $newgame_id,
    side => 0,
-   'time_remaining' => 0,
+   expiration => 0,
 });
 $p2g_rs->create({
    pid  => $players[2],
    gid  => $newgame_id,
    side => 1,
-   'time_remaining' => 0,
+   expiration => 0,
 });
 
 

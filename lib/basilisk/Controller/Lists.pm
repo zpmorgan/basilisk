@@ -158,15 +158,23 @@ sub status :Global{
 
 sub userinfo :Global{
    my ( $self, $c ) = @_;
-   #my ($userid) = $c->req->path =~ m|user/(\d*)|;
-   my ($name) = $c->req->path =~ m|user/(\w*)|;
-   unless ($name){
-      $name = $c->session->{logged_in} ? $c->session->{name} : 'guest';
+   #$user could be a player's id or name
+   #TODO: forbid names of only numbers, or change this
+   my ($user) = $c->req->path =~ m|userinfo/(\w*)|;
+   unless ($user){
+      $user = $c->session->{logged_in} ? $c->session->{name} : 'guest';
    }
-   my $row = $c->model('DB::Player')->find({name => $name});
+   my $row;
+   if ($user =~ /^\d*$/){ #only digits from url path
+      $row = $c->model('DB::Player')->find({id => $user});
+   }
+   else{
+      $row = $c->model('DB::Player')->find({name => $user});
+   }
+   
    my $id = $row->id;
    
-   $c->stash->{title} = $name . '\'s info';
+   $c->stash->{title} = $row->name . '\'s info';
    my @lines;
    push @lines, $row->name . '\'s info:';
    push @lines, '<table>';

@@ -51,7 +51,8 @@ sub game : Global {
    }
    $c->stash->{last_move} = $c->stash->{game}->last_move;
    $c->stash->{title} = "Game ".$c->stash->{gameid}.", move ".$c->stash->{last_move};
-   $c->stash->{players_html} = display_players_html($c);
+   #$c->stash->{players_html} = display_players_html($c);
+   $c->stash->{players_data} = get_game_player_data($c);
    $c->stash->{board_html} = render_board_html($c,$gameid);
 }
 
@@ -104,33 +105,34 @@ sub do_move{#todo:mv to game class
    return;
 }
 
-sub display_players_html{
+sub get_game_player_data{ #for game.tt
    my ($c) = @_;
    my @lines;
    #get player-game data
    my @players = $c->model('DB::Player_to_game')->search( 
       {gid => $c->stash->{gameid}},
       {join => 'player',
-         '+select' => ['player.name', 'player.id'],
-         '+as'     => ['name', 'id']
+         '+select' => ['player.name'],
+         '+as'     => ['name']
       }
    );
    
-   
-   push @lines, q|<table>|;
+   my @playerdata;
+   #put data in hashes in @playerdata for template
    for my $p (@players){
-      push @lines, q|<tr>|;
-      #stone graphic
-      push @lines, q| <td> <img src="/g/| . ($p->side==0 ? 'b' : 'w') . q|.gif"> </td>|;
-      #player name
-      push @lines, q| <td> <b>| . $p->get_column('name') . q|</b> </td>|;
-      #player time remaining
-      push @lines, q| <td> Remaining time: | . $p->time_remaining . q| </td>|;
-      
-      push @lines, q|</tr>|;
+      #todo: calc time remaining, render human readable
+      my $img = ($p->side==1 ? 'b' : 'w') . '.gif';
+      push @playerdata, {
+         side => $p->side,
+         stone_img => $img,
+         name => $p->get_column('name'),
+         id => $p->pid,
+         time_remaining => $p->expiration,
+         captures => $p->captures,
+      };
    }
-   push @lines, q|</table>|;
-   return join "\n", @lines;
+   return \@playerdata;
+   
 }
 
 

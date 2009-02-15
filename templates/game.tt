@@ -6,8 +6,18 @@
 <br>
 
 <br>
-[% players_html %]
-<br>
 
+<table style="border: 2px solid #558855;border-spacing: 3px;">
+
+[% FOREACH p = players_data %]
+   <tr> 
+      <td> <img src="/g/[% p.stone_img %]">  </td>
+      <td> <a href="/userinfo/[% p.id %]"> <b>[% p.name %]</b> </a>  </td>
+      <td> captures: [% p.captures %]</td>
+      <td> time remaining: [% p.time_remaining %]</td>
+   </tr>
+[% END %]
+
+</table>
     
 [% INCLUDE footer %]
