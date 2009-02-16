@@ -17,7 +17,7 @@ sub game : Global {
    
    my $action = $c->req->param('action');
    $c->stash->{gameid} = $gameid;
-   $c->stash->{game} = $c->model('DB::Game')->find( 'id' => $c->stash->{gameid});
+   $c->stash->{game} = $c->model('DB::Game')->find ({'id' => $c->stash->{gameid}});
    unless ($gameid ){
       $c->stash->{message} = 'invalid request: please supply a game id';
       $c->stash->{template} = 'message.tt';return;

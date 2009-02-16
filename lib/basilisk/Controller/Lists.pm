@@ -89,25 +89,25 @@ sub join_wgame{
 
 sub waiting_room :Global{ #TODO: @lines is wrong, use TT
    my ( $self, $c ) = @_;
-   $c->stash->{msg} = $c->session->{userid};
-   if ($c->req->param('action') eq 'add_wgame'){
-      my $err = add_wgame($c);
-      if ($err){
-         $c->stash->{message} = "error: $err";
-         $c->stash->{template} = 'message.tt'; return
+   if ($c->req->param('action')){
+      if ($c->req->param('action') eq 'add_wgame'){
+         my $err = add_wgame($c);
+         if ($err){
+            $c->stash->{message} = "error: $err";
+            $c->stash->{template} = 'message.tt'; return
+         }
+         $c->stash->{msg} = 'Game added';
       }
-      $c->stash->{msg} = 'Game added';
-   }
-   elsif ($c->req->param('action') eq 'join'){
-      my $err = join_wgame($c);
-      if ($err){
-         $c->stash->{message} = "error: $err";
-         $c->stash->{template} = 'message.tt'; return
+      elsif ($c->req->param('action') eq 'join'){
+         my $err = join_wgame($c);
+         if ($err){
+            $c->stash->{message} = "error: $err";
+            $c->stash->{template} = 'message.tt'; return
+         }
+         $c->stash->{msg} = 'Game joined!';
+         #TODO: forward to joined game
       }
-      $c->stash->{msg} = 'Game joined!';
-      #TODO: forward to joined game
    }
-   
    $c->stash->{title} = 'Waiting room';
    $c->stash->{template} = 'waiting_room.tt';
    my @lines = ('<table border="1">');
