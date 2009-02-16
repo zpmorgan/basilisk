@@ -99,10 +99,10 @@ sub get_string { #for vanilla boards
       $seen[$row][$col] = 1;
       if ($board->[$row][$col] == $color){
          push @found, [$row, $col];
-         push @nodes, [$row-1, $col] unless $row <= 0;
-         push @nodes, [$row+1, $col] unless $row >= $size;
-         push @nodes, [$row, $col-1] unless $col <= 0;
-         push @nodes, [$row, $col+1] unless $col >= $size;
+         push @nodes, [$row-1, $col] unless $row == 0;
+         push @nodes, [$row+1, $col] unless $row == $size-1;
+         push @nodes, [$row, $col-1] unless $col == 0;
+         push @nodes, [$row, $col+1] unless $col == $size-1;
       }
       elsif ($board->[$row][$col] == 0){ #empty
          push @libs, [$row, $col];
