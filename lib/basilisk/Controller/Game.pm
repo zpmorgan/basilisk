@@ -16,11 +16,6 @@ sub game : Global {
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
    
    my $action = $c->req->param('action');
-   #$c->stash->{msg} = 'action is '.$action.',co is '.$c->req->param('co');
-   if ($action eq 'move'){ #extract coordinates from url
-      ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
-   }
-   
    $c->stash->{gameid} = $gameid;
    $c->stash->{game} = $c->model('DB::Game')->find( 'id' => $c->stash->{gameid});
    unless ($gameid ){
@@ -38,11 +33,19 @@ sub game : Global {
    my $board = Util::unpack_position($pos_data, $size);
    @{$c->stash}{qw/pos_data board/} = ($pos_data, $board); #put board data in stash
    
-   if ($action eq 'move'){#evaluate & do move:
-      my $err = evaluate_move($c);
+   if ($action eq 'move'){ #evaluate & do move:
+      my $err = seek_permission_to_move($c);
+      if ($err){
+         $c->stash->{message} = "permission fail: $err";
+         $c->stash->{template} = 'message.tt'; return;
+      }
+      
+      #extract coordinates from url:
+      ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
+      $err = evaluate_move($c);
       if ($err){
          $c->stash->{message} = "move is failure: $err";
-         $c->stash->{template} = 'message.tt';
+         $c->stash->{template} = 'message.tt'; return;
       }
       else {
          do_move($c);
@@ -56,7 +59,26 @@ sub game : Global {
    $c->stash->{board_html} = render_board_html($c,$gameid);
 }
 
-#todo: all mv eval into some ruleset module
+#returns error or ''
+sub seek_permission_to_move{
+   my $c = shift;
+   return 'not logged in' unless $c->session->{logged_in};
+   return 'not registered' if $c->session->{userid} == 1;
+   my $game = $c->stash->{game};
+   my $p = $c->model('DB::player_to_game')->find( {
+       gid => $game->id,
+       side => $game->turn,
+   });
+   return "player on side ".$game->turn."not found for game ".$c->stash->{gameid}
+      unless $p;
+   return 'not your turn.' unless $c->session->{userid} == $p->pid;
+   #success
+   $c->stash->{p2g} = $p;
+   $c->stash->{side} = $p->side;
+   return '' if $game->turn == $p->side;
+}
+
+#todo: move all mv eval into some ruleset module
 
 sub would_string{
    my ($board, $row, $col, $color) = @_;
@@ -75,8 +97,9 @@ sub evaluate_move{
    #produce copy of board for evaluation -> add stone at $row $col
    my $newboard = [ map {[@$_]} @$board ];
    $newboard->[$row][$col] = 1;
+   # $string is a list of strongly connected stones:
    my ($string, $libs) = Util::get_string($newboard, $row, $col);
-   # $string is a list of strongly connected stones.
+   return 'suicide' unless scalar @$libs;
    return '';#no err
 }
 #die join';',map{@$_}@$libs; #err list of coordinates
@@ -86,7 +109,9 @@ sub do_move{#todo:mv to game class
    my $c = shift;
    my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
    my $board = $c->stash->{board};
-   $board->[$row]->[$col] = 1; #black always
+   my $side = $c->stash->{side}; #1 if B,2 if W
+   #die $side;
+   $board->[$row]->[$col] = $side; #black always
    my $size = $c->stash->{game}->size;
    my $new_pos_data = Util::pack_board($board, $size);
    
@@ -98,10 +123,11 @@ sub do_move{#todo:mv to game class
    my $moverow = $c->model('DB::Move')->create( {
       gid => $c->stash->{game}->id,
       position_id => $posrow->id,
-      move => "b $row, $col",
+      move => ($side==1?'b':'w') . " $row, $col",
       movenum => $c->stash->{game}->next_move,
       time => time,
    });
+   $c->stash->{game}->shift_turn; #b to w, etc
    return;
 }
 

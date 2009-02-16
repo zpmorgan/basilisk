@@ -62,13 +62,13 @@ sub create_2player_game{ # called as one transaction
       gid => $game->id,
       pid => $b,
       side => 1, #black
-      time_remaining => 0,
+      expiration => 0,
    });
    $c->model('DB::Player_to_game')->create({
       gid => $game->id,
       pid => $w,
       side => 2, #white
-      time_remaining => 0,
+      expiration => 0,
    });
 }
 

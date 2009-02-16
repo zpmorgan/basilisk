@@ -10,7 +10,7 @@ __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
     'ruleset'      => { data_type => 'INTEGER', is_nullable => 0 },
     #turn--player currently with the initiative(index as 'side' col from player_to_game)
-    'turn'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
+    'turn'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 1 },
 
 );
 
@@ -29,6 +29,11 @@ sub player_to_move_next{
    my $player = $self->players->search({side => $self->turn})->next;
    return $player if $player;
    die "no player as side ".$self->turn." in game ".$self->id;
+}
+sub shift_turn{
+   my $self = shift;
+   $self->set_column('turn', ($self->turn)%2 + 1);
+   $self->update;
 }
 
 
