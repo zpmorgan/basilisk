@@ -9,7 +9,12 @@ Here's a number:
     
 And here's every running game on this server:
 <br>
-[% games_table %]
-<br>
+<table>
+[% FOREACH g = games_data %]
+   <tr>
+      <td><a href="/game/[% g.id %]"> [% g.id %] </a></td>
+   <tr>
+[% END %]
+</table>
     
 [% INCLUDE footer %]

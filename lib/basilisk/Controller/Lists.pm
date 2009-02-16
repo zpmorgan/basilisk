@@ -21,14 +21,15 @@ sub games :Global{
    
    $c->stash->{title} = 'All games';
    $c->stash->{template} = 'all_games.tt';
-   my @lines = ('<table>');
    my $rs = $c->model('DB::Game')->search({}, {rows=>25})->page(0);
+   #todo: p2g joined with game & player tables with prefetch (outer join)
+   my @games_data; #this is what template uses
    for my $game($rs->all) {
-      my $id = $game->id;
-      push @lines, qq|<tr><td><a href="/game/$id">$id</a></td></tr>|;
+      push @games_data, {
+         id => $game->id,
+      }
    }
-   push @lines , '</table>';
-   $c->stash->{games_table} = join "\n", @lines;
+   $c->stash->{games_data} = \@games_data
 }
 
 sub add_wgame{

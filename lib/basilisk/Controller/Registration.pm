@@ -69,6 +69,7 @@ sub register :Global {
    $err .= "Require username.  " unless ($username);
    $err .= "Require password.  " unless ($passwd);
    $err .= "Passwords must match.  " unless ($passwd eq $passwd2);
+   $err .= "All digits?  " if ($username =~ /^\d*$/);
    
    #my $rs = $c->model('DB::Player');
    if ($username){
@@ -80,7 +81,7 @@ sub register :Global {
       return;
    }
    $c->model('DB::Player')->create ({name=>$username, pass=>$passwd});
-   $c->stash->{message} = "Registration successful! You have 15 \$passwd points!";
+   $c->stash->{message} = "Registration successful!";
    $c->stash->{template} = 'message.tt';
    $c->session->{name} = $username;
    $c->session->{player} = $c->model('DB::Player')->find (name=>$username);

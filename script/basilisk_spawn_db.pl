@@ -29,7 +29,7 @@ $row = $rs->create({
 });
 push @players, $row->get_column('id');$row = $rs->create({
     name=>"georgia",
-    pass=>"p"
+    pass=>"georgia"
 });
 push @players, $row->get_column('id');
 
