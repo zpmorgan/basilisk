@@ -8,7 +8,7 @@ Here's a number:<br>
 <br>
 
 And here's your status:<br>
-<table border="2">
+<table style="border: 2px solid #558855;border-spacing: 3px;">
 <tr><td>rank </td><td> pretty bad</td></tr>
 <tr><td>current games </td><td> looking grim</td></tr>
 <tr><td>also </td><td> you may as well give up.</td></tr>

@@ -49,13 +49,13 @@ my $p2g_rs = $schema->resultset('Player_to_game');
 $p2g_rs->create({
    pid  => $players[1],
    gid  => $newgame_id,
-   side => 0,
+   side => 1,
    expiration => 0,
 });
 $p2g_rs->create({
    pid  => $players[2],
    gid  => $newgame_id,
-   side => 1,
+   side => 2,
    expiration => 0,
 });
 

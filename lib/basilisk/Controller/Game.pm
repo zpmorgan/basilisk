@@ -42,13 +42,17 @@ sub game : Global {
       
       #extract coordinates from url:
       ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
-      $err = evaluate_move($c);
+      my ($err, $newboard, $caps) = evaluate_move($c);
       if ($err){
          $c->stash->{message} = "move is failure: $err";
          $c->stash->{template} = 'message.tt'; return;
       }
-      else {
-         do_move($c);
+      else { #alter db
+         #do_move($c, $newboard);
+         $c->model('DB')->schema->txn_do(
+           \&do_move, $c, $newboard, $caps
+         );
+         $c->stash->{board} = $newboard;
          $c->stash->{msg} = 'move is success';
       }
    }
@@ -59,7 +63,7 @@ sub game : Global {
    $c->stash->{board_html} = render_board_html($c,$gameid);
 }
 
-#returns error or ''
+#returns error string if error
 sub seek_permission_to_move{
    my $c = shift;
    return 'not logged in' unless $c->session->{logged_in};
@@ -80,40 +84,39 @@ sub seek_permission_to_move{
 
 #todo: move all mv eval into some ruleset module
 
-sub would_string{
-   my ($board, $row, $col, $color) = @_;
-   #if stone played here, get list of its strongly connected stones
-   
-}
-
 sub evaluate_move{
    my $c = shift;
    my ($row, $col, $board) = @{$c->stash}{qw/move_row move_col board/};
    my $size = $c->stash->{game}->size;
+   my $turn = $c->stash->{game}->turn;
    if ($board->[$row][$col]){
       return "stone exists at row $row col $col";
    }
    
    #produce copy of board for evaluation -> add stone at $row $col
    my $newboard = [ map {[@$_]} @$board ];
-   $newboard->[$row][$col] = 1;
-   # $string is a list of strongly connected stones:
-   my ($string, $libs) = Util::get_string($newboard, $row, $col);
-   return 'suicide' unless scalar @$libs;
-   return '';#no err
+   $newboard->[$row]->[$col] = $turn;
+   # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
+   my ($string, $libs, $foes) = Util::get_string($newboard, $row, $col);
+   my $caps = Util::find_captured ($newboard, $foes);
+   if (@$libs == 0 and @$caps == 0){
+      return 'suicide';
+   }
+   for my $cap(@$caps){ # just erase captured stones
+      $newboard->[$cap->[0]]->[$cap->[1]] = 0;
+   }
+   return ('',$newboard, $caps);#no err
 }
 #die join';',map{@$_}@$libs; #err list of coordinates
 
 
-sub do_move{#todo:mv to game class
-   my $c = shift;
+sub do_move{#todo:mv to game class?
+   my ($c, $newboard, $caps) = @_;
    my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
-   my $board = $c->stash->{board};
    my $side = $c->stash->{side}; #1 if B,2 if W
    #die $side;
-   $board->[$row]->[$col] = $side; #black always
    my $size = $c->stash->{game}->size;
-   my $new_pos_data = Util::pack_board($board, $size);
+   my $new_pos_data = Util::pack_board($newboard, $size);
    
    $c->stash->{new_pos_data} = $new_pos_data;
    my $posrow = $c->model('DB::Position')->create( {
@@ -128,6 +131,11 @@ sub do_move{#todo:mv to game class
       time => time,
    });
    $c->stash->{game}->shift_turn; #b to w, etc
+   if (@$caps){ #update capture count
+      my $p2g = $c->stash->{p2g};#player_to_game
+      $p2g->set_column('captures',$p2g->captures + @$caps); #INT
+      $p2g->update;
+   }
    return;
 }
 
