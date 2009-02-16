@@ -10,8 +10,8 @@ __PACKAGE__->config->{namespace} = '';
 sub login :Global{
    my ( $self, $c ) = @_;
    if ($c->session->{logged_in}){
-      $c->stash->{message} = "You are already logged in, ".$c->session->{name} .
-        '.<br><a href="/logout">Log out.</a>';
+      $c->stash->{message} = "You are already logged in, <b>".$c->session->{name} .
+        '</b>.<br><a href="/logout">Log out.</a>';
       $c->stash->{template} = 'message.tt';
       return;
    }

@@ -38,12 +38,13 @@ sub games :Global{
 sub add_wgame{
    my $c = shift;
    return 'log in first' unless $c->session->{logged_in};
-   
+   my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
+      size => $c->req->param('size'),
+   });
    my $row = $c->model('DB::Game_proposal')->create({
       quantity => $c->req->param('quantity'),
       proposer => $c->session->{userid},
-      #size => $c->req->param('size'),
-      ruleset => 1,
+      ruleset => $new_ruleset->id,
    });
    return ''; #no err
 }
