@@ -27,6 +27,28 @@ table.pagefoot {
    color: #111111;
    width: 100%;"
 }
+table.gameslist {
+   border: 2px solid #337733;
+   background: #dddddd;
+   width: 40%;"
+   border-collapse: collapse;
+}
+
+table.gameslist tr#headrow {
+}
+table.gameslist tr#headrow td {
+   background: #000000;
+   color: #ffffff;
+   font-weight: bold;
+   font-size: 110%;
+}
+
+table.gameslist td{
+   border-width: 1px;
+   padding: 1px;
+   color: black;
+   text-align: center;
+}
 
 img.brdx{ width:25px; height:25px;}
 img.brdl{ width:25px; height:25px;}

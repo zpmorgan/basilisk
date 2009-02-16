@@ -27,6 +27,9 @@ sub games :Global{
    for my $game($rs->all) {
       push @games_data, {
          id => $game->id,
+         bname => 'blackie',
+         wname => 'whitie',
+         size => $game->size,
       }
    }
    $c->stash->{games_data} = \@games_data

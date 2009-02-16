@@ -42,7 +42,8 @@ sub game : Global {
       
       #extract coordinates from url:
       ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
-      my ($err, $newboard, $caps) = evaluate_move($c);
+      my ($newboard, $caps);
+      ($err, $newboard, $caps) = evaluate_move($c);
       if ($err){
          $c->stash->{message} = "move is failure: $err";
          $c->stash->{template} = 'message.tt'; return;

@@ -9,11 +9,21 @@ Here's a number:
     
 And here's every running game on this server:
 <br>
-<table>
+<table class="gameslist">
+   <tr id="headrow">
+      <td>ID</td>
+      <td>Black</td>
+      <td>White</td>
+      <td>Size</td>
+   </tr>
+   
 [% FOREACH g = games_data %]
    <tr>
       <td><a href="/game/[% g.id %]"> [% g.id %] </a></td>
-   <tr>
+      <td> [% g.bname %] </td>
+      <td> [% g.wname %] </td>
+      <td> [% g.size %] </td>
+   </tr>
 [% END %]
 </table>
     
