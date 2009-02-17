@@ -43,7 +43,7 @@ sub current_position{
    if ($lastmove == 0){ #no moves have taken place yet.
       my $initial_pos = $self->ruleset->initial_pos;
       if ($initial_pos){
-         die $initial_pos;
+         return $initial_pos->position;
       }
       else{
          return Util::empty_pos($self->size); #blob
