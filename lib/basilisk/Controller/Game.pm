@@ -59,9 +59,9 @@ sub game : Global {
    }
    $c->stash->{last_move} = $c->stash->{game}->last_move;
    $c->stash->{title} = "Game ".$c->stash->{gameid}.", move ".$c->stash->{last_move};
-   #$c->stash->{players_html} = display_players_html($c);
    $c->stash->{players_data} = get_game_player_data($c);
    $c->stash->{board_html} = render_board_html($c,$gameid);
+   $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
 }
 
 #returns error string if error
@@ -78,9 +78,10 @@ sub seek_permission_to_move{
       unless $p;
    return 'not your turn.' unless $c->session->{userid} == $p->pid;
    #success
+   return 'strange' unless $game->turn == $p->side;
    $c->stash->{p2g} = $p;
    $c->stash->{side} = $p->side;
-   return '' if $game->turn == $p->side;
+   return ''
 }
 
 #todo: move all mv eval into some ruleset module

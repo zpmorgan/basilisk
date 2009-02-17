@@ -12,7 +12,7 @@ my $schema = basilisk::Schema->connect($dsn, $user, $pass) or
   die "Failed to connect to database";
 
 print "Deploying schema to $dsn\n";
-$schema->deploy;
+$schema->deploy ({add_drop_table => 1});
 
 
 #make up some data

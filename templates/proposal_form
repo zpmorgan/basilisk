@@ -32,6 +32,14 @@
       <OPTION value="25">25</OPTION>
      </SELECT></td>
   </tr>
+ <tr>
+   <td align="right">Topology:</td>
+   <td align="left"><SELECT name="topology" size="1">
+      <OPTION value="plane">Plane</OPTION>
+      <OPTION value="cylinder">Cylinder</OPTION>
+      <OPTION value="torus">Torus</OPTION>
+     </SELECT></td>
+  </tr>
   <tr>
    <td colspan="2" align="center">  <INPUT type="submit" name="add_game" value="Add Game">  </td>
   </tr>
