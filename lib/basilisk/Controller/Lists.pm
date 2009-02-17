@@ -167,7 +167,7 @@ sub status :Global{
 sub userinfo :Global{
    my ( $self, $c ) = @_;
    #$user could be a player's id or name
-   #TODO: forbid names of only numbers, or change this
+   # names of only numbers are  forbidden
    my ($user) = $c->req->path =~ m|userinfo/(\w*)|;
    unless ($user){
       $user = $c->session->{logged_in} ? $c->session->{name} : 'guest';

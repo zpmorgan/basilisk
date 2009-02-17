@@ -13,8 +13,10 @@ __PACKAGE__->add_columns(
     #variant rules:
     #'turn_mode'       => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'}, for rengo, zen, normal, etc
     'num_players'    => { data_type => 'INTEGER', is_nullable => 0, default_value => '2'},
+    
+    #todo: make these 'extra rules'.
     'initial_pos'    => { data_type => 'INTEGER', is_nullable => 1 },
-    #boolean settings:
+    #boolean settings: 
     'wrap_ns'           => { data_type => 'INTEGER', is_nullable => 0, default_value => '0' },
     'wrap_ew'           => { data_type => 'INTEGER', is_nullable => 0, default_value => '0' },
     'dark'           => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},

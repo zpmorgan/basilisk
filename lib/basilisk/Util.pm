@@ -27,8 +27,8 @@ sub empty_board{ #return list of lists
 
 #from lists to position blob
 sub pack_board{
-   my ($board,$h,$w) = @_;
-   $w = $h unless $w;
+   my ($board) = @_;
+   
    my $blob = '';
    for my $row (@$board){
       $blob .= pack ('C*',@$row)

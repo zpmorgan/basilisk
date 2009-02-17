@@ -86,6 +86,25 @@ sub seek_permission_to_move{
 
 #todo: move all mv eval into some ruleset module
 
+sub detect_duplicate_position{
+   my ($c, $newboard) = @_;
+   my $size = $c->stash->{game}->size;
+   my $newpos = Util::pack_board($newboard, $size);
+   
+   #search position table for the same board state from the same game
+   my $oldmove = $c->model('DB::Move')->find (
+     {
+      gid => $c->stash->{game}->id,
+      'position.position' => $newpos,
+     },{
+      'join' => 'position',
+      '+select' => [ 'position.position'],
+      '+as'     => [ 'oldpos' ],
+   });
+   $c->stash->{oldmove} = $oldmove;
+   return 1 if $oldmove;
+}
+
 sub evaluate_move{
    my $c = shift;
    my ($row, $col, $board) = @{$c->stash}{qw/move_row move_col board/};
@@ -106,6 +125,9 @@ sub evaluate_move{
    }
    for my $cap(@$caps){ # just erase captured stones
       $newboard->[$cap->[0]]->[$cap->[1]] = 0;
+   }
+   if (detect_duplicate_position($c, $newboard)){
+      return 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum
    }
    return ('',$newboard, $caps);#no err
 }
