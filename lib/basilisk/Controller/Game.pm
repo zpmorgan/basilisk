@@ -60,7 +60,7 @@ sub game : Global {
    $c->stash->{last_move} = $c->stash->{game}->last_move;
    $c->stash->{title} = "Game ".$c->stash->{gameid}.", move ".$c->stash->{last_move};
    $c->stash->{players_data} = get_game_player_data($c);
-   $c->stash->{board_html} = render_board_html($c,$gameid);
+   render_board_table($c);
    $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
 }
 
@@ -194,42 +194,25 @@ sub get_game_player_data{ #for game.tt
 }
 
 
-sub render_board_html{
+sub render_board_table{
    my ($c) = @_;
    my $size = $c->stash->{game}->size;
-   my @lines;
-   #push @lines, "<br>And here's a pseudoboard!<br>";
-   #push @lines, "board size: $size<br>";
    my $board = $c->stash->{board};
-   
-   #render this board as a html table
-   push @lines, q|<table  class="Goban" style="background-image: url(/g/wood.gif);">|;
-   #todo: coordinate letters
+   my @table; #cells representing one intersection each
+   #todo: coordinate letters 
    for my $rownum (0..$size-1){
-      push @lines, q|<tr>|;
       #todo: coordinate number column
-      for my $colnum (0..$size-1){ #form one intersection. if empty, it's a link
+      for my $colnum (0..$size-1){ #form one intersection. 
          my $stone = $board->[$rownum]->[$colnum]; #0 if empty, 1 b, 2 w
          my $image = select_g_file ($stone, $size, $rownum, $colnum);
-         $image = "<img class='brdx' src='/g/$image'>";
-         if ($stone==0){ #empty, so clickable
+         $table[$rownum][$colnum]->{g} = $image;
+         if ($stone==0){ #empty
             my $url = "/game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
-            $image = "<a href='$url'>$image</a>";
+            $table[$rownum][$colnum]->{ref} = $url;
          }
-         my $cell = q|<td class="brdx"> |;
-         $cell .= $image;
-         $cell .= q|</td>|;
-         push @lines, $cell;
-         #push @lines, q|<td class="brdx"> <img class="brdx" src="/g/| . 
-         #   select_g_file ($board->[$rownum]->[$colnum], $size, $rownum, $colnum)
-         #   . q|" /> </td>|;
       }
-      #todo: coordinate number column
-      push @lines, q|</tr>|;
    }
-   #todo: coordinate letters
-   push @lines, '</table>';
-   return join "\n", @lines;
+   $c->stash->{board_data} = \@table;
 }
 
 sub select_g_file{ #default board

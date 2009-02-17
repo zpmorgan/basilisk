@@ -5,11 +5,23 @@
 </span>
 
 <br>
-<br>
-[% board_html %]
-<br>
 
+<table class="Goban" style="background-image: url(/g/wood.gif);">
+   
+   [% FOREACH row = board_data -%]
+      <tr>
+      [% FOREACH cell = row -%]
+         [% IF cell.ref -%]
+            <td> <a href="[% cell.ref %]">  <img src="/g/[% cell.g %]">  </a> </td>
+         [% ELSE -%]
+            <td> <img src="/g/[% cell.g %]"> </td>
+         [% END -%]
+      [% END -%]
+      </tr>
+[%END%]
 <table style="border: 2px solid #558855;border-spacing: 3px;">
+
+<br>
 
 [% FOREACH p = players_data %]
    <tr> 
