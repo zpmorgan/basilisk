@@ -35,6 +35,8 @@ sub games :Global{
    $c->stash->{games_data} = \@games_data
 }
 
+
+
 sub add_wgame{
    my $c = shift;
    return 'log in first' unless $c->session->{logged_in};
@@ -42,10 +44,13 @@ sub add_wgame{
    my ($ew, $ns) = (0,0); #sides which wrap around
    $ew = 1 if $topo eq 'cylinder' or $topo eq 'torus';
    $ns = 1 if $topo eq 'torus';
+   my $desc = ''; # description of interesting rules
+   my $desc .= $topo unless $topo eq 'plane';  #planes are not interesting
    my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
       size => $c->req->param('size'),
       wrap_ew => $ew,
       wrap_ns => $ns,
+      rules_description => $desc,
    });
    my $row = $c->model('DB::Game_proposal')->create({
       quantity => $c->req->param('quantity'),
@@ -54,6 +59,7 @@ sub add_wgame{
    });
    return ''; #no err
 }
+
 
 #join a game, from waiting room
 #this just wraps create_2player_game in a transaction
@@ -82,7 +88,6 @@ sub create_2player_game{ # called as one transaction
    });
 }
 
-
 sub join_wgame{
    my $c = shift;
    return 'log in first' unless $c->session->{logged_in};
@@ -95,6 +100,8 @@ sub join_wgame{
    $wgame->decrease_quantity;
    return ''; #no err
 }
+
+
 
 sub waiting_room :Global{
    my ( $self, $c ) = @_;
@@ -121,9 +128,9 @@ sub waiting_room :Global{
    $c->stash->{template} = 'waiting_room.tt';
    my @waiting_rs = $c->model('DB::Game_proposal')->search( #todo:join with ruleset
       {},
-      {join => 'proposer',
-        '+select' => ['proposer.name', 'proposer.id'], 
-        '+as'     => ['name', 'proposer_id'],
+      {join => ['proposer', 'ruleset'],
+        '+select' => ['proposer.name', 'proposer.id', 'ruleset.rules_description'], 
+        '+as'     => ['name', 'proposer_id', 'description'],
       },
    );
    
@@ -132,8 +139,9 @@ sub waiting_room :Global{
       push @waiting_games_info,{ #todo:topology? maybe generate some description string?
          id => $waiting->id,
          proposer => $waiting->get_column('name'),
-         proposer_id => $waiting->get_column('name'),
+         proposer_id => $waiting->get_column('proposer_id'),
          size => $waiting->size,
+         desc => $waiting->get_column('description'),
       }
    }
    $c->stash->{waiting_games_info} = \@waiting_games_info;
@@ -156,6 +164,9 @@ sub waiting_room :Global{
       #$c->stash->{proposal_info} = $proposal_form;
    }
 }
+
+
+
 
 sub status :Global{
    my ( $self, $c ) = @_;

@@ -10,7 +10,7 @@
    
    [% FOREACH row = board_data -%]
       <tr>
-      [% FOREACH cell = row -%]
+      [%- FOREACH cell = row -%]
          [% IF cell.ref -%]
             <td> <a href="[% cell.ref %]">  <img src="/g/[% cell.g %]">  </a> </td>
          [% ELSE -%]
@@ -18,20 +18,29 @@
          [% END -%]
       [% END -%]
       </tr>
-[%END%]
+   [% END %]
+</table>
+
+
 <table style="border: 2px solid #558855;border-spacing: 3px;">
 
-<br>
-
-[% FOREACH p = players_data %]
+  [% FOREACH p = players_data %]
    <tr> 
       <td> <img src="/g/[% p.stone_img %]">  </td>
       <td> <a href="/userinfo/[% p.id %]"> <b>[% p.name %]</b> </a>  </td>
       <td> captures: [% p.captures %]</td>
       <td> time remaining: [% p.time_remaining %]</td>
    </tr>
-[% END %]
-
+  [% END %]
+  
+   <tr>
+      <td colspan="4"> Rules: basic </td>
+   </tr>
+  [% IF extra_rules_desc %]
+   <tr>
+      <td colspan="4"> Extra rules: <b>[% extra_rules_desc %]</b> </td>
+   </tr>
+  [% END %]
 </table>
     
 [% INCLUDE footer %]

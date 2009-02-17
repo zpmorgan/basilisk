@@ -13,6 +13,7 @@ __PACKAGE__->add_columns(
     #variant rules:
     'num_players'    => { data_type => 'INTEGER', is_nullable => 0, default_value => '2'},
     
+    'rules_description' => { data_type => 'TEXT', is_nullable => 1},
     #todo: make these 'extra rules'.
     'initial_position'    => { data_type => 'INTEGER', is_nullable => 1 },
     #'turn_mode'       => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'}, for rengo, zen, normal, etc

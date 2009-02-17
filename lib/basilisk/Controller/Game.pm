@@ -15,24 +15,24 @@ sub game : Global {
    #extract game id from path
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
    
-   my $action = $c->req->param('action');
-   $c->stash->{gameid} = $gameid;
-   $c->stash->{game} = $c->model('DB::Game')->find ({'id' => $c->stash->{gameid}});
    unless ($gameid ){
       $c->stash->{message} = 'invalid request: please supply a game id';
       $c->stash->{template} = 'message.tt';return;
    }
+   $c->stash->{gameid} = $gameid;
+   $c->stash->{game} = $c->model('DB::Game')->find ({'id' => $gameid});
    unless ($c->stash->{game}){
       $c->stash->{message} = 'invalid request: no game with that id';
       $c->stash->{template} = 'message.tt';return;
    }
-   #die $c->stash->{game}->last_move;
+   $c->stash->{ruleset} = $c->stash->{game}->ruleset;
    my $pos_data = $c->stash->{game}->current_position;
-   #my $pos_data = $pos->position;
+   
    my $size = $c->stash->{game}->size;
    my $board = Util::unpack_position($pos_data, $size);
    @{$c->stash}{qw/pos_data board/} = ($pos_data, $board); #put board data in stash
    
+   my $action = $c->req->param('action');
    if ($action eq 'move'){ #evaluate & do move:
       my $err = seek_permission_to_move($c);
       if ($err){
@@ -62,6 +62,7 @@ sub game : Global {
    $c->stash->{players_data} = get_game_player_data($c);
    render_board_table($c);
    $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
+   $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
 }
 
 #returns error string if error

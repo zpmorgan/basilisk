@@ -11,7 +11,7 @@ Potential games: <br>
 
 <table>
    <tr style="border: 1px solid #777;background-color:lightgray;">
-      <td>Info</td> <td>Name</td> <td>Size</td>
+      <td>Info</td> <td>Name</td> <td>Size</td> <td>Extra rules</td> 
    </tr>
    
   [% FOREACH w = waiting_games_info %]
@@ -19,6 +19,7 @@ Potential games: <br>
       <td> <a href="/waiting_room/[% w.id %]">INFO</a> </td>
       <td> <a href="/userinfo/[% w.proposer_id %]"> [% w.proposer %] </a> </td>
       <td> [% w.size %] </td>
+      <td> [% w.desc %] </td>
   </tr>
   [% END %]
 </table>
