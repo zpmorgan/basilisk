@@ -11,6 +11,8 @@ __PACKAGE__->add_columns(
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (moves => 'basilisk::Schema::Move', 'position_id');
+__PACKAGE__->has_many (games_initially => 'basilisk::Schema::Game', 
+      { 'foreign.initial_position' => 'self.id' });
 
 
 sub empty_pos{
