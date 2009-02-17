@@ -20,15 +20,15 @@ $schema->deploy ({add_drop_table => 1});
 my $player_rs = $schema->resultset('Player');
 my $row = $player_rs->create({
     name=>"guest",
-    pass=>"guestpass"
+    pass=> Util::pass_hash "guestpass"
 });
 $row = $player_rs->create({
     name=>"cannon",
-    pass=>"cannon"
+    pass=> Util::pass_hash "cannon"
 });
 $row = $player_rs->create({
     name=>"georgia",
-    pass=>"georgia"
+    pass=> Util::pass_hash "georgia"
 });
 
 #make generic empty game with cannon and georgia

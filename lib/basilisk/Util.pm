@@ -132,5 +132,12 @@ sub find_captured{
    }
    return \@caps
 }
+use Digest::MD5 'md5'; # qw(md5 md5_hex md5_base64);
+
+sub pass_hash{ #returns binary md5sum
+   my $passwd = shift;
+   my $hash = md5 $passwd;
+   return $hash;
+}
 
 1;

@@ -21,6 +21,7 @@ sub login :Global{
       my $err;
       my $username = $req->param('username');
       my $passwd = $req->param('passwd');
+      $passwd = Util::pass_hash $passwd;
       my $rs = $c->model('DB::Player');
       unless ($rs->count(name => $username)){
          $c->stash->{message} = 'no such username';
@@ -60,6 +61,8 @@ sub register :Global {
    my $username = $req->param('username');
    my $passwd = $req->param('passwd');
    my $passwd2 = $req->param('passwd2');
+   $passwd = Util::pass_hash $passwd;
+   $passwd2= Util::pass_hash $passwd2;
    unless ($username){ #just display form unless cgi args are here
       $c->stash->{template} = 'register.tt';
       return;
