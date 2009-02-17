@@ -56,11 +56,10 @@ sub add_wgame{
 }
 
 #join a game, from waiting room
-
+#this just wraps create_2player_game in a transaction
 sub create_game{
    my ($c, $b, $w, $ruleset_id) = @_;
    
-   #die $w;
    $c->model('DB')->schema->txn_do(\&create_2player_game, $c, $b, $w, $ruleset_id)
 }
 
@@ -97,7 +96,7 @@ sub join_wgame{
    return ''; #no err
 }
 
-sub waiting_room :Global{ #TODO: @lines is wrong, use TT
+sub waiting_room :Global{
    my ( $self, $c ) = @_;
    if ($c->req->param('action')){
       if ($c->req->param('action') eq 'add_wgame'){
@@ -115,33 +114,31 @@ sub waiting_room :Global{ #TODO: @lines is wrong, use TT
             $c->stash->{template} = 'message.tt'; return
          }
          $c->stash->{msg} = 'Game joined!';
-         #TODO: forward to joined game
+         #TODO: forward to joined game?
       }
    }
    $c->stash->{title} = 'Waiting room';
    $c->stash->{template} = 'waiting_room.tt';
-   my @lines = ('<table border="1">');
-   push @lines, q|<tr><td>id</td><td>proposer</td><td>size</td></tr>|;
-   my @rows = $c->model('DB::Game_proposal')->search(
+   my @waiting_rs = $c->model('DB::Game_proposal')->search( #todo:join with ruleset
       {},
       {join => 'proposer',
         '+select' => ['proposer.name', 'proposer.id'], 
         '+as'     => ['name', 'proposer_id'],
       },
    );
-   for my $row(@rows) {
-      my $id = $row->id;
-      my $size = $row->size;
-      my $name = $row->get_column('name');
-      push @lines, qq|<tr>|;
-       push @lines, qq|<td><a href="/waiting_room/$id">$id</a></td>|;
-       push @lines, q|<td> <a href="/userinfo/| . $row->get_column('proposer_id') . q|">| . $row->get_column('name') . q|</a></td>|;
-       push @lines, qq|<td>$size</td>|;
-      push @lines, qq|</tr>|;
-   }
-   push @lines , '</table>';
-   $c->stash->{waiting_games_table} = join "\n", @lines;
    
+   my @waiting_games_info; #for TT
+   for my $waiting(@waiting_rs) {
+      push @waiting_games_info,{ #todo:topology? maybe generate some description string?
+         id => $waiting->id,
+         proposer => $waiting->get_column('name'),
+         proposer_id => $waiting->get_column('name'),
+         size => $waiting->size,
+      }
+   }
+   $c->stash->{waiting_games_info} = \@waiting_games_info;
+   
+   #if user requests info on a specific wgame:
    my ($wgame_id) = $c->req->path() =~ m|/(\d*)|;#extract wgame id from path
    if ($wgame_id){ #display a ruleset and a join button
       my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});

@@ -1,8 +1,10 @@
 [%  INCLUDE header %]
+<br>
+<span style="border: 1px solid #777;background-color:lightgray;"> 
+  <img src="/g/[% to_move_img %]" width="11px"> to move.
+</span>
 
-
-<span style="border: 1px solid #777;background-color:lightgray;"> <img src="/g/[% to_move_img %]" width="11px"> to move.</span>
-
+<br>
 <br>
 [% board_html %]
 <br>

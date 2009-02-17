@@ -7,34 +7,45 @@ Here's a number:
 [% num %]
 <br>
     
-Potential games:
-<br>
-[% waiting_games_table %]
+Potential games: <br>
+
+<table>
+   <tr style="border: 1px solid #777;background-color:lightgray;">
+      <td>Info</td> <td>Name</td> <td>Size</td>
+   </tr>
+   
+  [% FOREACH w = waiting_games_info %]
+  <tr>
+      <td> <a href="/waiting_room/[% w.id %]">INFO</a> </td>
+      <td> <a href="/userinfo/[% w.proposer_id %]"> [% w.proposer %] </a> </td>
+      <td> [% w.size %] </td>
+  </tr>
+  [% END %]
+</table>
 <hr>
 
 [% IF proposal_info %]
 Info on proposal [%proposal_info.id%]:<br>
- <table border="1px">
+ <table style="border: 1px solid #777;background-color:lightgray;" width="222px">
   <tr>
    <td>instigator</td>
    <td>[% proposal_info.proposer.name %]</td>
-  </tr>
-  <tr>
-   <td>quantity</td>
-   <td>[% proposal_info.quantity %]</td>
   </tr>
   <tr> 
    <td>size</td>
    <td>[% proposal_info.size %]</td>
   </tr> 
   <tr>
+   <td>quantity</td>
+   <td>[% proposal_info.quantity %]</td>
+  </tr>
+  <tr>
    <td colspan="2" align="center">  <a href=/waiting_room?action=join&wgameid=[%proposal_info.id%]>Join!</a>  <td>
   </tr> 
  </table>
+
 [% ELSE %]
-
  [% INCLUDE proposal_form %]
-
 [% END %]
 
 [% INCLUDE footer %]
