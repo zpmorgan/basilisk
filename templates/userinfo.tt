@@ -1,0 +1,21 @@
+[%  INCLUDE header %]
+
+Hi there.
+<br>
+
+Here's a number:
+[% num %]
+<br>
+    
+And here's [% userinfo.name %]'s info:
+<table style="border: 1px solid #777;background-color: #ddf;">
+   <tr>
+      <td colspan="2"> <a href="/games?playerid=[% userinfo.id %]">[% userinfo.name %]'s games</a> </td>
+   </tr>
+   <tr>
+      <td> Rating </td>
+      <td> horrible </td>
+   </tr>
+</table>
+    
+[% INCLUDE footer %]

@@ -172,28 +172,27 @@ sub userinfo :Global{
    unless ($user){
       $user = $c->session->{logged_in} ? $c->session->{name} : 'guest';
    }
+   
    my $row;
+   my ($id, $name);
    if ($user =~ /^\d*$/){ #only digits from url path
       $row = $c->model('DB::Player')->find({id => $user});
+      $id = $user;
+      $name = $row->name;
    }
    else{
       $row = $c->model('DB::Player')->find({name => $user});
+      $id = $row->id;
+      $name = $user;
    }
    
-   my $id = $row->id;
+   my %userinfo = (
+      id => $id,
+      name => $name,
+   );
    
-   $c->stash->{title} = $row->name . '\'s info';
-   my @lines;
-   push @lines, $row->name . '\'s info:';
-   push @lines, '<table>';
-   #link to player's games table
-   push @lines, '<tr> <td>Games</td> <td><a href="/games?playerid='.$id.'">games</a></td> </tr>';
-   push @lines, '<tr> <td>Rank</td> <td>' .int rand()*30+1 . 'k</td> </tr>';
-   
-   
-   push @lines, '</table>';
-   $c->stash->{message} = join "\n", @lines;
-   $c->stash->{template} = 'message.tt';
+   $c->stash->{userinfo} = \%userinfo;
+   $c->stash->{template} = 'userinfo.tt';
 }
 
 1;
