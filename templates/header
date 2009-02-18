@@ -22,11 +22,17 @@ table.pagehead {
    color: #FFFC70;
    width: 100%;"
 }
+
 table.pagefoot {
    background: #f0f0ff;
    color: #111111;
    width: 100%;"
 }
+table.pagefoot a {
+   color: #999;
+   font-weight: bold;
+}
+
 table.gameslist {
    border: 2px solid #337733;
    background: #dddddd;

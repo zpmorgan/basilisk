@@ -2,7 +2,9 @@ package basilisk::Controller::Root;
 
 use strict;
 use warnings;
+use basilisk::Util;
 use parent 'Catalyst::Controller';
+
 
 
 # this is so the path doesn't need prefix /root/
@@ -56,6 +58,7 @@ sub end : ActionClass('RenderView') {
    $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';
    $c->session->{num}++;
    $c->stash->{num} = $c->session->{num};
+   $c->stash->{rand_proverb} = \&Util::random_proverb;
 }
 
 1;

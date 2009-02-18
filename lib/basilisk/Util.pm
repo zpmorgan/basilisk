@@ -1,6 +1,7 @@
 package Util;
 use strict;
 use warnings;
+use basilisk::Proverbs;
 
 # using 1 byte per intersection in storage.
 sub EMPTY{0}
