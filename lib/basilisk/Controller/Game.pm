@@ -9,7 +9,7 @@ use basilisk::Util;
 __PACKAGE__->config->{namespace} = '';
 
 # /game/14?action=move&co=4-4
-#co=(row).(col) starting with 0
+#co=(row)-(col) starting at top-left
 sub game : Global {
    my ( $self, $c ) = @_;
    #extract game id from path
@@ -63,6 +63,7 @@ sub game : Global {
    render_board_table($c);
    $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
+   $c->stash->{c_letter} = \&column_letter;
 }
 
 #returns error string if error
@@ -248,6 +249,13 @@ sub game_exists{
    my ($c) = @_;
    return 1 if $c->model('DB::Game')->count( 'id' => $c->stash->{gameid});
    return 0;
+}
+
+my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;
+
+sub column_letter{
+   my $c = shift;
+   return $cletters[$c]
 }
 
 1;

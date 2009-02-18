@@ -6,21 +6,41 @@
 
 <br>
 
-<table class="Goban" style="background-image: url(/g/wood.gif);">
-   
-   [% FOREACH row = board_data -%]
-      <tr>
-      [%- FOREACH cell = row -%]
-         [% IF cell.ref -%]
-            <td> <a href="[% cell.ref %]">  <img src="/g/[% cell.g %]">  </a> </td>
-         [% ELSE -%]
-            <td> <img src="/g/[% cell.g %]"> </td>
-         [% END -%]
-      [% END -%]
-      </tr>
-   [% END %]
-</table>
+[% size = board_data.size %]
+[% MACRO coordinate_letter_row BLOCK %]
+  <tr>
+   <td><img src="/g/blank.gif" width="31" height="25"> </td>
+   [% c=0; WHILE c < size -%]
+    <td> <img src="/g/c[% c_letter(c) %].gif"> </td>
+   [% c=c+1;END -%]
+   <td><img src="/g/blank.gif" width="31" height="25"> </td>
+  </tr>
+[% END %]
 
+[% MACRO row_number_cell(row) BLOCK -%]
+  <td><img src="/g/c[% size +1 - row %].gif"></td>
+[% END %]
+
+<br>
+
+<table class="Goban" style="background-image: url(/g/wood.gif);">
+ [% coordinate_letter_row %]
+ [% FOREACH row = board_data -%]
+  <tr>
+  [% row_number_cell(loop.count) %]
+    [%- FOREACH cell = row -%]
+      [% IF cell.ref -%]
+        <td> <a href="[% cell.ref %]">  <img src="/g/[% cell.g %]">  </a> </td>
+      [% ELSE -%]
+        <td> <img src="/g/[% cell.g %]"> </td>
+      [% END -%]
+    [% END -%]
+  [% row_number_cell(loop.count) %]
+  </tr>
+ [% END %]
+ [% coordinate_letter_row %]
+</table>
+<br>
 
 <table style="border: 2px solid #558855;border-spacing: 3px;">
 
