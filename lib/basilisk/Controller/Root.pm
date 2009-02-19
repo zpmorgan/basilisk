@@ -33,16 +33,20 @@ sub index :Path :Args(0) {
 sub default :Path {
    my ( $self, $c ) = @_;
    my $req = $c->request;
-   my @info; # = ("Page'sn't found!");
-   push @info, "path: " . join ', ', @{$req->path};
-   push @info, "args: " . join ', ', @{$req->args};
+   my @info; # = '<div align="left">';
+   push @info, "base: " . $req->base;
+   push @info, "path: " . $req->path;
+   push @info, "params: ";
+   for my $key (keys %{$req->parameters}){
+      push @info, " * $key: ". $req->param($key);
+   }
    push @info, "referer: ".$req->referer;
    push @info, "secure: ".$req->secure;
-   push @info, "params: ",%{$req->parameters};
    push @info, "session data: ";
    for my $key (keys %{$c->session}){
       push @info, " * $key: ". $c->session->{$key};
    }
+   #push @info, "</div>";
    $c->stash->{body} = join "<br>",@info;
    $c->stash->{template} = '404.tt';
 #   $c->response->body( join "<br>",@info);
