@@ -34,9 +34,10 @@ sub default :Path {
    my ( $self, $c ) = @_;
    my $req = $c->request;
    my @info; # = ("Page'sn't found!");
+   push @info, "path: " . join ', ', @{$req->path};
+   push @info, "args: " . join ', ', @{$req->args};
    push @info, "referer: ".$req->referer;
    push @info, "secure: ".$req->secure;
-   push @info, "args: " . join ', ', @{$req->args};
    push @info, "params: ",%{$req->parameters};
    push @info, "session data: ";
    for my $key (keys %{$c->session}){
