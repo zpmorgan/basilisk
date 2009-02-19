@@ -5,8 +5,10 @@ use warnings;
 use parent 'Catalyst::Controller';
 use basilisk::Util;
 
-
 __PACKAGE__->config->{namespace} = '';
+
+#TODO: rulemap module -- to map rule name to subroutine
+#TODO: set up to compile rule map from db when needed
 
 # /game/14?action=move&co=4-4
 #co=(row)-(col) starting at top-left
