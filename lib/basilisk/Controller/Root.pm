@@ -12,7 +12,7 @@ use parent 'Catalyst::Controller';
 __PACKAGE__->config->{namespace} = '';
 
 
-sub index :Path :Args(0) {
+sub index :Global {
    my ( $self, $c ) = @_;
    
    # Hello World
