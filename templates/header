@@ -114,7 +114,7 @@ a:hover     {color:#000000}
 
 <table id="pageMenu" align="left">
  <tr><td>
-   <img src="/g/Baziliszkusz.jpg" width="100px">
+   <img src="[% img_path %]g/Baziliszkusz.jpg" width="100px">
  </tr></td>
 
 [% IF logged_in %]

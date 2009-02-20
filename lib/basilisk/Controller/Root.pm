@@ -57,7 +57,11 @@ sub default :Path {
 #this is a RenderView action, so this is called right before we're sent to the view
 sub end : ActionClass('RenderView') {
    my ( $self, $c ) = @_;
-   #set some tt var for header
+   #set some tt vars for header
+   my ($img_path) = $c->request->base =~ m|http://[^/]*(/.*)$|;
+   $c->stash->{msg} = $img_path;
+   $c->stash->{img_path} = $img_path;
+   
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
    #$c->stash->{name} seems to be basilisk, and unchangeable.
    $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';
