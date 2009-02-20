@@ -211,7 +211,7 @@ sub render_board_table{
          my $image = select_g_file ($stone, $size, $rownum, $colnum);
          $table[$rownum][$colnum]->{g} = $image;
          if ($stone==0){ #empty
-            my $url = "/game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
+            my $url = "game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
             $table[$rownum][$colnum]->{ref} = $url;
          }
       }

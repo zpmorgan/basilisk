@@ -7,13 +7,16 @@ use lib "$Bin/../lib";
 use basilisk::Schema;
 use basilisk::Util;
 
-my ($dsn, $user, $pass) = ('dbi:SQLite:basilisk.db');
+my $dbfile = 'basilisk.db';
+unlink $dbfile if -e $dbfile;
+
+my ($dsn, $user, $pass) = ("dbi:SQLite:$dbfile");
 
 my $schema = basilisk::Schema->connect($dsn, $user, $pass) or
   die "Failed to connect to database";
 
 print "Deploying schema to $dsn\n";
-$schema->deploy ({add_drop_table => 1});
+$schema->deploy;
 
 
 #make up some data
