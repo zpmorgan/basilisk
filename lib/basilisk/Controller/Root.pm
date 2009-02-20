@@ -58,10 +58,13 @@ sub default :Path {
 sub end : ActionClass('RenderView') {
    my ( $self, $c ) = @_;
    #set some tt vars for header
-   my ($url_base) = $c->request->base =~ m|http://[^/]*(/.*)$|;
+   my ($url_base) = $c->request->base =~ m|http://[^/]*(/.*)/$|;
    $c->stash->{url_base} = $url_base;
    $c->stash->{img_base} = $url_base;
-   
+   if ($c->stash->{message}){ #TT can't do this at runtime?
+      $c->stash->{message} =~ s/\[\%\s?url_base\s?\%\]/$url_base/;
+      $c->stash->{message} =~ s/\[\%\s?img_base\s?\%\]/$url_base/;
+   }
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
    #$c->stash->{name} seems to be basilisk, and unchangeable.
    $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';

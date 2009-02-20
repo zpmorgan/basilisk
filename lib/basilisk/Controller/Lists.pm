@@ -10,7 +10,7 @@ sub players :Global{
    my ( $self, $c ) = @_;
    
    $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
-      '<img src="/g/wood.gif" />';
+      '<img src="[% img_base %]/g/wood.gif" />';
    $c->stash->{template} = 'message.tt';
 }
 

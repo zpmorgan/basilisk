@@ -104,9 +104,9 @@ a:hover     {color:#000000}
  <tr>
   <td align="left"><b>Basilisk Go Server</b></td>
 [% IF logged_in %]
-   <td align="right" style="A:link:#ffff22; A:visited:#aaeeaa;"> <a href="[%url_base%]status"><b>Logged in as: [%username%] </b></a></td>
+   <td align="right" style="A:link:#ffff22; A:visited:#aaeeaa;"> <a href="[%url_base%]/status"><b>Logged in as: [%username%] </b></a></td>
 [% ELSE %]
-   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="[%url_base%]login"><b>Log in</b></a> </td>
+   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="[%url_base%]/login"><b>Log in</b></a> </td>
 [% END %]
  </tr>
 </table>
@@ -114,45 +114,45 @@ a:hover     {color:#000000}
 
 <table id="pageMenu" align="left">
  <tr><td>
-   <img src="[% img_base %]g/Baziliszkusz.jpg" width="100px">
+   <img src="[% img_base %]/g/Baziliszkusz.jpg" width="100px">
  </tr></td>
 
 [% IF logged_in %]
  <tr><td>
-   <a href="[%url_base%]status">Status</a>
+   <a href="[%url_base%]/status">Status</a>
  </tr></td>
  <tr><td>
-   <a href="[%url_base%]userinfo">User info</a>
+   <a href="[%url_base%]/userinfo">User info</a>
  </tr></td>
 [% ELSE %]
  <tr><td>
-   <a href="[%url_base%]login">Log in</a>
+   <a href="[%url_base%]/login">Log in</a>
  </tr></td>
  <tr><td>
-   <a href="[%url_base%]register">Register</a>
+   <a href="[%url_base%]/register">Register</a>
  </tr></td>
 [% END %]
 
  <tr><td>
-   <a href="[%url_base%]games">Games</a>
+   <a href="[%url_base%]/games">Games</a>
  </tr></td>
  <tr><td>
-   <a href="[%url_base%]waiting_room">Waiting room</a>
+   <a href="[%url_base%]/waiting_room">Waiting room</a>
  </tr></td>
  <tr><td>
-   <a href="[%url_base%]players">Players</a>
+   <a href="[%url_base%]/players">Players</a>
  </tr></td>
 
 [% IF logged_in %]
  <tr><td>
-   <a href="[%url_base%]logout">Log out</a>
+   <a href="[%url_base%]/logout">Log out</a>
  </tr></td>
 [% END %]
 
 </table>
 <div align="center">
 [% IF msg %]
- special msg: <span style="color:blue; font-weight: bold;">[%msg%]</span><br>
+ special msg: <span style="color:blue; font-weight: bold;">[% INCLUDE msg %]</span><br>
 [% END %]
 
 
