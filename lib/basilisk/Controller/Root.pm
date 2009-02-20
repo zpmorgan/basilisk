@@ -58,9 +58,9 @@ sub default :Path {
 sub end : ActionClass('RenderView') {
    my ( $self, $c ) = @_;
    #set some tt vars for header
-   my ($img_path) = $c->request->base =~ m|http://[^/]*(/.*)$|;
-   $c->stash->{msg} = $img_path;
-   $c->stash->{img_path} = $img_path;
+   my ($url_base) = $c->request->base =~ m|http://[^/]*(/.*)$|;
+   $c->stash->{url_base} = $url_base;
+   $c->stash->{img_base} = $url_base;
    
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
    #$c->stash->{name} seems to be basilisk, and unchangeable.
