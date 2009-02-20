@@ -19,7 +19,7 @@ And here's every running game on this server:
    
 [% FOREACH g = games_data %]
    <tr>
-      <td><a href="/game/[% g.id %]"> [% g.id %] </a></td>
+      <td><a href="[%url_base%]/game/[% g.id %]"> [% g.id %] </a></td>
       <td> [% g.bname %] </td>
       <td> [% g.wname %] </td>
       <td> [% g.size %] </td>

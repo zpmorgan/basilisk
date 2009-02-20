@@ -1,4 +1,4 @@
-<FORM id="addgameForm" name="addgame" class="FormClass" action="/waiting_room" method="POST">
+<FORM id="addgameForm" name="addgame" class="FormClass" action="[%url_base%]/waiting_room" method="POST">
 <table>
  <tr>
    <td align="right">Number of games to add:</td>

@@ -1,7 +1,7 @@
 [%  INCLUDE header %]
 <br>
 <span style="border: 1px solid #777;background-color:lightgray;"> 
-  <img src="/g/[% to_move_img %]" width="11px"> to move.
+  <img src="[%img_base%]/g/[% to_move_img %]" width="11px"> to move.
 </span>
 
 <br>
@@ -9,30 +9,30 @@
 [% size = board_data.size %]
 [% MACRO coordinate_letter_row BLOCK %]
   <tr>
-   <td><img src="/g/blank.gif" width="31" height="25"> </td>
+   <td><img src="[%img_base%]/g/blank.gif" width="31" height="25"> </td>
    [% c=0; WHILE c < size -%]
-    <td> <img src="/g/c[% c_letter(c) %].gif"> </td>
+    <td> <img src="[%img_base%]/g/c[% c_letter(c) %].gif"> </td>
    [% c=c+1;END -%]
-   <td><img src="/g/blank.gif" width="31" height="25"> </td>
+   <td><img src="[%img_base%]/g/blank.gif" width="31" height="25"> </td>
   </tr>
 [% END %]
 
 [% MACRO row_number_cell(row) BLOCK -%]
-  <td><img src="/g/c[% size +1 - row %].gif"></td>
+  <td><img src="[%img_base%]/g/c[% size +1 - row %].gif"></td>
 [% END %]
 
 <br>
 
-<table class="Goban" style="background-image: url(/g/wood.gif);">
+<table class="Goban" style="background-image: url([%img_base%]/g/wood.gif);">
  [% coordinate_letter_row %]
  [% FOREACH row = board_data -%]
   <tr>
   [% row_number_cell(loop.count) %]
     [%- FOREACH cell = row -%]
       [% IF cell.ref -%]
-        <td> <a href="[% cell.ref %]">  <img src="/g/[% cell.g %]">  </a> </td>
+        <td> <a href="[%url_base%]/[% cell.ref %]">  <img src="[%img_base%]/g/[% cell.g %]">  </a> </td>
       [% ELSE -%]
-        <td> <img src="/g/[% cell.g %]"> </td>
+        <td> <img src="[%img_base%]/g/[% cell.g %]"> </td>
       [% END -%]
     [% END -%]
   [% row_number_cell(loop.count) %]
@@ -46,8 +46,8 @@
 
   [% FOREACH p = players_data %]
    <tr> 
-      <td> <img src="/g/[% p.stone_img %]">  </td>
-      <td> <a href="/userinfo/[% p.id %]"> <b>[% p.name %]</b> </a>  </td>
+      <td> <img src="[%img_base%]/g/[% p.stone_img %]">  </td>
+      <td> <a href="[%url_base%]/userinfo/[% p.id %]"> <b>[% p.name %]</b> </a>  </td>
       <td> captures: [% p.captures %]</td>
       <td> time remaining: [% p.time_remaining %]</td>
    </tr>
