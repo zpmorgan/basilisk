@@ -66,6 +66,7 @@ sub game : Global {
    $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
+   $c->stash->{template} = 'game.tt';
 }
 
 #returns error string if error

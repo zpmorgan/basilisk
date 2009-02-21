@@ -152,7 +152,7 @@ a:hover     {color:#000000}
 </table>
 <div align="center">
 [% IF msg %]
- special msg: <span style="color:blue; font-weight: bold;">[% INCLUDE msg %]</span><br>
+ special msg: <span style="color:blue; font-weight: bold;">[% msg %]</span><br>
 [% END %]
 
 
