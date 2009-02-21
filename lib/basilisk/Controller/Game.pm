@@ -28,11 +28,11 @@ sub game : Global {
       $c->stash->{template} = 'message.tt';return;
    }
    $c->stash->{ruleset} = $c->stash->{game}->ruleset;
-   my $pos_data = $c->stash->{game}->current_position;
    
+   my $pos_data = $c->stash->{game}->current_position;
    my $size = $c->stash->{game}->size;
    my $board = Util::unpack_position($pos_data, $size);
-   @{$c->stash}{qw/pos_data board/} = ($pos_data, $board); #put board data in stash
+   @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
    
    my $action = $c->req->param('action');
    if ($action eq 'move'){ #evaluate & do move:
@@ -53,14 +53,37 @@ sub game : Global {
       else { #alter db
          #do_move($c, $newboard);
          $c->model('DB')->schema->txn_do(
-           \&do_move, $c, $newboard, $caps
+           \&do_move, $c, '', $newboard, $caps
          );
          $c->stash->{board} = $newboard;
          $c->stash->{msg} = 'move is success';
       }
    }
-   $c->stash->{last_move} = $c->stash->{game}->last_move;
-   $c->stash->{title} = "Game ".$c->stash->{gameid}.", move ".$c->stash->{last_move};
+   if ($action eq 'pass'){ #evaluate & do move:
+      my $err = seek_permission_to_move($c);
+      if ($err){
+         $c->stash->{message} = "permission fail: $err";
+         $c->stash->{template} = 'message.tt'; return;
+      }
+      
+      #extract coordinates from url:
+      ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
+      my $prev_move = $c->stash->{game}->last_move;
+      if ($prev_move and $prev_move->movestring eq 'pass'){ #2nd consecutive pass
+         $c->stash->{message} = "2nd pass: commence scoring";
+         $c->stash->{template} = 'message.tt'; return;
+      }
+      else { #alter db
+         #do_move($c, $newboard);
+         $c->model('DB')->schema->txn_do(
+           \&do_move, $c, 'pass',
+         );
+         $c->stash->{board} = $board;
+         $c->stash->{msg} = 'pass is success';
+      }
+   }
+   
+   $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $c->stash->{game}->num_moves;
    $c->stash->{players_data} = get_game_player_data($c);
    render_board_table($c);
    $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
@@ -140,14 +163,26 @@ sub evaluate_move{
 
 
 sub do_move{#todo:mv to game class?
-   my ($c, $newboard, $caps) = @_;
-   my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
+   my ($c, $movestring, $newboard, $caps) = @_;
+   my $new_pos_data;
    my $side = $c->stash->{side}; #1 if B,2 if W
-   #die $side;
    my $size = $c->stash->{game}->size;
-   my $new_pos_data = Util::pack_board($newboard, $size);
    
-   $c->stash->{new_pos_data} = $new_pos_data;
+   #determine move string and new position
+   if ($movestring eq 'pass'){
+      $new_pos_data = $c->stash->{old_pos_data};
+   }
+   else { # stone placement
+      my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
+      $movestring = ($side==1?'b':'w') . " row$row, col$col";
+      $new_pos_data = Util::pack_board($newboard, $size);
+      if ($caps and @$caps){ #update capture count
+         my $p2g = $c->stash->{p2g};#player_to_game
+         $p2g->set_column('captures',$p2g->captures + @$caps); #INT
+         $p2g->update;
+      }
+   }
+   Util::ensure_position_size($new_pos_data, $size);
    my $posrow = $c->model('DB::Position')->create( {
       size => $size,
       position => $new_pos_data,
@@ -155,16 +190,11 @@ sub do_move{#todo:mv to game class?
    my $moverow = $c->model('DB::Move')->create( {
       gid => $c->stash->{game}->id,
       position_id => $posrow->id,
-      move => ($side==1?'b':'w') . " $row, $col",
-      movenum => $c->stash->{game}->next_move,
+      movestring => $movestring,
+      movenum => $c->stash->{game}->num_moves+1,
       time => time,
    });
-   $c->stash->{game}->shift_turn; #b to w, etc
-   if (@$caps){ #update capture count
-      my $p2g = $c->stash->{p2g};#player_to_game
-      $p2g->set_column('captures',$p2g->captures + @$caps); #INT
-      $p2g->update;
-   }
+   $c->stash->{game}->shift_turn; #b to w, etc num_moves++
    return;
 }
 

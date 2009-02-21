@@ -45,7 +45,7 @@ sub add_wgame{
    $ew = 1 if $topo eq 'cylinder' or $topo eq 'torus';
    $ns = 1 if $topo eq 'torus';
    my $desc = ''; # description of interesting rules
-   my $desc .= $topo unless $topo eq 'plane';  #planes are not interesting
+   $desc .= $topo unless $topo eq 'plane';  #planes are not interesting
    my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
       size => $c->req->param('size'),
       wrap_ew => $ew,

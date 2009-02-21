@@ -11,19 +11,16 @@ __PACKAGE__->add_columns(
     'ruleset'      => { data_type => 'INTEGER', is_nullable => 0 },
     #turn--player currently with the initiative(index as 'side' col from player_to_game)
     'turn'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 1 },
+    'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
 
 );
 
-sub last_move{
-   my $self = shift;
-   my $mv_count = $self->moves->count({});
-   return $mv_count;
-}
-sub next_move{
-   my $self = shift;
-   my $mv_count = $self->moves->count({});
-   return $mv_count + 1;
-}
+__PACKAGE__->set_primary_key('id');
+__PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');
+__PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid');
+__PACKAGE__->many_to_many( players => 'player_to_game', 'player');
+__PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
+
 sub player_to_move_next{
    my $self = shift;
    my $player = $self->players->search({side => $self->turn})->next;
@@ -33,14 +30,23 @@ sub player_to_move_next{
 sub shift_turn{
    my $self = shift;
    $self->set_column('turn', ($self->turn)%2 + 1);
+   $self->set_column('num_moves', $self->num_moves + 1);
    $self->update;
 }
-
+sub last_move{ #'pass' or 'b t4' etc
+   my $self = shift;
+   my $mvnum = $self->num_moves;
+   return $self->moves->find ({movenum => $mvnum});
+}
+sub last_move_string{ #'pass' or 'b t4' etc
+   my $c = shift;
+   my $mvnum = $c->stash->{game}->num_moves;
+   return $c->stash->{game}->moves->find ({movenum => $mvnum})->movestring;
+}
 
 sub current_position{
    my $self = shift;
-   my $lastmove = $self->last_move;
-   if ($lastmove == 0){ #no moves have taken place yet.
+   if ($self->num_moves == 0){ #no moves have taken place yet.
       my $initial_pos = $self->ruleset->initial_pos;
       if ($initial_pos){
          return $initial_pos->position;
@@ -51,7 +57,7 @@ sub current_position{
    }
    my $move = $self->moves->find({
       gid => $self->id,
-      movenum => $lastmove,
+      movenum => $self->num_moves,
    });
    return $move->position->position;#blob
 }
@@ -66,9 +72,4 @@ sub size{
    return $self->ruleset->size
 }
 
-__PACKAGE__->set_primary_key('id');
-__PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');
-__PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid');
-__PACKAGE__->many_to_many( players => 'player_to_game', 'player');
-__PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
 1;

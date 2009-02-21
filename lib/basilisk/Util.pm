@@ -49,6 +49,18 @@ sub unpack_position{
    return \@board;
 }
 
+#see if wrong size position somehow -- die if fail!
+# ascii translate: http://www.paulschou.com/tools/xlate/
+sub ensure_position_size{
+   my ($position, $h,$w) = @_;
+   $w = $h unless $w;
+   return if length $position == $h*$w; #correct size
+   
+   my $newsize = length $position; 
+   my $newstring = join ' ',unpack ('C*', $position);
+   die "position data is size $newsize, should be size ".$h*$w . "|||\n".$newstring;
+}
+
 #untested
 sub board_from_text{
    my $text = shift;

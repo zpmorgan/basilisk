@@ -7,7 +7,7 @@ __PACKAGE__->add_columns(
     'gid'            => { data_type => 'INTEGER', is_nullable => 0 },
     'movenum'            => { data_type => 'INTEGER', is_nullable => 0 },
     'position_id'    => { data_type => 'INTEGER', is_nullable => 0 },
-    'move'      => { data_type => 'TEXT', is_nullable => 0 }, #something like 'b 0 18' (for corner)
+    'movestring'      => { data_type => 'TEXT', is_nullable => 0 }, #'pass' or 'b t4' etc
     'time'      => { data_type => 'INTEGER', is_nullable => 0 },
 );
 __PACKAGE__->set_primary_key('gid', 'movenum');

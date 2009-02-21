@@ -40,6 +40,9 @@
  [% END %]
  [% coordinate_letter_row %]
 </table>
+
+<h2> <a href="[%url_base%]/game/[%gameid%]?action=pass">Pass</a> </h2>
+
 <br>
 
 <table style="border: 2px solid #558855;border-spacing: 3px;">
@@ -62,5 +65,6 @@
    </tr>
   [% END %]
 </table>
+
     
 [% INCLUDE footer %]
