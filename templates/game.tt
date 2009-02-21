@@ -41,8 +41,9 @@
  [% coordinate_letter_row %]
 </table>
 
-<h2> <a href="[%url_base%]/game/[%gameid%]?action=pass">Pass</a> </h2>
-
+[% IF board_clickable %]
+   <h2> <a href="[%url_base%]/game/[%gameid%]?action=pass">Pass</a> </h2>
+[% END %]
 <br>
 
 <table style="border: 2px solid #558855;border-spacing: 3px;">

@@ -145,6 +145,53 @@ sub find_captured{
    }
    return \@caps
 }
+
+sub death_mask_from_list{ #list of dead stones into a board mask
+   my $list = shift;
+   my @mask;
+   for (@$list){
+      $mask[$_[0]][$_[1]] = 1;
+   }
+}
+sub death_mask_to_list{
+   my $mask = shift;
+   my @list;
+   my $rownum=0;
+   for my $row (@$mask){
+      $rownum++;
+      for my $colnum (1..@$row){
+         if ($row->[$colnum]){ #marked dead
+            push @list, [$rownum, $colnum];
+         }
+      }
+   }
+}
+#floodfill through empty space.
+#flips elements of $mask, connected through empties.
+sub update_death_mask{ 
+   my ($board, $mask, $action, $srow,$scol);
+   my $size = scalar @$board;
+   my $to = $action eq 'mark_dead' ? 1 : 0;
+   my $color = $board->[$srow][$scol];
+   return unless $color;
+   my @nodes = ([$srow,$scol]); #list
+   my @seen; #grid.
+   while (@nodes){
+      my ($row, $col) = @{pop @nodes};
+      next if $seen[$row][$col];
+      $seen[$row][$col] = 1;
+      my $board_color = $board->[$row][$col];
+      next unless ($board_color == $color)  or  ($board_color == 0);
+      if ($board_color == $color){
+         $mask->[$row][$col] = $to;
+         push @nodes, [$row-1, $col] unless $row == 0;
+         push @nodes, [$row+1, $col] unless $row == $size-1;
+         push @nodes, [$row, $col-1] unless $col == 0;
+         push @nodes, [$row, $col+1] unless $col == $size-1;
+      }
+   }
+}
+
 use Digest::MD5 'md5'; # qw(md5 md5_hex md5_base64);
 
 sub pass_hash{ #returns binary md5sum

@@ -11,6 +11,8 @@ __PACKAGE__->config->{namespace} = '';
 #TODO: set up to compile rule map from db when needed
 
 # /game/14?action=move&co=4-4
+# /game/14?action=pass
+# /game/14?action=action=mark_dead&co=10-9&also_dead=3-3_4-5_19-19 #or action=mark_alive
 #co=(row)-(col) starting at top-left
 sub game : Global {
    my ( $self, $c ) = @_;
@@ -59,33 +61,51 @@ sub game : Global {
          $c->stash->{msg} = 'move is success';
       }
    }
-   if ($action eq 'pass'){ #evaluate & do move:
+   elsif ($action eq 'pass'){ #evaluate & do move:
       my $err = seek_permission_to_move($c);
       if ($err){
          $c->stash->{message} = "permission fail: $err";
          $c->stash->{template} = 'message.tt'; return;
       }
       
-      #extract coordinates from url:
-      ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
       my $prev_move = $c->stash->{game}->last_move;
       if ($prev_move and $prev_move->movestring eq 'pass'){ #2nd consecutive pass
          $c->stash->{message} = "2nd pass: commence scoring";
          $c->stash->{template} = 'message.tt'; return;
       }
-      else { #alter db
-         #do_move($c, $newboard);
-         $c->model('DB')->schema->txn_do(
-           \&do_move, $c, 'pass',
-         );
-         $c->stash->{board} = $board;
-         $c->stash->{msg} = 'pass is success';
-      }
+      $c->model('DB')->schema->txn_do(
+         \&do_move, $c, 'pass',
+      );
+      $c->stash->{board} = $board;
+      $c->stash->{msg} = 'pass is success';
    }
+   elsif ($action eq 'mark_dead' or $action eq 'mark_dead'){
+      #not a move. just update board table
+      my $err = seek_permission_to_move($c);
+      if ($err){
+         $c->stash->{message} = "permission fail: $err";
+         $c->stash->{template} = 'message.tt'; return;
+      }
+      
+      my $mark_co = [split '-', $c->req->param('co')];
+      my $also_dead = $c->req->param('also_dead');
+      my @marked_dead_stones = map {[split'-',$_]} split '_', @$also_dead;
+      push @marked_dead_stones, $mark_co;
+      my $death_mask = Util::death_mask_from_list(\@marked_dead_stones);
+      Util::update_death_mask($board, $death_mask, $action, @$mark_co);
+      my $new_death_list = Util::death_mask_to_list($death_mask);
+      $c->stash->{death_mask} = $death_mask;
+      # create cgi param string, just for clickable table cells
+      $c->stash->{new_also_dead} = join '_', map{join'-',@$_} @$new_death_list;
+   }
+   my $err = seek_permission_to_move($c);
+   $c->stash->{board_clickable} = $err ? 0 : 1;
+   
+   $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
+   render_board_table($c);
    
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $c->stash->{game}->num_moves;
    $c->stash->{players_data} = get_game_player_data($c);
-   render_board_table($c);
    $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
@@ -133,6 +153,7 @@ sub detect_duplicate_position{
    return 1 if $oldmove;
 }
 
+#todo: Return as soon as it passes. Generate the new board in do_move
 sub evaluate_move{
    my $c = shift;
    my ($row, $col, $board) = @{$c->stash}{qw/move_row move_col board/};
@@ -233,17 +254,25 @@ sub render_board_table{
    my ($c) = @_;
    my $size = $c->stash->{game}->size;
    my $board = $c->stash->{board};
+   my $death_mask = $c->stash->{death_mask};
    my @table; #cells representing one intersection each
-   #todo: coordinate letters 
+   
    for my $rownum (0..$size-1){
-      #todo: coordinate number column
-      for my $colnum (0..$size-1){ #form one intersection. 
+      for my $colnum (0..$size-1){ #get image and url for table cell
+         my $image = select_g_file ($board, $death_mask, $size, $rownum, $colnum);
          my $stone = $board->[$rownum]->[$colnum]; #0 if empty, 1 b, 2 w
-         my $image = select_g_file ($stone, $size, $rownum, $colnum);
          $table[$rownum][$colnum]->{g} = $image;
-         if ($stone==0){ #empty
-            my $url = "game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
-            $table[$rownum][$colnum]->{ref} = $url;
+         if ($c->stash->{board_clickable}) { #url
+            if ($stone==0){ #empty
+               my $url = "game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
+               $table[$rownum][$colnum]->{ref} = $url;
+            }
+            elsif ($c->stash->{marking_dead_stones}){
+               my $mark = $death_mask->[$rownum]->[$colnum] ? 'alive' : 'dead'; #flip opposite
+               my $url = "game/".$c->stash->{gameid} . "?action=mark_$mark&co=" . $rownum .'-'.$colnum;
+               $url .= "also_dead=" . $c->stash->{new_also_dead};
+               $table[$rownum][$colnum]->{ref} = $url;
+            }
          }
       }
    }
@@ -251,8 +280,12 @@ sub render_board_table{
 }
 
 sub select_g_file{ #default board
-   my ($stone, $size, $row, $col) = @_;
+   my ($board, $death_mask, $size, $row, $col) = @_;
+   my $stone = $board->[$row][$col];
+   my $dead = $death_mask->[$row][$col];
+   return 'bw.gif' if $stone == 1 and $dead;
    return 'b.gif' if $stone == 1;
+   return 'wb.gif' if $stone == 2 and $dead;
    return 'w.gif' if $stone == 2;
    #$stone==0 -- so it's an empty intersection
    #several empties to choose from:
