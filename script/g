@@ -9,6 +9,8 @@ use CGI qw/path_info/;
 my %mimes = (
    png => 'image/png',
    gif => 'image/gif',
+   jpg  => 'image/jpeg',
+   jpeg  => 'image/jpeg',
    gz  => 'application/x-compressed',
 );
 my $file = path_info();
