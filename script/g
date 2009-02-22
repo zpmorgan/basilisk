@@ -1,0 +1,36 @@
+#!/usr/bin/perl
+#cgi script that transfers static files from another directory
+
+use strict;
+use warnings;
+use CGI qw/path_info/;
+
+
+my %mimes = (
+   png => 'image/png',
+   gif => 'image/gif',
+   gz  => 'application/x-compressed',
+);
+my $file = path_info();
+$file =~ s|^/||; #rid 1st slash
+
+die unless $file =~ /\.([^\.]*)$/; #find extension
+my $mime = $mimes{$1} or die;
+
+my $image_dir = "../basilisk/root/g";
+$image_dir = '..' if $1 eq 'gz';
+my $data;
+{#slurp
+    local( $/, *FH ) ;
+    open( FH, "$image_dir/$file" ) or die "sudden flaming death\n";
+    $data = <FH>;
+    die "nodata $image_dir/$file" unless $data;
+}
+
+print "Content-Type:$mime\n\n";
+print $data;
+#my $header = "Content-Type:application/x-download\n" .  
+#             "Content-Disposition:attachment;filename=$ID\n\n";
+
+
+
