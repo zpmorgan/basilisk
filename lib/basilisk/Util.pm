@@ -22,8 +22,9 @@ sub empty_pos{ #create a long string of unset bits
 
 sub empty_board{ #return list of lists
    my ($h,$w) = @_;
+   $w = $h unless $w;
    my $pos = empty_pos($h, $w);
-   return unpack_position ($pos, $h, $w);
+   return [unpack_position ($pos, $h, $w)];
 }
 
 #from lists to position blob
@@ -88,7 +89,8 @@ sub board_to_text{
       push @lines, join ' ', @$row;
    }
    my $text = join "\n", @lines;
-   $text =~ tr/12/XO/;
+   #$text =~ tr/12/XO/;
+   return $text;
 }
 
 #use a floodfill algorithm
@@ -152,6 +154,7 @@ sub death_mask_from_list{ #list of dead stones into a board mask
    for (@$list){
       $mask[$_[0]][$_[1]] = 1;
    }
+   return \@mask;
 }
 sub death_mask_to_list{
    my $mask = shift;
@@ -159,17 +162,19 @@ sub death_mask_to_list{
    my $rownum=0;
    for my $row (@$mask){
       $rownum++;
+      next unless defined $row;
       for my $colnum (1..@$row){
          if ($row->[$colnum]){ #marked dead
             push @list, [$rownum, $colnum];
          }
       }
    }
+   return \@list;
 }
 #floodfill through empty space.
 #flips elements of $mask, connected through empties.
 sub update_death_mask{ 
-   my ($board, $mask, $action, $srow,$scol);
+   my ($board, $mask, $action, $srow,$scol) = @_;
    my $size = scalar @$board;
    my $to = $action eq 'mark_dead' ? 1 : 0;
    my $color = $board->[$srow][$scol];

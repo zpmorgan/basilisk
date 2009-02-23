@@ -69,38 +69,45 @@ sub game : Global {
       }
       
       my $prev_move = $c->stash->{game}->last_move;
-      if ($prev_move and $prev_move->movestring eq 'pass'){ #2nd consecutive pass
-         $c->stash->{message} = "2nd pass: commence scoring";
-         $c->stash->{template} = 'message.tt'; return;
-      }
       $c->model('DB')->schema->txn_do(
          \&do_move, $c, 'pass',
       );
       $c->stash->{board} = $board;
       $c->stash->{msg} = 'pass is success';
    }
-   elsif ($action eq 'mark_dead' or $action eq 'mark_dead'){
+   elsif ($action eq 'mark_dead' or $action eq 'mark_alive'){
       #not a move. just update board table
-      my $err = seek_permission_to_move($c);
+      my $err = seek_permission_to_mark_dead($c);
       if ($err){
          $c->stash->{message} = "permission fail: $err";
          $c->stash->{template} = 'message.tt'; return;
       }
+      $c->stash->{marking_dead_stones} = 1;
+      $c->stash->{board_clickable} = 1;
       
       my $mark_co = [split '-', $c->req->param('co')];
       my $also_dead = $c->req->param('also_dead');
-      my @marked_dead_stones = map {[split'-',$_]} split '_', @$also_dead;
+      my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
       push @marked_dead_stones, $mark_co;
       my $death_mask = Util::death_mask_from_list(\@marked_dead_stones);
       Util::update_death_mask($board, $death_mask, $action, @$mark_co);
       my $new_death_list = Util::death_mask_to_list($death_mask);
       $c->stash->{death_mask} = $death_mask;
-      # create cgi param string, just for clickable table cells
+      # create cgi param string, just for clickable table cells:
       $c->stash->{new_also_dead} = join '_', map{join'-',@$_} @$new_death_list;
    }
-   my $err = seek_permission_to_move($c);
-   $c->stash->{board_clickable} = $err ? 0 : 1;
-   
+   unless ($c->stash->{board_clickable}){ #determine level of interaction with game
+      my $err = seek_permission_to_move($c);
+      unless ($err){
+         $c->stash->{board_clickable} = 1;
+         $err = seek_permission_to_mark_dead($c);
+         unless ($err){
+            $c->stash->{marking_dead_stones} = 1;
+            $c->stash->{new_also_dead} = '';
+            $c->stash->{death_mask} = Util::empty_board($size);
+         }
+      }
+   }
    $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
    render_board_table($c);
    
@@ -130,6 +137,18 @@ sub seek_permission_to_move{
    $c->stash->{p2g} = $p;
    $c->stash->{side} = $p->side;
    return ''
+}
+sub seek_permission_to_mark_dead{ #returns err if err
+   my $c = shift;
+   my $err = seek_permission_to_move($c);
+   return $err if $err;
+   #last 2 moves should be passes to start scoring process
+   my $game = $c->stash->{game};
+   my $nummoves = $game->num_moves;
+   return 'You hound! You just started!' unless $nummoves >= 2;
+   return 'lastmove not pass' unless $game->moves->find ({movenum => $nummoves})->movestring eq 'pass';
+   return '2nd-to-lastmove not pass' unless $game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass';
+   return '';
 }
 
 #todo: move all mv eval into some ruleset module
@@ -249,12 +268,13 @@ sub get_game_player_data{ #for game.tt
    
 }
 
-
+#todo: move url param stuff into tt
 sub render_board_table{
    my ($c) = @_;
    my $size = $c->stash->{game}->size;
    my $board = $c->stash->{board};
    my $death_mask = $c->stash->{death_mask};
+   #die $death_mask->[0];
    my @table; #cells representing one intersection each
    
    for my $rownum (0..$size-1){
@@ -263,14 +283,16 @@ sub render_board_table{
          my $stone = $board->[$rownum]->[$colnum]; #0 if empty, 1 b, 2 w
          $table[$rownum][$colnum]->{g} = $image;
          if ($c->stash->{board_clickable}) { #url
-            if ($stone==0){ #empty
-               my $url = "game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
-               $table[$rownum][$colnum]->{ref} = $url;
+            if ($stone==0){ #empty intersection
+               unless ($c->stash->{marking_dead_stones}){ #can't move when marking dead
+                  my $url = "game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
+                  $table[$rownum][$colnum]->{ref} = $url;
+               }
             }
-            elsif ($c->stash->{marking_dead_stones}){
+            elsif ($c->stash->{marking_dead_stones}){ #stone here
                my $mark = $death_mask->[$rownum]->[$colnum] ? 'alive' : 'dead'; #flip opposite
                my $url = "game/".$c->stash->{gameid} . "?action=mark_$mark&co=" . $rownum .'-'.$colnum;
-               $url .= "also_dead=" . $c->stash->{new_also_dead};
+               $url .= "&also_dead=" . $c->stash->{new_also_dead};
                $table[$rownum][$colnum]->{ref} = $url;
             }
          }
