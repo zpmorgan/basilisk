@@ -24,7 +24,7 @@ sub empty_board{ #return list of lists
    my ($h,$w) = @_;
    $w = $h unless $w;
    my $pos = empty_pos($h, $w);
-   return [unpack_position ($pos, $h, $w)];
+   return unpack_position ($pos, $h, $w);
 }
 
 #from lists to position blob
@@ -64,19 +64,17 @@ sub ensure_position_size{
 
 #untested
 sub board_from_text{
-   my $text = shift;
-   my ($h, $w) = @_;
+   my ($text, $h, $w) = @_;
    $w = $h unless $w;
-   chomp $text;
+   $text =~ s/\s*//g; #rm whitespace
+   die "bad data: $text" if $text =~ /([^012])/;
+   die 'bad size' unless length $text == $w*$h;
+   
+   my @list = split '', $text;
    my @board;
-   my @lines = split "\n", $text;
-   $h = scalar @lines;
-   for (@lines){
-      chop $_ if / $/; #rm whitespace at end
-      my @line = split (/ /, $_);
-      @line = map {tr/XO[.+]/12 /; $_ } @line;
-      #warn @line;
-      push @board, \@line;
+   my $row = 0;
+   while (@list){
+      push @board, [splice @list, 0, $w];
    }
    return \@board;
 }
