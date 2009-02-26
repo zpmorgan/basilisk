@@ -63,7 +63,7 @@ sub evaluate_move{ #returns (board,'',caps) or (undef, err)
 sub default_evaluate_move{
    my ($self, $board, $row, $col, $color) = @_;
    die "badcolor $color" unless $color =~ /^[12]$/;
-   die "blah" unless $row and $col;
+   die "blah" unless defined $row and defined $col;
    die 'badboard' unless ref $board eq 'ARRAY';
    
    if ($board->[$row][$col]){
