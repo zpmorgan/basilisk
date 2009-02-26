@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 use basilisk::Util;
+use basilisk::Rulemap;
 
 __PACKAGE__->config->{namespace} = '';
 
@@ -30,6 +31,7 @@ sub game : Global {
       $c->stash->{template} = 'message.tt';return;
    }
    $c->stash->{ruleset} = $c->stash->{game}->ruleset;
+   build_rulemap($c);
    
    my $pos_data = $c->stash->{game}->current_position;
    my $size = $c->stash->{game}->size;
@@ -37,6 +39,7 @@ sub game : Global {
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
    
    my $action = $c->req->param('action');
+   $action = '' unless $action;
    if ($action eq 'move'){ #evaluate & do move:
       my $err = seek_permission_to_move($c);
       if ($err){
@@ -151,7 +154,17 @@ sub seek_permission_to_mark_dead{ #returns err if err
    return '';
 }
 
-#todo: move all mv eval into some ruleset module
+#todo: move all mv eval into some rulemap module
+sub build_rulemap{
+   my $c = shift;
+   my $game = $c->stash->{game};
+   my $rulemap = new basilisk::Rulemap(
+      size => $game->size,
+      topology => 'plane',
+   );
+   $c->stash->{rulemap} = $rulemap;
+}
+
 
 sub detect_duplicate_position{
    my ($c, $newboard) = @_;
@@ -176,24 +189,12 @@ sub detect_duplicate_position{
 sub evaluate_move{
    my $c = shift;
    my ($row, $col, $board) = @{$c->stash}{qw/move_row move_col board/};
-   my $size = $c->stash->{game}->size;
-   my $turn = $c->stash->{game}->turn;
-   if ($board->[$row][$col]){
-      return "stone exists at row $row col $col";
-   }
+   my $turn = $c->stash->{game}->turn; #turn==color, right?
    
-   #produce copy of board for evaluation -> add stone at $row $col
-   my $newboard = [ map {[@$_]} @$board ];
-   $newboard->[$row]->[$col] = $turn;
-   # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
-   my ($string, $libs, $foes) = Util::get_string($newboard, $row, $col);
-   my $caps = Util::find_captured ($newboard, $foes);
-   if (@$libs == 0 and @$caps == 0){
-      return 'suicide';
-   }
-   for my $cap(@$caps){ # just erase captured stones
-      $newboard->[$cap->[0]]->[$cap->[1]] = 0;
-   }
+   #find next board position:
+   my ($newboard, $err, $caps) = $c->stash->{rulemap}->evaluate_move
+         ($board,$row,$col,$turn);
+   return $err unless $newboard;
    if (detect_duplicate_position($c, $newboard)){
       return 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum
    }
@@ -201,7 +202,7 @@ sub evaluate_move{
 }
 #die join';',map{@$_}@$libs; #err list of coordinates
 
-
+#insert into db
 sub do_move{#todo:mv to game class?
    my ($c, $movestring, $newboard, $caps) = @_;
    my $new_pos_data;

@@ -59,6 +59,7 @@ sub end : ActionClass('RenderView') {
    my ( $self, $c ) = @_;
    #set some tt vars for header
    my ($url_base) = $c->request->base =~ m|http://[^/]*(/.*)/$|;
+   $url_base = '' unless $url_base;
    my $img_base = $url_base . '/g';
    $c->stash->{url_base} = $url_base;
    $c->stash->{img_base} = $img_base;
