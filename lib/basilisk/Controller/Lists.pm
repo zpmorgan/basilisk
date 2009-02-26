@@ -86,6 +86,7 @@ sub create_2player_game{ # called as one transaction
       side => 2, #white
       expiration => 0,
    });
+   $c->stash->{newgame} = $game;
 }
 
 sub join_wgame{
@@ -120,7 +121,8 @@ sub waiting_room :Global{
             $c->stash->{message} = "error: $err";
             $c->stash->{template} = 'message.tt'; return
          }
-         $c->stash->{msg} = 'Game joined!';
+         my $id = $c->stash->{newgame}->id;
+         $c->stash->{msg} = "<a href='[%url_base%]/game/$id'>Game joined!</a>";
          #TODO: forward to joined game?
       }
    }

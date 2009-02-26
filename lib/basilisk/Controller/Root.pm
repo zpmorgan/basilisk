@@ -67,6 +67,10 @@ sub end : ActionClass('RenderView') {
       $c->stash->{message} =~ s/\[\%\s?url_base\s?\%\]/$url_base/;
       $c->stash->{message} =~ s/\[\%\s?img_base\s?\%\]/$img_base/;
    }
+   if ($c->stash->{msg}){ #TT can't do this at runtime?
+      $c->stash->{msg} =~ s/\[\%\s?url_base\s?\%\]/$url_base/;
+      $c->stash->{msg} =~ s/\[\%\s?img_base\s?\%\]/$img_base/;
+   }
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
    #$c->stash->{name} seems to be basilisk, and unchangeable.
    $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';
