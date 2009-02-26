@@ -13,6 +13,10 @@ __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'pid
 __PACKAGE__->many_to_many( games => 'player_to_game', 'game');
 __PACKAGE__->has_many(proposed_games => 'basilisk::Schema::Game_proposal', 'proposer');
 
+sub sqlt_deploy_hook {
+    my($self, $table) = @_;
+    $table->add_index(name => idx_name => fields => [qw/name/]);
+}
 #sub games{
 #   
 #}

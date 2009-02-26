@@ -14,6 +14,9 @@ __PACKAGE__->set_primary_key('gid', 'movenum');
 __PACKAGE__->belongs_to(game => 'basilisk::Schema::Game', 'gid');
 __PACKAGE__->belongs_to(position => 'basilisk::Schema::Position', 'position_id');
 
-
+sub sqlt_deploy_hook {
+    my($self, $table) = @_;
+    #$table->add_index(name => idx_mv => fields => [qw/gid movenum/]);
+}
 
 1

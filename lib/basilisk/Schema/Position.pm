@@ -13,7 +13,11 @@ __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (moves => 'basilisk::Schema::Move', 'position_id');
 __PACKAGE__->has_many (games_initially => 'basilisk::Schema::Game', 
       { 'foreign.initial_position' => 'self.id' });
-
+sub sqlt_deploy_hook {
+    my($self, $table) = @_;
+    $table->add_index(name => idx_pos => fields => [qw/position/]);
+    $table->add_index(name => idx_possize => fields => [qw/size/]);
+}
 
 sub empty_pos{
    my $size = shift;

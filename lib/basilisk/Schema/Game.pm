@@ -21,6 +21,11 @@ __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid
 __PACKAGE__->many_to_many( players => 'player_to_game', 'player');
 __PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
 
+sub sqlt_deploy_hook { #indices
+    my($self, $table) = @_;
+    $table->add_index(name => idx_game => fields => [qw/num_moves/]);
+}
+
 sub player_to_move_next{
    my $self = shift;
    my $player = $self->players->search({side => $self->turn})->next;

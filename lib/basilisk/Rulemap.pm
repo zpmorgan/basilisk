@@ -1,6 +1,5 @@
 package basilisk::Rulemap;
 use basilisk::Util;
-#use Moose; # automatically turns on strict and warnings
 use strict;
 use warnings;
 
@@ -15,6 +14,7 @@ use warnings;
 #   Example: 'size' might be meaningless for some boards.
 #   Example: 'visibility' with fog of war.
 #   Example: 'collisions' with fog of war.
+# For a ruleset with an arbitrary graph, the whole graph is to be in rulemap.
 
 # This class is basically here to define default behavior and
 #   to provide a mechanism to override it.
@@ -23,7 +23,8 @@ use warnings;
 # Also: This does not involve the ko rule. That requires a database search 
 #   for a duplicate position.
 
-#TODO: absorb get_string,etc
+#TODO: absorb get_string, etc
+#TODO: and also something to find liberties of some node
 #TODO: shifting turns&teams&colors in new ways (rengo,zen,consensus?)
 
 my %defaults = (

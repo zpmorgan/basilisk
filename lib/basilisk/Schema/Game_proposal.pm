@@ -16,6 +16,15 @@ __PACKAGE__->add_columns(
     #'to'        => { data_type => 'INTEGER', default => 0 }, #to all for now
 );
 
+__PACKAGE__->set_primary_key('id');
+__PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset');
+__PACKAGE__->belongs_to(proposer => 'basilisk::Schema::Player');
+
+sub sqlt_deploy_hook {
+    my($self, $table) = @_;
+    $table->add_index(name => idx_prop => fields => [qw/proposer/]);
+}
+
 sub size{
    my $self = shift;
    return $self->ruleset->size
@@ -33,7 +42,7 @@ sub decrease_quantity{ #by just one
 }
 
 
-__PACKAGE__->set_primary_key('id');
-__PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset');
-__PACKAGE__->belongs_to(proposer => 'basilisk::Schema::Player');
+
+
+
 1;

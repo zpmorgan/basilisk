@@ -80,8 +80,8 @@ my $pos_row = $schema->resultset('Position')->create({
 my $ruleset_2 = $ruleset_rs->create({
    size => 9,
    initial_position => $pos_row->id,
-   wrap_ns => 1,
-   wrap_ew => 1,
+ #  wrap_ns => 1,
+ #  wrap_ew => 1, #need extra_rule entries for these
 });
 
 my $new_game_2 = $game_rs->create({
