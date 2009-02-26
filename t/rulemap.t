@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 3;
+use Test::More tests => 4;
 use basilisk::Rulemap;
 
 
@@ -17,6 +17,7 @@ my $board = Util::board_from_text (
     0000
     0000', 4);
 
+ok ($rulemap2->move_is_valid($board, 2, 2), 'move on empty board valid');
 
 TODO: {
    local $TODO = "URI::Geller not finished";
