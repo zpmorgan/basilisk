@@ -7,12 +7,12 @@ use base qw/DBIx::Class/;
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
-    'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
-    'ruleset'      => { data_type => 'INTEGER', is_nullable => 0 },
+    'id'             => { data_type => 'INTEGER', is_auto_increment => 1 },
+    'ruleset'        => { data_type => 'INTEGER', is_nullable => 0 },
     #turn--player currently with the initiative(index as 'side' col from player_to_game)
-    'turn'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 1 },
+    'turn'           => { data_type => 'INTEGER', is_nullable => 0, default_value => 1 },
     'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
-
+    'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -20,6 +20,7 @@ __PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid');
 __PACKAGE__->many_to_many( players => 'player_to_game', 'player');
 __PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
+__PACKAGE__->belongs_to (initial_pos => 'basilisk::Schema::Position', 'initial_position');
 
 sub sqlt_deploy_hook { #indices
     my($self, $table) = @_;
@@ -52,7 +53,7 @@ sub last_move_string{ #'pass' or 'b t4' etc
 sub current_position{
    my $self = shift;
    if ($self->num_moves == 0){ #no moves have taken place yet.
-      my $initial_pos = $self->ruleset->initial_pos;
+      my $initial_pos = $self->initial_pos;
       if ($initial_pos){
          return $initial_pos->position;
       }

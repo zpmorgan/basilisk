@@ -14,13 +14,14 @@ __PACKAGE__->add_columns(
     'num_players'    => { data_type => 'INTEGER', is_nullable => 0, default_value => '2'},
     
     'rules_description' => { data_type => 'TEXT', is_nullable => 1},
-    'initial_position'    => { data_type => 'INTEGER', is_nullable => 1 },
+    #'initial_position'    => { data_type => 'INTEGER', is_nullable => 1 }, moved to Game table
     #'turn_mode'       => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'}, for rengo, zen, normal, etc
 );
 __PACKAGE__->set_primary_key('id');
+__PACKAGE__->has_many (positions => 'basilisk::Schema::Position', 'ruleset');
 __PACKAGE__->has_many (games => 'basilisk::Schema::Game', 'ruleset');
 __PACKAGE__->has_many (proposed_games => 'basilisk::Schema::Game_proposal', 'ruleset');
-__PACKAGE__->belongs_to (initial_pos => 'basilisk::Schema::Position', 'initial_position');
+#__PACKAGE__->belongs_to (initial_pos => 'basilisk::Schema::Position', 'initial_position');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;

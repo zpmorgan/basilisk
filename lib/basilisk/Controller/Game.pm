@@ -225,7 +225,7 @@ sub do_move{#todo:mv to game class?
    }
    Util::ensure_position_size($new_pos_data, $size);
    my $posrow = $c->model('DB::Position')->create( {
-      size => $size,
+      ruleset => $c->stash->{ruleset}->id,
       position => $new_pos_data,
    });
    my $moverow = $c->model('DB::Move')->create( {

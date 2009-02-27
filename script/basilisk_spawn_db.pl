@@ -36,7 +36,7 @@ $row = $player_rs->create({
 
 #make generic empty game with cannon and georgia
 my $ruleset_rs = $schema->resultset('Ruleset');
-my $new_ruleset = $ruleset_rs->create({size => 19}); #default everything
+my $new_ruleset = $ruleset_rs->create({size => 6}); #default everything
 
 my $game_rs = $schema->resultset('Game');
 my $new_game = $game_rs->create({
@@ -58,7 +58,12 @@ $p2g_rs->create({
 });
 
 
-#2nd game--make toroidal, with some initial position
+#2nd game--make toroidal, with some initial position#initialize with some position.
+my $ruleset_2 = $ruleset_rs->create({
+   size => 9,
+ #  wrap_ns => 1,
+ #  wrap_ew => 1, #need extra_rule entries for these
+});
 my $board = 
 '000200000
 000000001
@@ -72,20 +77,13 @@ my $board =
 my @board = map {[split '', $_]} split "\n",$board;
 my $pos_data = Util::pack_board(\@board);
 my $pos_row = $schema->resultset('Position')->create({
-   size => 9,
+   ruleset => $ruleset_2->id,
    position => $pos_data,
-});
-
-#initialize with some position.
-my $ruleset_2 = $ruleset_rs->create({
-   size => 9,
-   initial_position => $pos_row->id,
- #  wrap_ns => 1,
- #  wrap_ew => 1, #need extra_rule entries for these
 });
 
 my $new_game_2 = $game_rs->create({
    ruleset => $ruleset_2->id,
+   initial_position => $pos_row->id,
 });
 #give cannon both sides.
 $p2g_rs->create({
