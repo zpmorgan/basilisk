@@ -11,28 +11,33 @@ my %mimes = (
    gif => 'image/gif',
    jpg  => 'image/jpeg',
    jpeg  => 'image/jpeg',
-   gz  => 'application/x-compressed',
+   gz  => 'application/x-gzip',
 );
 my $file = path_info();
 $file =~ s|^/||; #rid 1st slash
 
 die unless $file =~ /\.([^\.]*)$/; #find extension
-my $mime = $mimes{$1} or die;
+my $mime = $mimes{$1} or err ("mime me $1 $file");
 
 my $image_dir = "../basilisk/root/g";
 $image_dir = '..' if $1 eq 'gz';
 my $data;
 {#slurp
     local( $/, *FH ) ;
-    open( FH, "$image_dir/$file" ) or die "sudden flaming death\n";
+    err ($!) unless open( FH, "$image_dir/$file" );
     $data = <FH>;
-    die "nodata $image_dir/$file" unless $data;
+    err ("nodata $image_dir/$file") unless $data;
 }
 
 print "Content-Type:$mime\n\n";
 print $data;
 #my $header = "Content-Type:application/x-download\n" .  
 #             "Content-Disposition:attachment;filename=$ID\n\n";
-
+sub err{
+   my $err = shift;
+   print "Content-Type:text/html\n\n";
+   print $err;
+   exit;
+}
 
 

@@ -301,7 +301,7 @@ sub render_board_table{
 sub select_g_file{ #default board
    my ($board, $death_mask, $size, $row, $col) = @_;
    my $stone = $board->[$row][$col];
-   my $dead = $death_mask->{$row.'-'.$col};
+   my $dead = $death_mask->{$row.'-'.$col}; # T/F
    return 'bw.gif' if $stone == 1 and $dead;
    return 'b.gif' if $stone == 1;
    return 'wb.gif' if $stone == 2 and $dead;
