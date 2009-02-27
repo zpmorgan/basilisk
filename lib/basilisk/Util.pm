@@ -8,7 +8,6 @@ sub EMPTY{0}
 sub BLACK{1}
 sub WHITE{2}
 
-
 sub empty_pos{ #create a long string of unset bits
    my ($h,$w) = @_;
    $w = $h unless $w;

@@ -8,9 +8,6 @@ use basilisk::Rulemap;
 
 __PACKAGE__->config->{namespace} = '';
 
-#TODO: rulemap module -- to map rule name to subroutine
-#TODO: set up to compile rule map from db when needed
-
 # /game/14?action=move&co=4-4
 # /game/14?action=pass
 # /game/14?action=action=mark_dead&co=10-9&also_dead=3-3_4-5_19-19 #or action=mark_alive
@@ -330,8 +327,9 @@ sub select_g_file{ #default board
 sub get_game_board{
    my ($c) = @_;
    my $game = $c->stash->{game};
-   my $pos = $game->current_position;
-   return Util::unpack_position($pos, $game->size);
+   my $board = $game->current_board;
+   return $board;
+   #return Util::unpack_position($pos, $game->size);
 }
 
 sub game_exists{

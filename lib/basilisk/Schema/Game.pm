@@ -1,14 +1,20 @@
 package basilisk::Schema::Game;
 
 use basilisk::Util;
-
 use base qw/DBIx::Class/;
+
+#values for status column
+sub RUNNING {1}
+sub FINISHED {2}
+sub PAUSED {3}
 
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
     'id'             => { data_type => 'INTEGER', is_auto_increment => 1 },
     'ruleset'        => { data_type => 'INTEGER', is_nullable => 0 },
+    'status'        => { data_type => 'INTEGER', default => 1 },
+    'result'        => { data_type => 'TEXT', is_nullable => 1 },
     #turn--player currently with the initiative(index as 'side' col from player_to_game)
     'turn'           => { data_type => 'INTEGER', is_nullable => 0, default_value => 1 },
     'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
@@ -68,7 +74,7 @@ sub current_position{
    return $move->position->position;#blob
 }
 
-sub board{
+sub current_board{
    my $self = shift;
    return Util::unpack_position($self->current_position, $self->size);
 }
