@@ -173,16 +173,16 @@ sub get_string { #for all board types
 sub find_captured{
    my ($self, $board, $nodes) = @_;
    my @nodes = @$nodes; #list
-   my @seen; #grid. 
+   my %seen; #indexed by stringified node
    my @caps; #list
    while (@nodes){
-      my ($row, $col) = @{pop @nodes};
-      next if $seen[$row][$col];
-      my ($string, $libs, $foes) = $self->get_string ($board, [$row, $col]);
-      my $mark = scalar @$libs ? 'safe' : 'cap';
-      for my $s (@$string){
-         $seen[$s->[0]][$s->[1]] = 1;
-         push @caps, $s if $mark eq 'cap';
+      my $node = pop @nodes;
+      next if $seen {$self->node_to_string($node)};
+      my ($string, $libs, $foes) = $self->get_string ($board, $node);
+      my $capture_these = scalar @$libs ? '0' : '1';
+      for my $n (@$string){
+         $seen {$self->node_to_string($n)} = 1;
+         push @caps, $n if $capture_these;
       }
    }
    return \@caps
