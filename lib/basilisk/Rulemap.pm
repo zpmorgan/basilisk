@@ -135,9 +135,9 @@ sub default_node_liberties{
 
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
+#TODO: let this find empty areas
 sub get_string { #for all board types
    my ($self, $board, $node) = @_; #start row/column
- #  my ($srow, $scol) = @$node;
    my $size = scalar @$board; #assuming square
    
    my %seen; #indexed by stringified nodes
@@ -189,7 +189,7 @@ sub find_captured{
 }
 
 sub death_mask_from_list{ #list of dead stones into a board mask
-   my $list = shift;
+   my ($board, $list) = @_;
    my @mask;
    for (@$list){
       $mask[$_[0]][$_[1]] = 1;
@@ -197,7 +197,7 @@ sub death_mask_from_list{ #list of dead stones into a board mask
    return \@mask;
 }
 sub death_mask_to_list{
-   my $mask = shift;
+   my ($board, $mask) = @_;
    my @list;
    my $rownum=0;
    for my $row (@$mask){
