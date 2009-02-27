@@ -5,6 +5,7 @@ use warnings;
 
 
 # This class evaluates moves and determines new board positions.
+# This class stores no board/position data.
 # Also, it must be used to determine visible portions of the board if there's fog of war.
 # So you actually MIGHT need one of these to view any game at all.
 
@@ -23,14 +24,17 @@ use warnings;
 # Also: This does not involve the ko rule. That requires a database search 
 #   for a duplicate position.
 
-#TODO: absorb get_string, etc
-#TODO: and also something to find liberties of some node
+# Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
+#   functions may handle as they will. Nodes by default are [$row,$col].
 #TODO: shifting turns&teams&colors in new ways (rengo,zen,consensus?)
 
 my %defaults = (
    size => 19,
    topology => 'plane',
    eval_move_func => \&default_evaluate_move,
+   node_to_string_func => \&default_node_to_string,
+   node_liberties_func => \&default_node_liberties,
+   stone_at_node_func => \&default_stone_at_node,
    #move_is_legal_func => sub{'jazzersize'},
 );
 
@@ -59,6 +63,18 @@ sub evaluate_move{ #returns (board,'',caps) or (undef, err)
    my $self = shift;
    return  $self->{eval_move_func}->($self, @_);
 }
+sub node_to_string{
+   my $self = shift;
+   return  $self->{node_to_string_func}->($self, @_);
+}
+sub node_liberties{
+   my $self = shift;
+   return  $self->{node_liberties_func}->($self, @_);
+}
+sub stone_at_node{
+   my $self = shift;
+   return  $self->{stone_at_node_func}->($self, @_);
+}
 
 #This is the default. Used for normal games on rect grid
 sub default_evaluate_move{
@@ -85,41 +101,69 @@ sub default_evaluate_move{
    return ($newboard, '', $caps);#no err
 }
 
+#turn [13,3] into 13-3
+#TODO: something else for 'go-style' coordinates
+sub default_node_to_string{ 
+   my ($self, $node) = @_;
+   return join '-', @$node;
+}
+sub default_string_to_node{ 
+   my ($self, $string) = @_;
+   return [split '-', $string];
+}
+sub default_stone_at_node{ #0 if empty, 1 black, 2 white
+   my ($self, $board, $node) = @_;
+   my ($row, $col) = @$node;
+   return $board->[$row][$col];
+}
 
+sub default_node_liberties{
+   my ($self, $node) = @_;
+   my $size = $self->{size};
+   my ($row, $col) = @$node;
+   my @nodes;
+   push @nodes, [$row-1, $col] unless $row == 0;
+   push @nodes, [$row+1, $col] unless $row == $size-1;
+   push @nodes, [$row, $col-1] unless $col == 0;
+   push @nodes, [$row, $col+1] unless $col == $size-1;
+   return @nodes;
+}
 
+#TODO: make these funcs generic:
+#     death_mask_ to/from _list
+#     get_string, find_captured
 
-#use a floodfill algorithm
+#uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
-sub get_string { #for vanilla boards
+sub get_string { #for all board types
    my ($self, $board, $node) = @_; #start row/column
-   my ($srow, $scol) = @$node;
+ #  my ($srow, $scol) = @$node;
    my $size = scalar @$board; #assuming square
    
-   my @seen;
+   my %seen; #indexed by stringified nodes
    my @found;
    my @libs; #liberties
    my @foes; #enemy stones adjacent to string
-   my $color = $board->[$srow][$scol];
-   return if $color==0; #empty
+   my $string_color = $self->stone_at_node($board, $node);
+   return if $string_color==0; #empty
    #color 0 has to mean empty, (1 black, 2 white.)
-   my @nodes = ([$srow,$scol]); #array of adjacent intersections to consider
+   my @nodes = ($node); #array of adjacent intersections to consider
    
    while (@nodes) {
-      my ($row, $col) = @{pop @nodes};
-      next if $seen[$row][$col];
-      $seen[$row][$col] = 1;
-      if ($board->[$row][$col] == $color){
-         push @found, [$row, $col];
-         push @nodes, [$row-1, $col] unless $row == 0;
-         push @nodes, [$row+1, $col] unless $row == $size-1;
-         push @nodes, [$row, $col-1] unless $col == 0;
-         push @nodes, [$row, $col+1] unless $col == $size-1;
+      my $node = pop @nodes;
+      #my ($row, $col) = @$node;
+      next if $seen {$self->node_to_string ($node)};
+      $seen {$self->node_to_string ($node)} = 1;
+      my $here_color = $self->stone_at_node ($board, $node);
+      if ($here_color == $string_color){
+         push @found, $node;
+         push @nodes, $self->node_liberties ($node)
       }
-      elsif ($board->[$row][$col] == 0){ #empty
-         push @libs, [$row, $col];
+      elsif ($here_color == 0){ #empty
+         push @libs, $node;
       }
-      else { #empty
-         push @foes, [$row, $col];
+      else { #enemy
+         push @foes, $node;
       }
    }
    return (\@found, \@libs, \@foes);
@@ -142,6 +186,30 @@ sub find_captured{
       }
    }
    return \@caps
+}
+
+sub death_mask_from_list{ #list of dead stones into a board mask
+   my $list = shift;
+   my @mask;
+   for (@$list){
+      $mask[$_[0]][$_[1]] = 1;
+   }
+   return \@mask;
+}
+sub death_mask_to_list{
+   my $mask = shift;
+   my @list;
+   my $rownum=0;
+   for my $row (@$mask){
+      $rownum++;
+      next unless defined $row;
+      for my $colnum (1..@$row){
+         if ($row->[$colnum]){ #marked dead
+            push @list, [$rownum, $colnum];
+         }
+      }
+   }
+   return \@list;
 }
 
 1;

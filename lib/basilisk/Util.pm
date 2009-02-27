@@ -91,30 +91,6 @@ sub board_to_text{
 }
 
 
-sub death_mask_from_list{ #list of dead stones into a board mask
-   my $list = shift;
-   my @mask;
-   for (@$list){
-      $mask[$_[0]][$_[1]] = 1;
-   }
-   return \@mask;
-}
-sub death_mask_to_list{
-   my $mask = shift;
-   my @list;
-   my $rownum=0;
-   for my $row (@$mask){
-      $rownum++;
-      next unless defined $row;
-      for my $colnum (1..@$row){
-         if ($row->[$colnum]){ #marked dead
-            push @list, [$rownum, $colnum];
-         }
-      }
-   }
-   return \@list;
-}
-
 #floodfill through empty space.
 #flips elements of $mask, connected through empties.
 sub update_death_mask{ 
