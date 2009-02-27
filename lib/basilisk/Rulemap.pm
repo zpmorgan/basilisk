@@ -74,8 +74,8 @@ sub default_evaluate_move{
    my $newboard = [ map {[@$_]} @$board ];
    $newboard->[$row]->[$col] = $color;
    # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
-   my ($string, $libs, $foes) = Util::get_string($newboard, $row, $col);
-   my $caps = Util::find_captured ($newboard, $foes);
+   my ($string, $libs, $foes) = $self->get_string($newboard, [$row, $col]);
+   my $caps = $self->find_captured ($newboard, $foes);
    if (@$libs == 0 and @$caps == 0){
       return (undef,'suicide');
    }
@@ -83,6 +83,65 @@ sub default_evaluate_move{
       $newboard->[$cap->[0]]->[$cap->[1]] = 0;
    }
    return ($newboard, '', $caps);#no err
+}
+
+
+
+
+#use a floodfill algorithm
+#returns (string, liberties, adjacent_foes)
+sub get_string { #for vanilla boards
+   my ($self, $board, $node) = @_; #start row/column
+   my ($srow, $scol) = @$node;
+   my $size = scalar @$board; #assuming square
+   
+   my @seen;
+   my @found;
+   my @libs; #liberties
+   my @foes; #enemy stones adjacent to string
+   my $color = $board->[$srow][$scol];
+   return if $color==0; #empty
+   #color 0 has to mean empty, (1 black, 2 white.)
+   my @nodes = ([$srow,$scol]); #array of adjacent intersections to consider
+   
+   while (@nodes) {
+      my ($row, $col) = @{pop @nodes};
+      next if $seen[$row][$col];
+      $seen[$row][$col] = 1;
+      if ($board->[$row][$col] == $color){
+         push @found, [$row, $col];
+         push @nodes, [$row-1, $col] unless $row == 0;
+         push @nodes, [$row+1, $col] unless $row == $size-1;
+         push @nodes, [$row, $col-1] unless $col == 0;
+         push @nodes, [$row, $col+1] unless $col == $size-1;
+      }
+      elsif ($board->[$row][$col] == 0){ #empty
+         push @libs, [$row, $col];
+      }
+      else { #empty
+         push @foes, [$row, $col];
+      }
+   }
+   return (\@found, \@libs, \@foes);
+}
+
+#take a list of stones, returns connected strings which have no libs,
+sub find_captured{
+   my ($self, $board, $nodes) = @_;
+   my @nodes = @$nodes; #list
+   my @seen; #grid. 
+   my @caps; #list
+   while (@nodes){
+      my ($row, $col) = @{pop @nodes};
+      next if $seen[$row][$col];
+      my ($string, $libs, $foes) = $self->get_string ($board, [$row, $col]);
+      my $mark = scalar @$libs ? 'safe' : 'cap';
+      for my $s (@$string){
+         $seen[$s->[0]][$s->[1]] = 1;
+         push @caps, $s if $mark eq 'cap';
+      }
+   }
+   return \@caps
 }
 
 1;
