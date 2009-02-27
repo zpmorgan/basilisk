@@ -35,6 +35,7 @@ my %defaults = (
    node_to_string_func => \&default_node_to_string,
    node_liberties_func => \&default_node_liberties,
    stone_at_node_func => \&default_stone_at_node,
+   all_nodes_func     => \&default_all_nodes,
    #move_is_legal_func => sub{'jazzersize'},
 );
 
@@ -74,6 +75,10 @@ sub node_liberties{
 sub stone_at_node{
    my $self = shift;
    return  $self->{stone_at_node_func}->($self, @_);
+}
+sub all_nodes{
+   my $self = shift;
+   return  $self->{all_nodes_func}->($self, @_);
 }
 
 #This is the default. Used for normal games on rect grid
@@ -116,6 +121,15 @@ sub default_stone_at_node{ #0 if empty, 1 black, 2 white
    my ($row, $col) = @$node;
    return $board->[$row][$col];
 }
+sub default_all_nodes{ #return square block of coordinates
+   my ($self) = @_;
+   my ($size) = $self->{size};
+   my @nodes;
+   for my $i (0..$size-1){
+      push @nodes, map {[$i,$_]} (0..$size-1)
+   }
+   return @nodes;
+}
 
 sub default_node_liberties{
    my ($self, $node) = @_;
@@ -137,17 +151,17 @@ sub default_node_liberties{
 #returns (string, liberties, adjacent_foes)
 #TODO: let this find empty areas
 sub get_string { #for all board types
-   my ($self, $board, $node) = @_; #start row/column
+   my ($self, $board, $node1) = @_; #start row/column
    my $size = scalar @$board; #assuming square
    
    my %seen; #indexed by stringified nodes
    my @found;
    my @libs; #liberties
    my @foes; #enemy stones adjacent to string
-   my $string_color = $self->stone_at_node($board, $node);
+   my $string_color = $self->stone_at_node($board, $node1);
    return if $string_color==0; #empty
    #color 0 has to mean empty, (1 black, 2 white.)
-   my @nodes = ($node); #array of adjacent intersections to consider
+   my @nodes = ($node1); #array of adjacent intersections to consider
    
    while (@nodes) {
       my $node = pop @nodes;
@@ -188,25 +202,36 @@ sub find_captured{
    return \@caps
 }
 
-sub death_mask_from_list{ #list of dead stones into a board mask
-   my ($board, $list) = @_;
-   my @mask;
-   for (@$list){
-      $mask[$_[0]][$_[1]] = 1;
+# A death_mask is basically a set of stringified nodes with an entry 
+#   where there's a dead string. Only one stone per string need be marked.
+# This stuff is just for scoring. Maybe it could be used for 
+#   some interactive score estimation too.
+
+sub death_mask_from_list{ 
+   #Takes list of some dead stones. Other stones in same groups are also dead.
+   my ($self, $board, $list) = @_;
+   my %mask;
+   for my $node (@$list){
+      my ($string, $libs, $foes) = $self->get_string ($board, $node);
+      $mask {$self->node_to_string($node)} = 1;
    }
-   return \@mask;
+   return \%mask;
 }
 sub death_mask_to_list{
-   my ($board, $mask) = @_;
+   #turns each dead string into a representative stringified node
+   my ($self, $board, $mask) = @_;
    my @list;
-   my $rownum=0;
-   for my $row (@$mask){
-      $rownum++;
-      next unless defined $row;
-      for my $colnum (1..@$row){
-         if ($row->[$colnum]){ #marked dead
-            push @list, [$rownum, $colnum];
+   my %seen;
+   for my $node ($self->all_nodes){
+      my $nodestring = $self->node_to_string($node);
+      if ($mask->{$nodestring}) { #marked dead
+         next if $seen {$nodestring};
+         my ($deadnodes, $libs, $foes) = $self->get_string ($board, $node);
+         die 'blah?' unless @$deadnodes;
+         for my $deadnode (@$deadnodes){
+            $seen {$self->node_to_string($deadnode)} = 1;
          }
+         push @list, $deadnodes->[0];
       }
    }
    return \@list;

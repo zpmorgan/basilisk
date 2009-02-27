@@ -89,9 +89,8 @@ sub game : Global {
       my $also_dead = $c->req->param('also_dead');
       my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
       push @marked_dead_stones, $mark_co;
-      my $death_mask = Util::death_mask_from_list(\@marked_dead_stones);
-      Util::update_death_mask($board, $death_mask, $action, @$mark_co);
-      my $new_death_list = Util::death_mask_to_list($death_mask);
+      my $death_mask = $c->stash->{rulemap}->death_mask_from_list($board, \@marked_dead_stones);
+      my $new_death_list = $c->stash->{rulemap}->death_mask_to_list($board, $death_mask);
       $c->stash->{death_mask} = $death_mask;
       # create cgi param string, just for clickable table cells:
       $c->stash->{new_also_dead} = join '_', map{join'-',@$_} @$new_death_list;
@@ -288,7 +287,7 @@ sub render_board_table{
                }
             }
             elsif ($c->stash->{marking_dead_stones}){ #stone here
-               my $mark = $death_mask->[$rownum]->[$colnum] ? 'alive' : 'dead'; #flip opposite
+               my $mark = $death_mask->{"$rownum-$colnum"} ? 'alive' : 'dead'; #flip opposite
                my $url = "game/".$c->stash->{gameid} . "?action=mark_$mark&co=" . $rownum .'-'.$colnum;
                $url .= "&also_dead=" . $c->stash->{new_also_dead};
                $table[$rownum][$colnum]->{ref} = $url;
@@ -302,7 +301,7 @@ sub render_board_table{
 sub select_g_file{ #default board
    my ($board, $death_mask, $size, $row, $col) = @_;
    my $stone = $board->[$row][$col];
-   my $dead = $death_mask->[$row][$col];
+   my $dead = $death_mask->{"$row-$col"};
    return 'bw.gif' if $stone == 1 and $dead;
    return 'b.gif' if $stone == 1;
    return 'wb.gif' if $stone == 2 and $dead;
