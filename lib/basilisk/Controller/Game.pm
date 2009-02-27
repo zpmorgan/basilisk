@@ -151,7 +151,7 @@ sub seek_permission_to_mark_dead{ #returns err if err
    return '';
 }
 
-#todo: move all mv eval into some rulemap module
+
 sub build_rulemap{
    my $c = shift;
    my $game = $c->stash->{game};

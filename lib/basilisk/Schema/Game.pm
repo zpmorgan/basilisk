@@ -13,7 +13,7 @@ __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
     'id'             => { data_type => 'INTEGER', is_auto_increment => 1 },
     'ruleset'        => { data_type => 'INTEGER', is_nullable => 0 },
-    'status'        => { data_type => 'INTEGER', default => 1 },
+    'status'        => { data_type => 'INTEGER', default_value => 1 },
     'result'        => { data_type => 'TEXT', is_nullable => 1 },
     #turn--player currently with the initiative(index as 'side' col from player_to_game)
     'turn'           => { data_type => 'INTEGER', is_nullable => 0, default_value => 1 },
