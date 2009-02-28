@@ -320,20 +320,6 @@ sub select_g_file{ #default board
    return 'e.gif'
 }
 
-sub get_game_board{
-   my ($c) = @_;
-   my $game = $c->stash->{game};
-   my $board = $game->current_board;
-   return $board;
-   #return Util::unpack_position($pos, $game->size);
-}
-
-sub game_exists{
-   my ($c) = @_;
-   return 1 if $c->model('DB::Game')->count( 'id' => $c->stash->{gameid});
-   return 0;
-}
-
 my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;
 
 sub column_letter{
