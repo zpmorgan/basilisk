@@ -46,16 +46,19 @@ sub add_wgame{
    $ns = 1 if $topo eq 'torus';
    my $desc = ''; # description of interesting rules
    $desc .= $topo unless $topo eq 'plane';  #planes are not interesting
-   my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
-      size => $c->req->param('size'),
-      wrap_ew => $ew,
-      wrap_ns => $ns,
-      rules_description => $desc,
-   });
-   my $row = $c->model('DB::Game_proposal')->create({
-      quantity => $c->req->param('quantity'),
-      proposer => $c->session->{userid},
-      ruleset => $new_ruleset->id,
+   
+   $c->model('DB')->schema->txn_do(  sub{
+      my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
+         size => $c->req->param('size'),
+         #wrap_ew => $ew,
+         #wrap_ns => $ns,
+         rules_description => $desc,
+      });
+      my $row = $c->model('DB::Game_proposal')->create({
+         quantity => $c->req->param('quantity'),
+         proposer => $c->session->{userid},
+         ruleset => $new_ruleset->id,
+      });
    });
    return ''; #no err
 }
@@ -64,28 +67,28 @@ sub add_wgame{
 #join a game, from waiting room
 #this just wraps create_2player_game in a transaction
 sub create_game{
-   my ($c, $b, $w, $ruleset_id) = @_;
+   my ($c, $ruleset_id, $players, $wgame) = @_;
+   my ($b,$w) = @$players;
+   my $game;
    
-   $c->model('DB')->schema->txn_do(\&create_2player_game, $c, $b, $w, $ruleset_id)
-}
-
-sub create_2player_game{ # called as one transaction
-   my ($c, $b, $w, $ruleset_id) = @_;
-   my $game = $c->model('DB::Game')->create({
-      ruleset => $ruleset_id,
-   });
-   $c->model('DB::Player_to_game')->create({
-      gid => $game->id,
-      pid => $b,
-      side => 1, #black
-      expiration => 0,
-   });
-   $c->model('DB::Player_to_game')->create({
-      gid => $game->id,
-      pid => $w,
-      side => 2, #white
-      expiration => 0,
-   });
+   $c->model('DB')->schema->txn_do( sub{
+      $game = $c->model('DB::Game')->create({
+         ruleset => $ruleset_id,
+      });
+      $c->model('DB::Player_to_game')->create({
+         gid => $game->id,
+         pid => $b,
+         side => 1, #black
+         expiration => 0,
+      });
+      $c->model('DB::Player_to_game')->create({
+         gid => $game->id,
+         pid => $w,
+         side => 2, #white
+         expiration => 0,
+      });
+      $wgame->decrease_quantity;
+   } );
    $c->stash->{newgame} = $game;
 }
 
@@ -97,8 +100,7 @@ sub join_wgame{
    return "wgame $wgame_id doesn't exist." unless $wgame;
    my $ruleset_id = $wgame->ruleset;
    
-   create_game ($c, $wgame->proposer->id, $c->session->{userid}, $ruleset_id) ;
-   $wgame->decrease_quantity;
+   create_game ($c,  $ruleset_id, [$wgame->proposer->id, $c->session->{userid}], $wgame) ;
    return ''; #no err
 }
 

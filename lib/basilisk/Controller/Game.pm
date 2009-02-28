@@ -54,9 +54,7 @@ sub game : Global {
       }
       else { #alter db
          #do_move($c, $newboard);
-         $c->model('DB')->schema->txn_do(
-           \&do_move, $c, '', $newboard, $caps
-         );
+         do_move ($c, '', $newboard, $caps);
          $c->stash->{board} = $newboard;
          $c->stash->{msg} = 'move is success';
       }
@@ -67,11 +65,7 @@ sub game : Global {
          $c->stash->{message} = "permission fail: $err";
          $c->stash->{template} = 'message.tt'; return;
       }
-      
-      my $prev_move = $c->stash->{game}->last_move;
-      $c->model('DB')->schema->txn_do(
-         \&do_move, $c, 'pass',
-      );
+      do_move ($c, 'pass');
       $c->stash->{board} = $board;
       $c->stash->{msg} = 'pass is success';
    }
@@ -213,25 +207,29 @@ sub do_move{#todo:mv to game class?
       my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
       $movestring = ($side==1?'b':'w') . " row$row, col$col";
       $new_pos_data = Util::pack_board($newboard, $size);
+   }
+   Util::ensure_position_size($new_pos_data, $size);
+   
+   #transaction!
+   $c->model('DB')->schema->txn_do(  sub{
       if ($caps and @$caps){ #update capture count
          my $p2g = $c->stash->{p2g};#player_to_game
          $p2g->set_column('captures',$p2g->captures + @$caps); #INT
          $p2g->update;
       }
-   }
-   Util::ensure_position_size($new_pos_data, $size);
-   my $posrow = $c->model('DB::Position')->create( {
-      ruleset => $c->stash->{ruleset}->id,
-      position => $new_pos_data,
+      my $posrow = $c->model('DB::Position')->create( {
+         ruleset => $c->stash->{ruleset}->id,
+         position => $new_pos_data,
+      });
+      my $moverow = $c->model('DB::Move')->create( {
+         gid => $c->stash->{game}->id,
+         position_id => $posrow->id,
+         movestring => $movestring,
+         movenum => $c->stash->{game}->num_moves+1,
+         time => time,
+      });
+      $c->stash->{game}->shift_turn; #b to w, etc num_moves++
    });
-   my $moverow = $c->model('DB::Move')->create( {
-      gid => $c->stash->{game}->id,
-      position_id => $posrow->id,
-      movestring => $movestring,
-      movenum => $c->stash->{game}->num_moves+1,
-      time => time,
-   });
-   $c->stash->{game}->shift_turn; #b to w, etc num_moves++
    return;
 }
 
