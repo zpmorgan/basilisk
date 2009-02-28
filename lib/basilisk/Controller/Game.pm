@@ -68,6 +68,8 @@ sub game : Global {
       }
       do_move ($c, 'pass');
       $c->stash->{board} = $board;
+      my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, {});
+      $c->stash->{territory_mask} = $terr_mask;
       $c->stash->{msg} = 'pass is success';
    }
    elsif ($action eq 'mark_dead' or $action eq 'mark_alive'){
