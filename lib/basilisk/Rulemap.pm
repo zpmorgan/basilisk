@@ -64,7 +64,7 @@ sub evaluate_move{ #returns (board,'',caps) or (undef, err)
    my $self = shift;
    return  $self->{eval_move_func}->($self, @_);
 }
-sub node_to_string{
+sub node_to_string{ #never use _ in string. - is okay.
    my $self = shift;
    return  $self->{node_to_string_func}->($self, @_);
 }
@@ -118,6 +118,7 @@ sub default_string_to_node{
 }
 sub default_stone_at_node{ #0 if empty, 1 black, 2 white
    my ($self, $board, $node) = @_;
+   #die unless $node
    my ($row, $col) = @$node;
    return $board->[$row][$col];
 }
@@ -143,13 +144,8 @@ sub default_node_liberties{
    return @nodes;
 }
 
-#TODO: make these funcs generic:
-#     death_mask_ to/from _list
-#     get_string, find_captured
-
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
-#TODO: let this find empty areas
 sub get_string { #for all board types
    my ($self, $board, $node1) = @_; #start row/column
    my $size = scalar @$board; #assuming square
@@ -165,9 +161,9 @@ sub get_string { #for all board types
    
    while (@nodes) {
       my $node = pop @nodes;
-      #my ($row, $col) = @$node;
       next if $seen {$self->node_to_string ($node)};
       $seen {$self->node_to_string ($node)} = 1;
+      
       my $here_color = $self->stone_at_node ($board, $node);
       if ($here_color == $string_color){
          push @found, $node;
@@ -182,6 +178,34 @@ sub get_string { #for all board types
    }
    return (\@found, \@libs, \@foes);
 }
+
+sub get_empty_space{
+   my ($self, $board, $node1, $ignore_stones) = @_; #start row/column
+   return ([],[]) if $self->stone_at_node ($board, $node1);
+   $ignore_stones = {} unless $ignore_stones; #dead stones tend to be ignored when calculating territory
+   
+   my %seen; #indexed by stringified nodes
+   my @found;
+   my @adjacent_stones;
+   my @nodes = ($node1); #array of adjacent intersections to consider
+   while (@nodes) {
+      my $node = pop @nodes;
+      my $nodestring = $self->node_to_string ($node);
+      next if $seen {$nodestring};
+      $seen {$nodestring} = 1;
+      
+      my $here_color = $self->stone_at_node ($board, $node);
+      if ($here_color == 0 or $ignore_stones->{$nodestring}){ #empty
+         push @found, $node;
+         push @nodes, $self->node_liberties ($node)
+      }
+      else{ #stone
+         push @adjacent_stones, $node;
+      }
+   }
+   return (\@found, \@adjacent_stones);
+}
+
 
 #take a list of stones, returns connected strings which have no libs,
 sub find_captured{
@@ -244,6 +268,34 @@ sub mark_alive{
    for my $n (@$alivenodes){
       $mask->{$self->node_to_string($n)} = 0;
    }
+}
+
+#this returns (terr_mask, terr_points_b, terr_pts_w)
+sub find_territory_mask{
+   my ($self, $board, $death_mask) = @_;
+   my %seen; #accounts for all empty nodes.
+   my %terr_mask;
+   my @points;
+   
+   for my $node ($self->all_nodes){
+      next if $seen{$self->node_to_string($node)};
+      my ($empties, $others) = $self->get_empty_space($board, $node);
+      next unless @$empties and @$others;
+      
+      my $terr_color = $self->stone_at_node ($board, $others->[0]);
+      my $terr = 1; #true, if this space is someone's territory
+      for my $stone (@$others){
+         $terr = 0 unless $self->stone_at_node ($board, $stone) == $terr_color;
+      }
+      for my $e (@$empties){
+         $seen{$self->node_to_string($e)} = 1;
+         if ($terr){
+            $terr_mask{$self->node_to_string($e)} = 1;
+            $points[$terr_color]++;
+         }
+      }
+   }
+   return (\%terr_mask, \@points);
 }
 
 1;

@@ -89,7 +89,10 @@ sub game : Global {
       }
       my $new_death_list = $c->stash->{rulemap}->death_mask_to_list($board, $death_mask);
       $c->stash->{death_mask} = $death_mask;
-      # create cgi param string, just for clickable table cells:
+      my ($terr_mask, $caps) = $c->stash->{rulemap}->find_territory_mask ($board, $death_mask);
+      $c->stash->{territory_mask} = $terr_mask;
+      $c->stash->{caps} = $caps;
+      # create string in url for cgi, in clickable board nodes
       $c->stash->{new_also_dead} = join '_', map{join'-',@$_} @$new_death_list;
    }
    unless ($c->stash->{board_clickable}){ #determine level of interaction with game
