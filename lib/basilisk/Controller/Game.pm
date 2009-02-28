@@ -32,6 +32,7 @@ sub game : Global {
    
    my $pos_data = $c->stash->{game}->current_position;
    my $size = $c->stash->{game}->size;
+   my $rulemap = $c->stash->{rulemap};
    my $board = Util::unpack_position($pos_data, $size);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
    
@@ -83,13 +84,13 @@ sub game : Global {
       my $also_dead = $c->req->param('also_dead');
       my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
       push @marked_dead_stones, $mark_co;
-      my $death_mask = $c->stash->{rulemap}->death_mask_from_list($board, \@marked_dead_stones);
+      my $death_mask = $rulemap->death_mask_from_list($board, \@marked_dead_stones);
       if ($action eq 'mark_alive'){
-         $c->stash->{rulemap}->mark_alive($board, $death_mask, $mark_co);
+         $rulemap->mark_alive($board, $death_mask, $mark_co);
       }
-      my $new_death_list = $c->stash->{rulemap}->death_mask_to_list($board, $death_mask);
+      my $new_death_list = $rulemap->death_mask_to_list($board, $death_mask);
       $c->stash->{death_mask} = $death_mask;
-      my ($terr_mask, $caps) = $c->stash->{rulemap}->find_territory_mask ($board, $death_mask);
+      my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, $death_mask);
       $c->stash->{territory_mask} = $terr_mask;
       $c->stash->{caps} = $caps;
       # create string in url for cgi, in clickable board nodes
@@ -276,22 +277,24 @@ sub render_board_table{
    my $board = $c->stash->{board};
    my $death_mask = $c->stash->{death_mask};
    my $terr_mask = $c->stash->{territory_mask} or {};
-   my @table; #cells representing one node each
+   my @table; #html cells representing nodes
    
    for my $row (0..$size-1){
       for my $col (0..$size-1){ #get image and url for table cell
          my $image = select_g_file ($board, $size, $row, $col);
          my $stone = $board->[$row]->[$col]; #0 if empty, 1 b, 2 w
+         my $terr = $terr_mask->{$row.'-'.$col}; #0 if empty, 1 b, 2 w
+         my $dead = $death_mask->{$row.'-'.$col};
          if ($stone){
-            if ($death_mask->{$row.'-'.$col}){ #replace with 'dead gfx'
+            if ($dead){ #replace with 'dead gfx'
                $image =~ s/^b\.gif/bw.gif/;
                $image =~ s/^w\.gif/wb.gif/;
             }
          }
          else {#no stone
-            if ($terr_mask->{$row.'-'.$col}) { #territory
-               s/\.gif/b\.gif/ if $stone==1;
-               s/\.gif/w\.gif/ if $stone==2;
+            if ($terr) { #territory
+               $image =~ s/\.gif/b\.gif/ if $terr==1;
+               $image =~ s/\.gif/w\.gif/ if $terr==2;
             }
          }
          $table[$row][$col]->{g} = $image;

@@ -290,7 +290,7 @@ sub find_territory_mask{
       for my $e (@$empties){
          $seen{$self->node_to_string($e)} = 1;
          if ($terr){
-            $terr_mask{$self->node_to_string($e)} = 1;
+            $terr_mask{$self->node_to_string($e)} = $terr_color;
             $points[$terr_color]++;
          }
       }
