@@ -279,12 +279,13 @@ sub find_territory_mask{
    
    for my $node ($self->all_nodes){
       next if $seen{$self->node_to_string($node)};
-      my ($empties, $others) = $self->get_empty_space($board, $node);
+      my ($empties, $others) = $self->get_empty_space($board, $node, $death_mask);
       next unless @$empties and @$others;
       
       my $terr_color = $self->stone_at_node ($board, $others->[0]);
       my $terr = 1; #true, if this space is someone's territory
       for my $stone (@$others){
+         next if $death_mask->{$self->node_to_string($stone)};
          $terr = 0 unless $self->stone_at_node ($board, $stone) == $terr_color;
       }
       for my $e (@$empties){
