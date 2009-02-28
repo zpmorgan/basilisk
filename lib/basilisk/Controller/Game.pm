@@ -97,7 +97,7 @@ sub game : Global {
          unless ($err){
             $c->stash->{marking_dead_stones} = 1;
             $c->stash->{new_also_dead} = '';
-            $c->stash->{death_mask} = Util::empty_board($size);
+            $c->stash->{death_mask} = {};
          }
       }
    }
@@ -269,8 +269,7 @@ sub render_board_table{
    my $size = $c->stash->{game}->size;
    my $board = $c->stash->{board};
    my $death_mask = $c->stash->{death_mask};
-   #die $death_mask->[0];
-   my @table; #cells representing one intersection each
+   my @table; #cells representing one node each
    
    for my $rownum (0..$size-1){
       for my $colnum (0..$size-1){ #get image and url for table cell
