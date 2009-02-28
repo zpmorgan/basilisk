@@ -12,6 +12,12 @@ requires 'Catalyst::Action::RenderView';
 requires 'parent';
 requires 'Config::General'; # This should reflect the config file format you've chosen
                  # See Catalyst::Plugin::ConfigLoader for supported formats
+# these are guesses:
+requires 'DBIx::Class';
+requires 'Template';
+requires 'DBD::SQLite';
+requires 'Test::More';
+
 catalyst;
 
 install_script glob('script/*.pl');
