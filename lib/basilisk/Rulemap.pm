@@ -212,8 +212,10 @@ sub death_mask_from_list{
    my ($self, $board, $list) = @_;
    my %mask;
    for my $node (@$list){
-      my ($string, $libs, $foes) = $self->get_string ($board, $node);
-      $mask {$self->node_to_string($node)} = 1;
+      my ($deadstring, $libs, $foes) = $self->get_string ($board, $node);
+      for my $deadnode (@$deadstring){
+         $mask {$self->node_to_string($deadnode)} = 1;
+      }
    }
    return \%mask;
 }
@@ -235,6 +237,13 @@ sub death_mask_to_list{
       }
    }
    return \@list;
+}
+sub mark_alive{
+   my ($self, $board, $mask, $node) = @_;
+   my ($alivenodes, $libs, $foes) = $self->get_string ($board, $node);
+   for my $n (@$alivenodes){
+      $mask->{$self->node_to_string($n)} = 0;
+   }
 }
 
 1;

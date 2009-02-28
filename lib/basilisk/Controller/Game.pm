@@ -84,6 +84,9 @@ sub game : Global {
       my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
       push @marked_dead_stones, $mark_co;
       my $death_mask = $c->stash->{rulemap}->death_mask_from_list($board, \@marked_dead_stones);
+      if ($action eq 'mark_alive'){
+         $c->stash->{rulemap}->mark_alive($board, $death_mask, $mark_co);
+      }
       my $new_death_list = $c->stash->{rulemap}->death_mask_to_list($board, $death_mask);
       $c->stash->{death_mask} = $death_mask;
       # create cgi param string, just for clickable table cells:
