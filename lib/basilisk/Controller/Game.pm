@@ -275,25 +275,39 @@ sub render_board_table{
    my $size = $c->stash->{game}->size;
    my $board = $c->stash->{board};
    my $death_mask = $c->stash->{death_mask};
+   my $terr_mask = $c->stash->{territory_mask} or {};
    my @table; #cells representing one node each
    
-   for my $rownum (0..$size-1){
-      for my $colnum (0..$size-1){ #get image and url for table cell
-         my $image = select_g_file ($board, $death_mask, $size, $rownum, $colnum);
-         my $stone = $board->[$rownum]->[$colnum]; #0 if empty, 1 b, 2 w
-         $table[$rownum][$colnum]->{g} = $image;
-         if ($c->stash->{board_clickable}) { #url
+   for my $row (0..$size-1){
+      for my $col (0..$size-1){ #get image and url for table cell
+         my $image = select_g_file ($board, $size, $row, $col);
+         my $stone = $board->[$row]->[$col]; #0 if empty, 1 b, 2 w
+         if ($stone){
+            if ($death_mask->{$row.'-'.$col}){ #replace with 'dead gfx'
+               $image =~ s/^b\.gif/bw.gif/;
+               $image =~ s/^w\.gif/wb.gif/;
+            }
+         }
+         else {#no stone
+            if ($terr_mask->{$row.'-'.$col}) { #territory
+               s/\.gif/b\.gif/ if $stone==1;
+               s/\.gif/w\.gif/ if $stone==2;
+            }
+         }
+         $table[$row][$col]->{g} = $image;
+         #url if applicable:
+         if ($c->stash->{board_clickable}) {
             if ($stone==0){ #empty intersection
                unless ($c->stash->{marking_dead_stones}){ #can't move when marking dead
-                  my $url = "game/".$c->stash->{gameid} . "?action=move&co=" . $rownum .'-'.$colnum;
-                  $table[$rownum][$colnum]->{ref} = $url;
+                  my $url = "game/".$c->stash->{gameid} . "?action=move&co=" . $row .'-'.$col;
+                  $table[$row][$col]->{ref} = $url;
                }
             }
             elsif ($c->stash->{marking_dead_stones}){ #stone here
-               my $mark = $death_mask->{"$rownum-$colnum"} ? 'alive' : 'dead'; #flip opposite
-               my $url = "game/".$c->stash->{gameid} . "?action=mark_$mark&co=" . $rownum .'-'.$colnum;
+               my $mark = $death_mask->{$row.'-'.$col} ? 'alive' : 'dead'; #have clicker flip stone status
+               my $url = "game/".$c->stash->{gameid} . "?action=mark_$mark&co=" . $row .'-'.$col;
                $url .= "&also_dead=" . $c->stash->{new_also_dead};
-               $table[$rownum][$colnum]->{ref} = $url;
+               $table[$row][$col]->{ref} = $url;
             }
          }
       }
@@ -302,14 +316,11 @@ sub render_board_table{
 }
 
 sub select_g_file{ #default board
-   my ($board, $death_mask, $size, $row, $col) = @_;
+   my ($board, $size, $row, $col) = @_;
    my $stone = $board->[$row][$col];
-   my $dead = $death_mask->{$row.'-'.$col}; # T/F
-   return 'bw.gif' if $stone == 1 and $dead;
    return 'b.gif' if $stone == 1;
-   return 'wb.gif' if $stone == 2 and $dead;
    return 'w.gif' if $stone == 2;
-   #$stone==0 -- so it's an empty intersection
+   #so it's an empty intersection
    #several empties to choose from:
    if ($row == 0){
       return 'ul.gif' if $col == 0;
