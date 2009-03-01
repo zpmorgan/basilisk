@@ -14,25 +14,50 @@ sub players :Global{
    $c->stash->{template} = 'message.tt';
 }
 
+#todo: prefetch?
+sub get_list_of_games{
+   my ($c, $page) = @_;
+   my @games_data;
+   my $games_rs = $c->model('DB::Game')->search({}, {rows=>25})->page($page);
+   my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
+      {
+         join => ['player'],
+         select => ['player.id', 'player.name', 'gid', 'side'],
+         as => ['pid', 'pname', 'gid', 'side'],
+      });
+   my %playerinfo; #dbic rows keyed by player id 
+   my %gameplayers; #lists of dbic rows keyed by game id:
+   for my $p2g($p2g_rs->all()) {#todo: only set once per pid
+      my $pid = $p2g->get_column('pid');
+      $playerinfo{$pid} = $p2g;
+   }
+   for my $p2g ($p2g_rs->all()){ #set game info
+      #my $gid = $p2g->get_column('gid');
+      my %data = $p2g->get_columns;
+      $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
+      #$c->stash->{msg} .= join ('.',@{$gameplayers{$data{gid}}}) . "<br>";
+   }
+   for my $game($games_rs->all) {
+      my $gid = $game->id;
+      push @games_data, {
+         id => $gid,
+         bname => $gameplayers{$gid}->[1]->{pname},
+         wname => $gameplayers{$gid}->[2]->{pname},
+         #wname => 'whitie',
+         size => $game->size,
+      }
+   }
+   return \@games_data;
+}
 
 #list of all games on server
 sub games :Global{
    my ( $self, $c ) = @_;
-   
    $c->stash->{title} = 'All games';
    $c->stash->{template} = 'all_games.tt';
-   my $rs = $c->model('DB::Game')->search({}, {rows=>25})->page(0);
-   #todo: p2g joined with game & player tables with prefetch (outer join)
-   my @games_data; #this is what template uses
-   for my $game($rs->all) {
-      push @games_data, {
-         id => $game->id,
-         bname => 'blackie',
-         wname => 'whitie',
-         size => $game->size,
-      }
-   }
-   $c->stash->{games_data} = \@games_data
+   my $games_data = 
+      $c->model('DB')->schema->txn_do (\&get_list_of_games, $c,0); #this is what template uses
+   $c->stash->{games_data} = $games_data
 }
 
 

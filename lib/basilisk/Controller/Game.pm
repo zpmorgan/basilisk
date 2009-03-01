@@ -278,7 +278,8 @@ sub render_board_table{
    my $size = $c->stash->{game}->size;
    my $board = $c->stash->{board};
    my $death_mask = $c->stash->{death_mask};
-   my $terr_mask = $c->stash->{territory_mask} or {};
+   my $terr_mask = $c->stash->{territory_mask};
+   $terr_mask = {} unless $terr_mask;
    my @table; #html cells representing nodes
    
    for my $row (0..$size-1){
