@@ -6,7 +6,7 @@ use parent 'Catalyst::Controller';
 __PACKAGE__->config->{namespace} = '';
 
 #inbox, etc
-sub players :Global{
+sub messages :Global{
    my ( $self, $c ) = @_;
    
    $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
