@@ -1,0 +1,19 @@
+[%  INCLUDE header %]
+    
+And here's every player on this server:
+<br>
+<table class="playerslist">
+   <tr id="headrow">
+      <td>Name</td>
+      <td>Rating</td>
+   </tr>
+   
+[% FOREACH p = playerinfo %]
+   <tr>
+      <td> <a href="[%url_base%]/userinfo/[% p.id %]"> [% p.name %] </a> </td>
+      <td> Nice! </td>
+   </tr>
+[% END %]
+</table>
+    
+[% INCLUDE footer %]

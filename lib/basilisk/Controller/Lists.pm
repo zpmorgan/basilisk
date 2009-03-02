@@ -6,7 +6,7 @@ use parent 'Catalyst::Controller';
 __PACKAGE__->config->{namespace} = '';
 
 #inbox, etc
-sub players :Global{
+sub messages :Global{
    my ( $self, $c ) = @_;
    
    $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
@@ -15,7 +15,7 @@ sub players :Global{
 }
 
 #list of all registered players
-sub messages :Global{
+sub players :Global{
    my ( $self, $c ) = @_;
    my $page = 0;
    my $players_rs;
