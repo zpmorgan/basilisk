@@ -5,8 +5,8 @@ use warnings;
 use parent 'Catalyst::Controller';
 __PACKAGE__->config->{namespace} = '';
 
-#list of all registered players
-sub players :Global{
+#inbox, etc
+sub messages :Global{
    my ( $self, $c ) = @_;
    
    $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
@@ -14,35 +14,61 @@ sub players :Global{
    $c->stash->{template} = 'message.tt';
 }
 
+#list of all registered players
+sub messages :Global{
+   my ( $self, $c ) = @_;
+   my $page = 0;
+   my $players_rs;
+   $c->model('DB')->schema->txn_do( sub{
+      $players_rs = $c->model('DB::Player')->search({}, {rows=>25})->page($page);
+   });
+   my @players_info;
+   for my $p ($players_rs->all){
+      push @players_info, {
+          name => $p->name,
+          id => $p->id,
+       };
+   }
+   $c->stash->{playerinfo} = \@players_info;
+   $c->stash->{template} = 'players.tt';
+}
+
 #todo: prefetch?
 sub get_list_of_games{
    my ($c, $page) = @_;
-   my @games_data;
-   my $games_rs = $c->model('DB::Game')->search({}, {rows=>25})->page($page);
-   my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
-      {
-         join => ['player'],
-         select => ['player.id', 'player.name', 'gid', 'side'],
-         as => ['pid', 'pname', 'gid', 'side'],
-      });
-   my %playerinfo; #dbic rows keyed by player id 
-   my %gameplayers; #lists of dbic rows keyed by game id:
-   for my $p2g($p2g_rs->all()) {#todo: only set once per pid
-      my $pid = $p2g->get_column('pid');
-      $playerinfo{$pid} = $p2g;
-   }
-   for my $p2g ($p2g_rs->all()){ #set game info
-      #my $gid = $p2g->get_column('gid');
-      my %data = $p2g->get_columns;
-      $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
-      #$c->stash->{msg} .= join ('.',@{$gameplayers{$data{gid}}}) . "<br>";
-   }
+   my %playerinfo; #contains player name, from id
+   my %gameplayers; #to show who plays which game
+   my $games_rs;
+   #transaction!
+   $c->model('DB')->schema->txn_do( sub{
+      $games_rs = $c->model('DB::Game')->search({}, {rows=>25})->page($page);
+      my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
+         {
+            join => ['player'],
+            select => ['player.id', 'player.name', 'gid', 'side'],
+            as => ['pid', 'pname', 'gid', 'side'],
+         });
+      for my $p2g($p2g_rs->all()) {
+         #todo: only set once per pid
+         my $pid = $p2g->get_column('pid');
+         $playerinfo{$pid} = $p2g;
+      }
+      for my $p2g ($p2g_rs->all()){ #who plays what game
+         #my $gid = $p2g->get_column('gid');
+         my %data = $p2g->get_columns;
+         $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
+         #$c->stash->{msg} .= join ('.',@{$gameplayers{$data{gid}}}) . "<br>";
+      }
+   });
+   my @games_data; #this is what template uses
    for my $game($games_rs->all) {
       my $gid = $game->id;
-      push @games_data, {
+      push @games_data, { #todo: make generic for 3+ players
          id => $gid,
          bname => $gameplayers{$gid}->[1]->{pname},
          wname => $gameplayers{$gid}->[2]->{pname},
+         bid => $gameplayers{$gid}->[1]->{pid},
+         wid => $gameplayers{$gid}->[2]->{pid},
          #wname => 'whitie',
          size => $game->size,
       }
@@ -55,8 +81,7 @@ sub games :Global{
    my ( $self, $c ) = @_;
    $c->stash->{title} = 'All games';
    $c->stash->{template} = 'all_games.tt';
-   my $games_data = 
-      $c->model('DB')->schema->txn_do (\&get_list_of_games, $c,0); #this is what template uses
+   my $games_data = get_list_of_games ($c,0); #this is what template uses
    $c->stash->{games_data} = $games_data
 }
 

@@ -15,14 +15,17 @@ And here's every running game on this server:
       <td>Black</td>
       <td>White</td>
       <td>Size</td>
+      <td>Rules</td>
+      
    </tr>
    
 [% FOREACH g = games_data %]
    <tr>
       <td><a href="[%url_base%]/game/[% g.id %]"> [% g.id %] </a></td>
-      <td> [% g.bname %] </td>
-      <td> [% g.wname %] </td>
+      <td> <a href="[%url_base%]/userinfo/[% g.bid %]"> [% g.bname %] </a> </td>
+      <td> <a href="[%url_base%]/userinfo/[% g.wid %]"> [% g.wname %] </a> </td>
       <td> [% g.size %] </td>
+      <td> foo </td>
    </tr>
 [% END %]
 </table>
