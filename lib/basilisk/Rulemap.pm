@@ -340,8 +340,8 @@ sub grid_node_is_on_edge{
       else {$string = 'e'}
    }
    unless ($self->{wrap_ew}){
-      if ($col==0) {$string = 'l'}
-      elsif ($col==$size-1) {$string = 'r'}
+      if ($col==0) {$string .= 'l'}
+      elsif ($col==$size-1) {$string .= 'r'}
    }
    return $string;
 }

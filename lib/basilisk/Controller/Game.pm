@@ -31,15 +31,15 @@ sub game : Global {
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
    
    unless ($gameid ){
-      $c->stash->{message} = 'invalid request: please supply a game id';
-      $c->stash->{template} = 'message.tt';return;
+      action_abort ($c, 'invalid request: please supply a game id');
+      return;
    }
    $c->stash->{gameid} = $gameid;
    my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
    $c->stash->{game} = $game;
    unless ($game){
-      $c->stash->{message} = 'invalid request: no game with that id';
-      $c->stash->{template} = 'message.tt';return;
+      action_abort ($c, 'invalid request: no game with that id');
+      return;
    }
    $c->stash->{ruleset} = $game->ruleset;
    build_rulemap($c);
@@ -59,16 +59,16 @@ sub game : Global {
    if ($action eq 'move'){ #evaluate & do move:
       my $err = seek_permission_to_move($c);
       if ($err){
-         $c->stash->{message} = "permission fail: $err";
-         $c->stash->{template} = 'message.tt'; return;
+         action_abort ($c, "permission fail: $err");
+         return;
       }
       #extract coordinates from url: #TODO: make generic!
       ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
       my ($newboard, $caps);
       ($err, $newboard, $caps) = evaluate_move($c);
       if ($err){
-         $c->stash->{message} = "move is failure: $err";
-         $c->stash->{template} = 'message.tt'; return;
+         action_abort ($c, "move is failure: $err");
+         return;
       }
       #alter db
       do_move ($c, '', $newboard, $caps);
@@ -78,15 +78,9 @@ sub game : Global {
    elsif ($action eq 'pass'){ #evaluate & do move:
       my $err = seek_permission_to_move($c);
       if ($err){
-         $c->stash->{message} = "permission fail: $err";
-         $c->stash->{template} = 'message.tt'; return;
+         action_abort ($c, "permission fail: $err");
+         return;
       }
-      #last 2 moves should be passes to start scoring process
-      #my $dont_do_terr = prev_p_moves_were_passes($c);
-      #unless ($dont_do_terr){
-      #   my ($terr_mask, $points) = $rulemap->find_territory_mask ($board, {});
-      #   $c->stash->{territory_mask} = $terr_mask;
-      #}
       do_move ($c, 'pass');
       $c->stash->{board} = $board;
       $c->stash->{msg} = 'pass is success';
@@ -95,8 +89,8 @@ sub game : Global {
       #not a move. just update board in html
       my $err = seek_permission_to_mark_dead($c);
       if ($err){
-         $c->stash->{message} = "permission fail: $err";
-         $c->stash->{template} = 'message.tt'; return;
+         action_abort ($c, "permission fail: $err");
+         return;
       }
       $c->stash->{marking_dead_stones} = 1;
       $c->stash->{board_clickable} = 1;
@@ -124,8 +118,8 @@ sub game : Global {
       #OR, if it's the same as the prev. score submission, the game is over.
       my $err = seek_permission_to_mark_dead($c);
       if ($err){
-         $c->stash->{message} = "permission fail: $err";
-         $c->stash->{template} = 'message.tt'; return;
+         action_abort ($c, "permission fail: $err");
+         return;
       }
       my $deadstring = $c->req->param('dead_stones');
       do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
@@ -143,8 +137,8 @@ sub game : Global {
    elsif ($action eq 'continue'){ #place a stone instead of scoring after 2 passes+
       my $err = seek_permission_to_move($c);
       if ($err){
-         $c->stash->{message} = "permission fail: $err";
-         $c->stash->{template} = 'message.tt'; return;
+         action_abort ($c, "permission fail: $err");
+         return;
       }
       $c->stash->{board_clickable} = 1;
    }
@@ -188,6 +182,13 @@ sub game : Global {
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';
+}
+
+sub action_abort{
+   my ($c, $err) = @_;
+   $c->stash->{message} = $err;
+   $c->stash->{template} = 'message.tt';
+   #should probably return where this sub is called;
 }
 
 #returns error string if error. #TODO: these could return true, or set some stash error var
