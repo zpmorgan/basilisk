@@ -94,36 +94,6 @@ sub board_to_text{
    return $text;
 }
 
-
-<<<<<<< HEAD:lib/basilisk/Util.pm
-=======
-#floodfill through empty space.
-#flips elements of $mask, connected through empties. #TODO: unused.
-sub update_death_mask{ 
-   my ($board, $mask, $action, $srow,$scol) = @_;
-   my $size = scalar @$board;
-   my $to = $action eq 'mark_dead' ? 1 : 0;
-   my $color = $board->[$srow][$scol];
-   return unless $color;
-   my @nodes = ([$srow,$scol]); #list
-   my @seen; #grid.
-   while (@nodes){
-      my ($row, $col) = @{pop @nodes};
-      next if $seen[$row][$col];
-      $seen[$row][$col] = 1;
-      my $board_color = $board->[$row][$col];
-      next unless ($board_color == $color)  or  ($board_color == 0);
-      if ($board_color == $color){
-         $mask->[$row][$col] = $to;
-         push @nodes, [$row-1, $col] unless $row == 0;
-         push @nodes, [$row+1, $col] unless $row == $size-1;
-         push @nodes, [$row, $col-1] unless $col == 0;
-         push @nodes, [$row, $col+1] unless $col == $size-1;
-      }
-   }
-}
-
->>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Util.pm
 use Digest::MD5 'md5'; # qw(md5 md5_hex md5_base64);
 
 sub pass_hash{ #returns binary md5sum
