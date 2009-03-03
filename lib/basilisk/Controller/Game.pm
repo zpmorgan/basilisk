@@ -158,7 +158,7 @@ sub game : Global {
             if ($deadgroups){
                $c->stash->{new_also_dead} = $deadgroups;
                $c->stash->{death_mask} = $deathmask;
-               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $deathmask));
+               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $deathmask);
                $c->stash->{territory_mask} = $terr_mask;
                $c->stash->{terr_points} = $terr_points;
             }
@@ -189,19 +189,6 @@ sub game : Global {
    $c->stash->{template} = 'game.tt';
 }
 
-sub dead_from_last_move{
-   my $c = shift;
-   my $game = $c->stash->{game};
-   my $board = $c->stash->{board};
-   my $last_move = $c->stash->{game}->last_move;   
-    return unless $last_move;
-   my $dead_groups = $last_move->dead_groups;
-    return unless $dead_groups;
-   #TODO: generic
-   my @dlist = map {[split'-',$_]} (split '_',$dead_groups);# convert to node list 
-   my $death_mask = $c->stash->{rulemap}->death_mask_from_list ($board, \@dlist);
-   return ($dead_groups, $death_mask);
-}
 #returns error string if error. #TODO: these could return true, or set some stash error var
 sub seek_permission_to_move{
    my $c = shift;
@@ -251,6 +238,19 @@ sub prev_p_moves_were_passes { #p=2players
    return '2nd-to-lastmove not pass' unless $game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass';
    return '';
 }
+sub dead_from_last_move{ #returns mask,stringofgroups
+   my $c = shift;
+   my $game = $c->stash->{game};
+   my $board = $c->stash->{board};
+   my $last_move = $c->stash->{game}->last_move;   
+    return unless $last_move;
+   my $dead_groups = $last_move->dead_groups;
+    return unless $dead_groups;
+   #TODO: generic
+   my @dlist = map {[split'-',$_]} (split '_',$dead_groups);# convert to node list 
+   my $death_mask = $c->stash->{rulemap}->death_mask_from_list ($board, \@dlist);
+   return ($dead_groups, $death_mask);
+}
 #TODO: make score calc generic
 sub finish_game{ #This does not check permissions. it just wraps things up
    my $c = shift;
@@ -274,7 +274,7 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    $totalscore[2] += 6.5;
    my $winning_side = largest (@totalscore);
    #die $totalscore[1];$winning_side;
-   my $result = "b:$totalscore[1], b:$totalscore[1]";
+   my $result = "b:$totalscore[1], w:$totalscore[2]";
    $game->set_column ('status', Util::FINISHED());
    $game->set_column ('result', $result);
    $game->update();
