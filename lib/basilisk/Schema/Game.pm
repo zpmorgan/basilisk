@@ -73,6 +73,15 @@ sub current_position{
    });
    return $move->position->position;#blob
 }
+sub current_position_id{
+   my $self = shift;
+   return 0 if $self->num_moves == 0;
+   my $move = $self->moves->find({
+      gid => $self->id,
+      movenum => $self->num_moves,
+   });
+   return $move->id;
+}
 
 sub current_board{
    my $self = shift;

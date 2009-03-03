@@ -42,7 +42,12 @@
 </table>
 
 [% IF board_clickable %]
-   <h2> <a href="[%url_base%]/game/[%gameid%]?action=pass">Pass</a> </h2>
+   [% IF marking_dead_stones %]
+      <h2> <a href="[%url_base%]/game/[%gameid%]?action=continue">Continue playing</a> </h2> <br>
+      <h2> <a href="[%url_base%]/game/[%gameid%]?action=submit_dead_selection&dead_stones=[% new_also_dead %]"> Submit </a> </h2> 
+   [% ELSE %]
+      <h2> <a href="[%url_base%]/game/[%gameid%]?action=pass">Pass</a> </h2>
+   [% END %]
 [% END %]
 <br>
 

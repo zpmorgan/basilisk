@@ -92,7 +92,7 @@ sub board_to_text{
 
 
 #floodfill through empty space.
-#flips elements of $mask, connected through empties.
+#flips elements of $mask, connected through empties. #TODO: unused.
 sub update_death_mask{ 
    my ($board, $mask, $action, $srow,$scol) = @_;
    my $size = scalar @$board;
