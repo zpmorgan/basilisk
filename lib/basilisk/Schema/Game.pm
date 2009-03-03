@@ -80,7 +80,11 @@ sub current_position_id{
       gid => $self->id,
       movenum => $self->num_moves,
    });
+<<<<<<< HEAD:lib/basilisk/Schema/Game.pm
    return $move->position->id;
+=======
+   return $move->id;
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Schema/Game.pm
 }
 
 sub current_board{
