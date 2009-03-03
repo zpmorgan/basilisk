@@ -8,19 +8,20 @@ use basilisk::Rulemap;
 
 __PACKAGE__->config->{namespace} = '';
 
-#all these actions may affect the view depending on which of these are present:
+#all these actions may affect the view depending on which of these it sets:
 # $c->stash->{board_clickable}
 # $c->stash->{marking_dead_stones}
 # $c->stash->{territory_mask}
 # $c->stash->{death_mask}
 #and for cgi params: $c->stash->{caps, new_also_dead}
 
-
+#TODO: Does this have to suck so much?
+#TODO: Can this be made generic?
 # /game/14?action=move&co=4-4
 # /game/14?action=pass
 # /game/14?action=action=mark_dead&co=10-9&also_dead=3-3_4-5_19-19 #or action=mark_alive
 #co=(row)-(col) starting at top-left
-sub game : Global { #TODO: does this have to suck so much?
+sub game : Global { 
    my ( $self, $c ) = @_;
    #extract game id from path
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
@@ -30,7 +31,7 @@ sub game : Global { #TODO: does this have to suck so much?
       $c->stash->{template} = 'message.tt';return;
    }
    $c->stash->{gameid} = $gameid;
-   my $game = $c->model('DB::Game')->find ({'id' => $gameid});
+   my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
    $c->stash->{game} = $game;
    unless ($game){
       $c->stash->{message} = 'invalid request: no game with that id';
@@ -45,6 +46,10 @@ sub game : Global { #TODO: does this have to suck so much?
    my $board = Util::unpack_position($pos_data, $size);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
    
+   #NEED DISPATCH
+   #if $action and $action_dispatch{$action}{
+   #   $action_dispatch{$action}->($c);
+   #unless ($c->stash->{board_clickable})...
    my $action = $c->req->param('action');
    $action = '' unless $action;
    if ($action eq 'move'){ #evaluate & do move:
@@ -75,7 +80,7 @@ sub game : Global { #TODO: does this have to suck so much?
       #last 2 moves should be passes to start scoring process
       #my $dont_do_terr = prev_p_moves_were_passes($c);
       #unless ($dont_do_terr){
-      #   my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, {});
+      #   my ($terr_mask, $points) = $rulemap->find_territory_mask ($board, {});
       #   $c->stash->{territory_mask} = $terr_mask;
       #}
       do_move ($c, 'pass');
@@ -102,9 +107,9 @@ sub game : Global { #TODO: does this have to suck so much?
       }
       my $new_death_list = $rulemap->death_mask_to_list($board, $death_mask);
       $c->stash->{death_mask} = $death_mask;
-      my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, $death_mask);
+      my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
       $c->stash->{territory_mask} = $terr_mask;
-      $c->stash->{caps} = $caps;
+      $c->stash->{terr_points} = $terr_points;
       # create string in url for cgi, in clickable board nodes
       $c->stash->{new_also_dead} = join '_', map{join'-',@$_} @$new_death_list;
    }
@@ -120,6 +125,16 @@ sub game : Global { #TODO: does this have to suck so much?
       }
       my $deadstring = $c->req->param('dead_stones');
       do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
+      #Should game end?
+      my @prev_2_moves = $game->moves->search ({}, {
+         order_by=>'movenum DESC',
+         rows => 2});
+      if ($prev_2_moves[1]->movestring eq 'submit_dead_selection'){
+         if ($prev_2_moves[0]->dead_groups eq $prev_2_moves[1]->dead_groups){
+            #so they agree on dead groups.
+            finish_game($c);
+         }
+      }
    }
    elsif ($action eq 'continue'){ #place a stone instead of scoring after 2 passes+
       my $err = seek_permission_to_move($c);
@@ -146,8 +161,9 @@ sub game : Global { #TODO: does this have to suck so much?
             else { #start marking dead stones from nothing
                $c->stash->{new_also_dead} = '';
                $c->stash->{death_mask} = {};
-               my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, $c->stash->{death_mask});
+               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $c->stash->{death_mask});
                $c->stash->{territory_mask} = $terr_mask;
+               $c->stash->{terr_points} = $terr_points;
             }
          }
       }
@@ -163,12 +179,13 @@ sub game : Global { #TODO: does this have to suck so much?
    $c->stash->{template} = 'game.tt';
 }
 
-#returns error string if error
+#returns error string if error. #TODO: these could return true, or set some stash error var
 sub seek_permission_to_move{
    my $c = shift;
    return 'not logged in' unless $c->session->{logged_in};
    return 'not registered' if $c->session->{userid} == 1;
    my $game = $c->stash->{game};
+   return 'Game is already finished!' unless $game->status == Util::RUNNING();
    my $p = $c->model('DB::player_to_game')->find( {
        gid => $game->id,
        side => $game->turn,
@@ -187,7 +204,7 @@ sub seek_permission_to_mark_dead{ #returns err if err
    my $err = seek_permission_to_move($c);
    return $err if $err;
    #last 2 moves should be passes to start scoring process
-   my $err = last_move_was_score($c);
+   $err = last_move_was_score($c);
    return '' unless $err;
    $err = prev_p_moves_were_passes($c);
    return $err
@@ -211,7 +228,15 @@ sub prev_p_moves_were_passes { #p=2players
    return '2nd-to-lastmove not pass' unless $game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass';
    return '';
 }
-
+sub finish_game{ #This does not check permissions. it just wraps things up
+   #use the territory mask from c->request
+   my $c = shift;
+   my $game = $c->stash->{game};
+   my $terr_mask = $c->stash->{territory_mask};
+   $game->set_column ('status', Util::FINISHED());
+   $game->set_column ('result', 'Gorf wins.');
+   $game->update();
+}
 
 sub build_rulemap{
    my $c = shift;
@@ -286,6 +311,7 @@ sub do_move{#todo:mv to game class?
    
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
+      die 'Check whether game is finished before do_move!' unless $game->status == Util::RUNNING();
       if ($caps and @$caps){ #update capture count
          my $p2g = $c->stash->{p2g};#player_to_game
          $p2g->set_column('captures',$p2g->captures + @$caps); #INT
@@ -337,8 +363,13 @@ sub get_game_player_data{ #for game.tt
          captures => $p->captures,
       };
    }
+   my $terr_points = $c->stash->{terr_points};
+   if ($terr_points){ #set territory point display
+      for my $i (1..@$terr_points-1){ #terr_points starts at 1.
+         $playerdata[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (+ foo)'; #+marked caps
+      }
+   }
    return \@playerdata;
-   
 }
 
 #todo: move url param stuff into tt
