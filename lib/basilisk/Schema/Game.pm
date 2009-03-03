@@ -80,7 +80,7 @@ sub current_position_id{
       gid => $self->id,
       movenum => $self->num_moves,
    });
-   return $move->id;
+   return $move->position->id;
 }
 
 sub current_board{
