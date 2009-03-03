@@ -190,19 +190,6 @@ sub game : Global {
    $c->stash->{template} = 'game.tt';
 }
 
-sub dead_from_last_move{
-   my $c = shift;
-   my $game = $c->stash->{game};
-   my $board = $c->stash->{board};
-   my $last_move = $c->stash->{game}->last_move;   
-    return unless $last_move;
-   my $dead_groups = $last_move->dead_groups;
-    return unless $dead_groups;
-   #TODO: generic
-   my @dlist = map {[split'-',$_]} (split '_',$dead_groups);# convert to node list 
-   my $death_mask = $c->stash->{rulemap}->death_mask_from_list ($board, \@dlist);
-   return ($dead_groups, $death_mask);
-}
 #returns error string if error. #TODO: these could return true, or set some stash error var
 sub seek_permission_to_move{
    my $c = shift;
@@ -294,8 +281,6 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    $game->update();
 }
 #index of largest in list
-sub largest{my ($i,$g,$v)=(0,0,-555);for$i(0..$#_){next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
-
 sub largest{my ($i,$g,$v)=(0,0,-555);for$i(0..$#_){next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
 sub build_rulemap{
