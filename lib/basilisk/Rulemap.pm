@@ -30,7 +30,9 @@ use warnings;
 
 my %defaults = (
    size => 19,
-   topology => 'plane',
+   #topology => 'plane',
+   wrap_ns => 0,
+   wrap_ew => 0,
    eval_move_func => \&default_evaluate_move,
    node_to_string_func => \&default_node_to_string,
    node_liberties_func => \&default_node_liberties,
@@ -49,7 +51,9 @@ sub new{
       $self->{size} = $params{size};
    }
    if ($params{topology}){
-      $self->{topology} = $params{topology};
+      $self->{wrap_ns} = 1 if $params{topology} eq 'torus';
+      $self->{wrap_ew} = 1 if $params{topology} eq 'torus';
+      $self->{wrap_ew} = 1 if $params{topology} eq 'cylinder';
    }
    bless $self, $class;
    return $self;
@@ -137,10 +141,23 @@ sub default_node_liberties{
    my $size = $self->{size};
    my ($row, $col) = @$node;
    my @nodes;
-   push @nodes, [$row-1, $col] unless $row == 0;
-   push @nodes, [$row+1, $col] unless $row == $size-1;
-   push @nodes, [$row, $col-1] unless $col == 0;
-   push @nodes, [$row, $col+1] unless $col == $size-1;
+   if ($self->{wrap_ns}){
+      push @nodes, [($row-1)% $size, $col];
+      push @nodes, [($row+1)% $size, $col];
+   }
+   else{
+      push @nodes, [$row-1, $col] unless $row == 0;
+      push @nodes, [$row+1, $col] unless $row == $size-1;
+   }
+   
+   if ($self->{wrap_ew}){
+      push @nodes, [$row, ($col-1)% $size];
+      push @nodes, [$row, ($col+1)% $size];
+   }
+   else{
+      push @nodes, [$row, $col-1] unless $col == 0;
+      push @nodes, [$row, $col+1] unless $col == $size-1;
+   }
    return @nodes;
 }
 
@@ -307,6 +324,26 @@ sub count_kills{
       $kills[$color]++;
    }
    return \@kills;
+}
+
+#return a dgs-filename-like string, such as e, dl, ur
+sub grid_node_is_on_edge{
+   my ($self, $row, $col) = @_;
+   my $string;
+   my $size = $self->{size};
+   if ($self->{wrap_ns}){
+      $string = 'e'
+   }
+   else {
+      if ($row==0) {$string = 'u'}
+      elsif ($row==$size-1) {$string = 'd'}
+      else {$string = 'e'}
+   }
+   unless ($self->{wrap_ew}){
+      if ($col==0) {$string = 'l'}
+      elsif ($col==$size-1) {$string = 'r'}
+   }
+   return $string;
 }
 
 1;
