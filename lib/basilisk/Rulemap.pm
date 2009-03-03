@@ -270,12 +270,12 @@ sub mark_alive{
    }
 }
 
-#this returns (terr_mask, terr_points_b, terr_pts_w)
+#this returns (terr_mask, [terr_points_b, terr_pts_w], [kill_points_b, kill_pts_w])
 sub find_territory_mask{
    my ($self, $board, $death_mask) = @_;
    my %seen; #accounts for all empty nodes.
    my %terr_mask;
-   my @points;
+   my @terr_points;
    
    for my $node ($self->all_nodes){
       next if $seen{$self->node_to_string($node)};
@@ -283,20 +283,30 @@ sub find_territory_mask{
       next unless @$empties and @$others;
       
       my $terr_color = $self->stone_at_node ($board, $others->[0]);
-      my $terr = 1; #true, if this space is someone's territory
+      my $is_terr = 1; #true, if this space is someone's territory
       for my $stone (@$others){
          next if $death_mask->{$self->node_to_string($stone)};
-         $terr = 0 unless $self->stone_at_node ($board, $stone) == $terr_color;
+         $is_terr = 0 unless $self->stone_at_node ($board, $stone) == $terr_color;
       }
       for my $e (@$empties){
          $seen{$self->node_to_string($e)} = 1;
-         if ($terr){
+         if ($is_terr){
             $terr_mask{$self->node_to_string($e)} = $terr_color;
-            $points[$terr_color]++;
+            $terr_points[$terr_color]++;
          }
       }
    }
-   return (\%terr_mask, \@points);
+   return (\%terr_mask, \@terr_points);
+}
+
+sub count_kills{
+   my ($self, $board, $death_mask) = @_;
+   my @kills; #[1..2]
+   for my $deadnode (keys %$death_mask){
+      my $color = $self->stone_at_node ($board, $deadnode);
+      $kills[$color]++;
+   }
+   return \@kills;
 }
 
 1;

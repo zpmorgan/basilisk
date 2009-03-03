@@ -169,6 +169,11 @@ sub game : Global {
       }
    }
    $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
+   if ($game->status == Util::FINISHED()){
+      $c->stash->{show_dead_stones} = 1;
+      my ($dm,$dg) = dead_from_last_move ($c);
+      $c->stash->{death_mask} = 3;
+   }
    render_board_table($c);
    
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
@@ -229,15 +234,36 @@ sub prev_p_moves_were_passes { #p=2players
    return '2nd-to-lastmove not pass' unless $game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass';
    return '';
 }
+#TODO: make score calc generic
 sub finish_game{ #This does not check permissions. it just wraps things up
-   #use the territory mask from c->request
    my $c = shift;
+   my $rulemap = $c->stash->{rulemap};
    my $game = $c->stash->{game};
-   my $terr_mask = $c->stash->{territory_mask};
+   my $board = $c->stash->{board};
+   my ($caps, $kills, $terr_points); #all [1..2]. these add. kills are negative.
+   my ($death_mask, $terr_mask);
+   my @p2g = $game->player_to_game; #sides 1..2
+   
+   $death_mask = $c->stash->{death_mask};
+   ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
+   $kills = $rulemap->count_kills($board, $death_mask);
+   my @totalscore;
+   for (@p2g){
+      my $side = $_->side;
+      #die ref $_->side if ref $side eq 'ARRAY';
+      $caps->[$side] = $_->captures;
+      $totalscore[$side] = $caps->[$side] + $terr_points->[$side] - $kills->[$side];
+   }
+   $totalscore[2] += 6.5;
+   my $winning_side = largest (@totalscore);
+   #die $totalscore[1];$winning_side;
+   my $result = "b:$totalscore[1], b:$totalscore[1]";
    $game->set_column ('status', Util::FINISHED());
-   $game->set_column ('result', 'Gorf wins.');
+   $game->set_column ('result', $result);
    $game->update();
 }
+
+sub largest{my ($i,$g,$v)=(0,0,-555);for$i(0..$#_){next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
 sub build_rulemap{
    my $c = shift;
