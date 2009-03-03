@@ -8,11 +8,19 @@ use basilisk::Rulemap;
 
 __PACKAGE__->config->{namespace} = '';
 
+#all these actions may affect the view depending on which of these are present:
+# $c->stash->{board_clickable}
+# $c->stash->{marking_dead_stones}
+# $c->stash->{territory_mask}
+# $c->stash->{death_mask}
+#and for cgi params: $c->stash->{caps, new_also_dead}
+
+
 # /game/14?action=move&co=4-4
 # /game/14?action=pass
 # /game/14?action=action=mark_dead&co=10-9&also_dead=3-3_4-5_19-19 #or action=mark_alive
 #co=(row)-(col) starting at top-left
-sub game : Global {
+sub game : Global { #TODO: does this have to suck so much?
    my ( $self, $c ) = @_;
    #extract game id from path
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
@@ -22,16 +30,17 @@ sub game : Global {
       $c->stash->{template} = 'message.tt';return;
    }
    $c->stash->{gameid} = $gameid;
-   $c->stash->{game} = $c->model('DB::Game')->find ({'id' => $gameid});
-   unless ($c->stash->{game}){
+   my $game = $c->model('DB::Game')->find ({'id' => $gameid});
+   $c->stash->{game} = $game;
+   unless ($game){
       $c->stash->{message} = 'invalid request: no game with that id';
       $c->stash->{template} = 'message.tt';return;
    }
-   $c->stash->{ruleset} = $c->stash->{game}->ruleset;
+   $c->stash->{ruleset} = $game->ruleset;
    build_rulemap($c);
    
-   my $pos_data = $c->stash->{game}->current_position;
-   my $size = $c->stash->{game}->size;
+   my $pos_data = $game->current_position;
+   my $size = $game->size;
    my $rulemap = $c->stash->{rulemap};
    my $board = Util::unpack_position($pos_data, $size);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
@@ -44,8 +53,7 @@ sub game : Global {
          $c->stash->{message} = "permission fail: $err";
          $c->stash->{template} = 'message.tt'; return;
       }
-      
-      #extract coordinates from url:
+      #extract coordinates from url: #TODO: make generic!
       ($c->stash->{move_row}, $c->stash->{move_col}) = split '-', $c->req->param('co');
       my ($newboard, $caps);
       ($err, $newboard, $caps) = evaluate_move($c);
@@ -53,12 +61,10 @@ sub game : Global {
          $c->stash->{message} = "move is failure: $err";
          $c->stash->{template} = 'message.tt'; return;
       }
-      else { #alter db
-         #do_move($c, $newboard);
-         do_move ($c, '', $newboard, $caps);
-         $c->stash->{board} = $newboard;
-         $c->stash->{msg} = 'move is success';
-      }
+      #alter db
+      do_move ($c, '', $newboard, $caps);
+      $c->stash->{board} = $newboard;
+      $c->stash->{msg} = 'move is success';
    }
    elsif ($action eq 'pass'){ #evaluate & do move:
       my $err = seek_permission_to_move($c);
@@ -66,14 +72,18 @@ sub game : Global {
          $c->stash->{message} = "permission fail: $err";
          $c->stash->{template} = 'message.tt'; return;
       }
+      #last 2 moves should be passes to start scoring process
+      #my $dont_do_terr = prev_p_moves_were_passes($c);
+      #unless ($dont_do_terr){
+      #   my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, {});
+      #   $c->stash->{territory_mask} = $terr_mask;
+      #}
       do_move ($c, 'pass');
       $c->stash->{board} = $board;
-      my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, {});
-      $c->stash->{territory_mask} = $terr_mask;
       $c->stash->{msg} = 'pass is success';
    }
    elsif ($action eq 'mark_dead' or $action eq 'mark_alive'){
-      #not a move. just update board table
+      #not a move. just update board in html
       my $err = seek_permission_to_mark_dead($c);
       if ($err){
          $c->stash->{message} = "permission fail: $err";
@@ -98,24 +108,56 @@ sub game : Global {
       # create string in url for cgi, in clickable board nodes
       $c->stash->{new_also_dead} = join '_', map{join'-',@$_} @$new_death_list;
    }
+   elsif ($action eq 'submit_dead_selection'){ 
+      #I guess this will be appended to the moves list.
+      #The move will point to the same position,
+      #and a string of dead groups is stored as the move text
+      #OR, if it's the same as the prev. score submission, the game is over.
+      my $err = seek_permission_to_mark_dead($c);
+      if ($err){
+         $c->stash->{message} = "permission fail: $err";
+         $c->stash->{template} = 'message.tt'; return;
+      }
+      my $deadstring = $c->req->param('dead_stones');
+      do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
+   }
+   elsif ($action eq 'continue'){ #place a stone instead of scoring after 2 passes+
+      my $err = seek_permission_to_move($c);
+      if ($err){
+         $c->stash->{message} = "permission fail: $err";
+         $c->stash->{template} = 'message.tt'; return;
+      }
+      $c->stash->{board_clickable} = 1;
+   }
    unless ($c->stash->{board_clickable}){ #determine level of interaction with game
       my $err = seek_permission_to_move($c);
-      unless ($err){
+      unless ($err){ #your turn
          $c->stash->{board_clickable} = 1;
          $err = seek_permission_to_mark_dead($c);
-         unless ($err){
+         unless ($err){ #mark dead
             $c->stash->{marking_dead_stones} = 1;
-            $c->stash->{new_also_dead} = '';
-            $c->stash->{death_mask} = {};
+            my $deadgroups = $game->last_move->dead_groups;
+            $c->stash->{new_also_dead} = $deadgroups;
+            if ($deadgroups){#some previously marked dead groups to start with
+               $c->stash->{new_also_dead} = $deadgroups;
+               my @dlist = map {[split'-',$_]} (split '_',$deadgroups);# convert to node list
+               $c->stash->{death_mask} = $rulemap->death_mask_from_list ($board, \@dlist);
+            }
+            else { #start marking dead stones from nothing
+               $c->stash->{new_also_dead} = '';
+               $c->stash->{death_mask} = {};
+               my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, $c->stash->{death_mask});
+               $c->stash->{territory_mask} = $terr_mask;
+            }
          }
       }
    }
    $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
    render_board_table($c);
    
-   $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $c->stash->{game}->num_moves;
+   $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    $c->stash->{players_data} = get_game_player_data($c);
-   $c->stash->{to_move_img} = ($c->stash->{game}->turn) == 1 ? 'b.gif' : 'w.gif';
+   $c->stash->{to_move_img} = ($game->turn) == 1 ? 'b.gif' : 'w.gif';
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';
@@ -145,6 +187,23 @@ sub seek_permission_to_mark_dead{ #returns err if err
    my $err = seek_permission_to_move($c);
    return $err if $err;
    #last 2 moves should be passes to start scoring process
+   my $err = last_move_was_score($c);
+   return '' unless $err;
+   $err = prev_p_moves_were_passes($c);
+   return $err
+}
+sub last_move_was_score{
+   my $c = shift;
+   my $game = $c->stash->{game};
+   my $nummoves = $game->num_moves;
+   return 'You hound! You just started!' unless $nummoves >= 3;
+   my $prevmovestring = $game->moves->find ({movenum => $nummoves})->movestring;
+   return 'lastmove not score' unless $prevmovestring eq 'submit_dead_selection';
+   return '';
+}
+#returns explanation if no, '' if yes
+sub prev_p_moves_were_passes { #p=2players
+   my $c = shift;
    my $game = $c->stash->{game};
    my $nummoves = $game->num_moves;
    return 'You hound! You just started!' unless $nummoves >= 2;
@@ -184,7 +243,6 @@ sub detect_duplicate_position{
    return 1 if $oldmove;
 }
 
-#todo: Return as soon as it passes. Generate the new board in do_move
 sub evaluate_move{
    my $c = shift;
    my ($row, $col, $board) = @{$c->stash}{qw/move_row move_col board/};
@@ -202,22 +260,29 @@ sub evaluate_move{
 #die join';',map{@$_}@$libs; #err list of coordinates
 
 #insert into db
+#TODO: make generic
 sub do_move{#todo:mv to game class?
-   my ($c, $movestring, $newboard, $caps) = @_;
+   my ($c, $movestring, $newboard, $caps, $deadgroups) = @_;
    my $new_pos_data;
+   my $game = $c->stash->{game}; #die $game->num_moves;
    my $side = $c->stash->{side}; #1 if B,2 if W
-   my $size = $c->stash->{game}->size;
+   my $size = $game->size;
+   my $posid; #maybe we reuse last one
    
    #determine move string and new position
    if ($movestring eq 'pass'){
       $new_pos_data = $c->stash->{old_pos_data};
+      Util::ensure_position_size($new_pos_data, $size); #sanity?
    }
-   else { # stone placement
+   elsif ($movestring eq 'submit_dead_selection'){ #we reuse last position
+      $posid = $game->current_position_id;
+   }
+   else { # it eq ''
       my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
       $movestring = ($side==1?'b':'w') . " row$row, col$col";
       $new_pos_data = Util::pack_board($newboard, $size);
+      Util::ensure_position_size($new_pos_data, $size); #sanity?
    }
-   Util::ensure_position_size($new_pos_data, $size);
    
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
@@ -226,18 +291,22 @@ sub do_move{#todo:mv to game class?
          $p2g->set_column('captures',$p2g->captures + @$caps); #INT
          $p2g->update;
       }
-      my $posrow = $c->model('DB::Position')->create( {
-         ruleset => $c->stash->{ruleset}->id,
-         position => $new_pos_data,
-      });
+      unless ($posid){
+         my $posrow = $c->model('DB::Position')->create( {
+            ruleset => $c->stash->{ruleset}->id,
+            position => $new_pos_data,
+         });
+         $posid = $posrow->id;
+      }
       my $moverow = $c->model('DB::Move')->create( {
-         gid => $c->stash->{game}->id,
-         position_id => $posrow->id,
+         gid => $game->id,
+         position_id => $posid,
          movestring => $movestring,
-         movenum => $c->stash->{game}->num_moves+1,
+         movenum => $game->num_moves+1,
          time => time,
+         dead_groups => $deadgroups,
       });
-      $c->stash->{game}->shift_turn; #b to w, etc num_moves++
+      $game->shift_turn; #b to w, etc num_moves++
    });
    return;
 }
