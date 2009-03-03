@@ -57,8 +57,8 @@
    <tr> 
       <td> <img src="[%img_base%]/[% p.stone_img %]">  </td>
       <td> <a href="[%url_base%]/userinfo/[% p.id %]"> <b>[% p.name %]</b> </a>  </td>
-      <td> captures: [% p.captures %]</td>
-      <td> time remaining: [% p.time_remaining %]</td>
+      <td> Captures: [% p.captures %]</td>
+      <td> Time remaining: [% p.time_remaining %]</td>
    </tr>
   [% END %]
   
