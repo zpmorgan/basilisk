@@ -326,4 +326,24 @@ sub count_kills{
    return \@kills;
 }
 
+#return a dgs-filename-like string, such as e, dl, ur
+sub grid_node_is_on_edge{
+   my ($self, $row, $col) = @_;
+   my $string;
+   my $size = $self->{size};
+   if ($self->{wrap_ns}){
+      $string = 'e'
+   }
+   else {
+      if ($row==0) {$string = 'u'}
+      elsif ($row==$size-1) {$string = 'd'}
+      else {$string = 'e'}
+   }
+   unless ($self->{wrap_ew}){
+      if ($col==0) {$string = 'l'}
+      elsif ($col==$size-1) {$string = 'r'}
+   }
+   return $string;
+}
+
 1;

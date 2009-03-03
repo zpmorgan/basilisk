@@ -430,6 +430,7 @@ sub render_board_table{
    my ($c) = @_;
    my $size = $c->stash->{game}->size;
    my $board = $c->stash->{board};
+   my $rulemap = $c->stash->{rulemap};
    my $death_mask = $c->stash->{death_mask};
    my $terr_mask = $c->stash->{territory_mask};
    $terr_mask = {} unless $terr_mask;
@@ -437,7 +438,7 @@ sub render_board_table{
    
    for my $row (0..$size-1){
       for my $col (0..$size-1){ #get image and url for table cell
-         my $image = select_g_file ($board, $size, $row, $col);
+         my $image = select_g_file ($rulemap, $board, $row, $col);
          my $stone = $board->[$row]->[$col]; #0 if empty, 1 b, 2 w
          my $terr = $terr_mask->{$row.'-'.$col}; #0 if empty, 1 b, 2 w
          my $dead = $death_mask->{$row.'-'.$col};
@@ -475,25 +476,12 @@ sub render_board_table{
 }
 
 sub select_g_file{ #default board
-   my ($board, $size, $row, $col) = @_;
+   my ($rulemap, $board, $row, $col) = @_;
    my $stone = $board->[$row][$col];
    return 'b.gif' if $stone == 1;
    return 'w.gif' if $stone == 2;
    #so it's an empty intersection
-   #several empties to choose from:
-   if ($row == 0){
-      return 'ul.gif' if $col == 0;
-      return 'ur.gif' if $col == $size-1;
-      return 'u.gif' ;
-   }
-   if ($row == $size-1){
-      return 'dl.gif' if $col == 0;
-      return 'dr.gif' if $col == $size-1;
-      return 'd.gif' ;
-   }
-   return 'el.gif' if $col == 0;
-   return 'er.gif' if $col == $size-1;
-   return 'e.gif'
+   return $rulemap->grid_node_is_on_edge($row, $col) . '.gif';
 }
 
 my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;
