@@ -36,12 +36,15 @@ sub players :Global{
 #todo: prefetch?
 sub get_list_of_games{
    my ($c, $page) = @_;
+   my $pagesize = 25;
+   my ($num_games, $num_pages);
    my %playerinfo; #contains player name, from id
    my %gameplayers; #to show who plays which game
    my $games_rs;
+   my $gamesearch_constraints = {status => Util::RUNNING()};
    #transaction!
    $c->model('DB')->schema->txn_do( sub{
-      $games_rs = $c->model('DB::Game')->search({}, {rows=>25})->page($page);
+      $games_rs = $c->model('DB::Game')->search($gamesearch_constraints, {rows=>$pagesize})->page($page);
       my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
          {
             join => ['player'],
@@ -59,7 +62,11 @@ sub get_list_of_games{
          $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
          #$c->stash->{msg} .= join ('.',@{$gameplayers{$data{gid}}}) . "<br>";
       }
+      $num_games = $c->model('DB::Game')->count($gamesearch_constraints, {});
    });
+   $c->stash->{num_pages} = int ($num_games / $pagesize) + 1;
+   $c->stash->{num_games} = $num_games;
+   
    my @games_data; #this is what template uses
    for my $game($games_rs->all) {
       my $gid = $game->id;

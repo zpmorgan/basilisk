@@ -8,6 +8,9 @@ use basilisk::Rulemap;
 
 __PACKAGE__->config->{namespace} = '';
 
+#Note: death_mask and territory_mask should not be stored in the database.
+# what you need to get them is a list of dead groups.
+
 #all these actions may affect the view depending on which of these it sets:
 # $c->stash->{board_clickable}
 # $c->stash->{marking_dead_stones}
@@ -144,24 +147,25 @@ sub game : Global {
       }
       $c->stash->{board_clickable} = 1;
    }
-   unless ($c->stash->{board_clickable}){ #determine level of interaction with game
+   unless ($c->stash->{board_clickable}){ #default: determine level of interaction with game
       my $err = seek_permission_to_move($c);
       unless ($err){ #your turn
          $c->stash->{board_clickable} = 1;
          $err = seek_permission_to_mark_dead($c);
          unless ($err){ #mark dead
             $c->stash->{marking_dead_stones} = 1;
-            my $deadgroups = $game->last_move->dead_groups;
-            $c->stash->{new_also_dead} = $deadgroups;
-            if ($deadgroups){#some previously marked dead groups to start with
+            my ($deadgroups, $deathmask) = dead_from_last_move ($c);
+            if ($deadgroups){
                $c->stash->{new_also_dead} = $deadgroups;
-               my @dlist = map {[split'-',$_]} (split '_',$deadgroups);# convert to node list
-               $c->stash->{death_mask} = $rulemap->death_mask_from_list ($board, \@dlist);
+               $c->stash->{death_mask} = $deathmask;
+               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $deathmask));
+               $c->stash->{territory_mask} = $terr_mask;
+               $c->stash->{terr_points} = $terr_points;
             }
             else { #start marking dead stones from nothing
                $c->stash->{new_also_dead} = '';
                $c->stash->{death_mask} = {};
-               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $c->stash->{death_mask});
+               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, {});
                $c->stash->{territory_mask} = $terr_mask;
                $c->stash->{terr_points} = $terr_points;
             }
@@ -171,8 +175,8 @@ sub game : Global {
    $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
    if ($game->status == Util::FINISHED()){
       $c->stash->{show_dead_stones} = 1;
-      my ($dm,$dg) = dead_from_last_move ($c);
-      $c->stash->{death_mask} = 3;
+      my ($dg,$dm) = dead_from_last_move ($c);
+      $c->stash->{death_mask} = $dm;
    }
    render_board_table($c);
    
@@ -185,6 +189,19 @@ sub game : Global {
    $c->stash->{template} = 'game.tt';
 }
 
+sub dead_from_last_move{
+   my $c = shift;
+   my $game = $c->stash->{game};
+   my $board = $c->stash->{board};
+   my $last_move = $c->stash->{game}->last_move;   
+    return unless $last_move;
+   my $dead_groups = $last_move->dead_groups;
+    return unless $dead_groups;
+   #TODO: generic
+   my @dlist = map {[split'-',$_]} (split '_',$dead_groups);# convert to node list 
+   my $death_mask = $c->stash->{rulemap}->death_mask_from_list ($board, \@dlist);
+   return ($dead_groups, $death_mask);
+}
 #returns error string if error. #TODO: these could return true, or set some stash error var
 sub seek_permission_to_move{
    my $c = shift;
