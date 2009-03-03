@@ -174,6 +174,7 @@ sub game : Global {
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    $c->stash->{players_data} = get_game_player_data($c);
    $c->stash->{to_move_img} = ($game->turn) == 1 ? 'b.gif' : 'w.gif';
+   $c->stash->{result} = $game->result;
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';

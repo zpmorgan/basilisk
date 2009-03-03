@@ -1,8 +1,15 @@
 [%  INCLUDE header %]
 <br>
-<span style="border: 1px solid #777;background-color:lightgray;"> 
-  <img src="[%img_base%]/[% to_move_img %]" width="11px"> to move.
-</span>
+
+[% UNLESS result %]
+  <span style="border: 1px solid #777;background-color:lightgray;"> 
+    <img src="[%img_base%]/[% to_move_img %]" width="11px"> to move.
+  </span>
+[%ELSE%]
+  <div style="border: 1px solid #777;background-color:lightgray;width:40%"> 
+    <h2> Game result: [%result%] </h2>
+  </div>
+[%END%]
 
 <br>
 
