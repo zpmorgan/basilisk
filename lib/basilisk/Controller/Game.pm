@@ -8,23 +8,35 @@ use basilisk::Rulemap;
 
 __PACKAGE__->config->{namespace} = '';
 
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
 #Note: death_mask and territory_mask should not be stored in the database.
 # what you need to get them is a list of dead groups.
 
 #all these actions may affect the view depending on which of these it sets:
+=======
+#all these actions may affect the view depending on which of these are present:
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
 # $c->stash->{board_clickable}
 # $c->stash->{marking_dead_stones}
 # $c->stash->{territory_mask}
 # $c->stash->{death_mask}
 #and for cgi params: $c->stash->{caps, new_also_dead}
 
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
 #TODO: Does this have to suck so much?
 #TODO: Can this be made generic?
+=======
+
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
 # /game/14?action=move&co=4-4
 # /game/14?action=pass
 # /game/14?action=action=mark_dead&co=10-9&also_dead=3-3_4-5_19-19 #or action=mark_alive
 #co=(row)-(col) starting at top-left
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
 sub game : Global { 
+=======
+sub game : Global { #TODO: does this have to suck so much?
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
    my ( $self, $c ) = @_;
    #extract game id from path
    my ($gameid) = $c->req->path =~ m|game/(\d*)|;
@@ -34,7 +46,11 @@ sub game : Global {
       $c->stash->{template} = 'message.tt';return;
    }
    $c->stash->{gameid} = $gameid;
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
    my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
+=======
+   my $game = $c->model('DB::Game')->find ({'id' => $gameid});
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
    $c->stash->{game} = $game;
    unless ($game){
       $c->stash->{message} = 'invalid request: no game with that id';
@@ -83,7 +99,11 @@ sub game : Global {
       #last 2 moves should be passes to start scoring process
       #my $dont_do_terr = prev_p_moves_were_passes($c);
       #unless ($dont_do_terr){
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
       #   my ($terr_mask, $points) = $rulemap->find_territory_mask ($board, {});
+=======
+      #   my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, {});
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
       #   $c->stash->{territory_mask} = $terr_mask;
       #}
       do_move ($c, 'pass');
@@ -128,6 +148,7 @@ sub game : Global {
       }
       my $deadstring = $c->req->param('dead_stones');
       do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
       #Should game end?
       my @prev_2_moves = $game->moves->search ({}, {
          order_by=>'movenum DESC',
@@ -138,6 +159,8 @@ sub game : Global {
             finish_game($c);
          }
       }
+=======
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
    }
    elsif ($action eq 'continue'){ #place a stone instead of scoring after 2 passes+
       my $err = seek_permission_to_move($c);
@@ -147,27 +170,49 @@ sub game : Global {
       }
       $c->stash->{board_clickable} = 1;
    }
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
    unless ($c->stash->{board_clickable}){ #default: determine level of interaction with game
+=======
+   unless ($c->stash->{board_clickable}){ #determine level of interaction with game
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
       my $err = seek_permission_to_move($c);
       unless ($err){ #your turn
          $c->stash->{board_clickable} = 1;
          $err = seek_permission_to_mark_dead($c);
          unless ($err){ #mark dead
             $c->stash->{marking_dead_stones} = 1;
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
             my ($deadgroups, $deathmask) = dead_from_last_move ($c);
             if ($deadgroups){
+=======
+            my $deadgroups = $game->last_move->dead_groups;
+            $c->stash->{new_also_dead} = $deadgroups;
+            if ($deadgroups){#some previously marked dead groups to start with
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
                $c->stash->{new_also_dead} = $deadgroups;
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
                $c->stash->{death_mask} = $deathmask;
                my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $deathmask));
                $c->stash->{territory_mask} = $terr_mask;
                $c->stash->{terr_points} = $terr_points;
+=======
+               my @dlist = map {[split'-',$_]} (split '_',$deadgroups);# convert to node list
+               $c->stash->{death_mask} = $rulemap->death_mask_from_list ($board, \@dlist);
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
             }
             else { #start marking dead stones from nothing
                $c->stash->{new_also_dead} = '';
                $c->stash->{death_mask} = {};
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
                my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, {});
+=======
+               my ($terr_mask, $caps) = $rulemap->find_territory_mask ($board, $c->stash->{death_mask});
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
                $c->stash->{territory_mask} = $terr_mask;
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
                $c->stash->{terr_points} = $terr_points;
+=======
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
             }
          }
       }
@@ -183,7 +228,10 @@ sub game : Global {
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    $c->stash->{players_data} = get_game_player_data($c);
    $c->stash->{to_move_img} = ($game->turn) == 1 ? 'b.gif' : 'w.gif';
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
    $c->stash->{result} = $game->result;
+=======
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';
@@ -227,7 +275,11 @@ sub seek_permission_to_mark_dead{ #returns err if err
    my $err = seek_permission_to_move($c);
    return $err if $err;
    #last 2 moves should be passes to start scoring process
+<<<<<<< HEAD:lib/basilisk/Controller/Game.pm
    $err = last_move_was_score($c);
+=======
+   my $err = last_move_was_score($c);
+>>>>>>> this is a step closer to a decent scoring system:lib/basilisk/Controller/Game.pm
    return '' unless $err;
    $err = prev_p_moves_were_passes($c);
    return $err
