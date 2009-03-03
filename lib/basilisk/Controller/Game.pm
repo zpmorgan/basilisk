@@ -279,15 +279,24 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    $game->set_column ('result', $result);
    $game->update();
 }
-
+#index of largest in list
 sub largest{my ($i,$g,$v)=(0,0,-555);for$i(0..$#_){next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
 sub build_rulemap{
    my $c = shift;
    my $game = $c->stash->{game};
+   my $ruleset = $game->ruleset;
+   my $topo = 'plane';
+   my @extra_rules = $ruleset->extra_rules;
+   for my $rulerow (@extra_rules){
+      my $rule = $rulerow->rule;
+      if ($rule eq 'torus' or $rule eq 'cylinder'){
+         $topo = $rule;
+      }
+   }
    my $rulemap = new basilisk::Rulemap(
       size => $game->size,
-      topology => 'plane',
+      topology => $topo,
    );
    $c->stash->{rulemap} = $rulemap;
 }

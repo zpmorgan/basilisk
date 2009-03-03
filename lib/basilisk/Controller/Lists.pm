@@ -99,8 +99,8 @@ sub add_wgame{
    return 'log in first' unless $c->session->{logged_in};
    my $topo = $c->req->param('topology');
    my ($ew, $ns) = (0,0); #sides which wrap around
-   $ew = 1 if $topo eq 'cylinder' or $topo eq 'torus';
-   $ns = 1 if $topo eq 'torus';
+   #$ew = 1 if $topo eq 'cylinder' or $topo eq 'torus';
+   #$ns = 1 if $topo eq 'torus';
    my $desc = ''; # description of interesting rules
    $desc .= $topo unless $topo eq 'plane';  #planes are not interesting
    
@@ -116,6 +116,13 @@ sub add_wgame{
          proposer => $c->session->{userid},
          ruleset => $new_ruleset->id,
       });
+      unless ($topo eq 'plane'){
+         $c->model('DB::Extra_rule')->create({
+            rule => $topo,
+            priority => 2,
+            ruleset  => $new_ruleset->id,
+         });
+      }
    });
    return ''; #no err
 }
