@@ -60,7 +60,6 @@ my $rulemap2 = new basilisk::Rulemap(size => 4);
 #wrapping variant
 #test a small capturing move on a populated board (small/TORUS)
 {
-   #local $TODO = "toroidal/cylindrical stuff not ready";
    my $rulemap3 = new basilisk::Rulemap(size => 4, topology => 'torus');
    #give this text to 2 boards. (5 & 7)
    my $tboardtext = #on torus, row2col1 kills, row1col2 doesn't
