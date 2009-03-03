@@ -31,7 +31,7 @@ sub game : Global {
       $c->stash->{template} = 'message.tt';return;
    }
    $c->stash->{gameid} = $gameid;
-   my $game = $c->model('DB::Game')->find ({'id' => $gameid});
+   my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
    $c->stash->{game} = $game;
    unless ($game){
       $c->stash->{message} = 'invalid request: no game with that id';
@@ -46,7 +46,10 @@ sub game : Global {
    my $board = Util::unpack_position($pos_data, $size);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
    
-   #DISPATCH
+   #NEED DISPATCH
+   #if $action and $action_dispatch{$action}{
+   #   $action_dispatch{$action}->($c);
+   #unless ($c->stash->{board_clickable})...
    my $action = $c->req->param('action');
    $action = '' unless $action;
    if ($action eq 'move'){ #evaluate & do move:
@@ -122,6 +125,16 @@ sub game : Global {
       }
       my $deadstring = $c->req->param('dead_stones');
       do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
+      #Should game end?
+      my @prev_2_moves = $game->moves->search ({}, {
+         order_by=>'movenum DESC',
+         rows => 2});
+      if ($prev_2_moves[1]->movestring eq 'submit_dead_selection'){
+         if ($prev_2_moves[0]->dead_groups eq $prev_2_moves[1]->dead_groups){
+            #so they agree on dead groups.
+            finish_game($c);
+         }
+      }
    }
    elsif ($action eq 'continue'){ #place a stone instead of scoring after 2 passes+
       my $err = seek_permission_to_move($c);
@@ -172,6 +185,7 @@ sub seek_permission_to_move{
    return 'not logged in' unless $c->session->{logged_in};
    return 'not registered' if $c->session->{userid} == 1;
    my $game = $c->stash->{game};
+   return 'Game is already finished!' unless $game->status == Util::RUNNING();
    my $p = $c->model('DB::player_to_game')->find( {
        gid => $game->id,
        side => $game->turn,
@@ -218,7 +232,10 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    #use the territory mask from c->request
    my $c = shift;
    my $game = $c->stash->{game};
-   my $terr_mask = $c->stash->{territory_mask}
+   my $terr_mask = $c->stash->{territory_mask};
+   $game->set_column ('status', Util::FINISHED());
+   $game->set_column ('result', 'Gorf wins.');
+   $game->update();
 }
 
 sub build_rulemap{
@@ -294,6 +311,7 @@ sub do_move{#todo:mv to game class?
    
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
+      die 'Check whether game is finished before do_move!' unless $game->status == Util::RUNNING();
       if ($caps and @$caps){ #update capture count
          my $p2g = $c->stash->{p2g};#player_to_game
          $p2g->set_column('captures',$p2g->captures + @$caps); #INT
