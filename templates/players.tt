@@ -11,7 +11,7 @@ And here's every player on this server:
 [% FOREACH p = playerinfo %]
    <tr>
       <td> <a href="[%url_base%]/userinfo/[% p.id %]"> [% p.name %] </a> </td>
-      <td> Nice! </td>
+      <td> 0 </td>
    </tr>
 [% END %]
 </table>
