@@ -61,7 +61,7 @@ sub ensure_position_size{
    die "position data is size $newsize, should be size ".$h*$w . "|||\n".$newstring;
 }
 
-#untested
+#mainly for tests, db spawn
 sub board_from_text{
    my ($text, $h, $w) = @_;
    $w = $h unless $w;
@@ -78,7 +78,7 @@ sub board_from_text{
    return \@board;
 }
 
-#incomplete
+#unused for now
 sub board_to_text{
    my ($board) = @_;
    my @lines;
@@ -86,36 +86,9 @@ sub board_to_text{
       push @lines, join ' ', @$row;
    }
    my $text = join "\n", @lines;
-   #$text =~ tr/12/XO/;
    return $text;
 }
 
-
-#floodfill through empty space.
-#flips elements of $mask, connected through empties. #TODO: unused.
-sub update_death_mask{ 
-   my ($board, $mask, $action, $srow,$scol) = @_;
-   my $size = scalar @$board;
-   my $to = $action eq 'mark_dead' ? 1 : 0;
-   my $color = $board->[$srow][$scol];
-   return unless $color;
-   my @nodes = ([$srow,$scol]); #list
-   my @seen; #grid.
-   while (@nodes){
-      my ($row, $col) = @{pop @nodes};
-      next if $seen[$row][$col];
-      $seen[$row][$col] = 1;
-      my $board_color = $board->[$row][$col];
-      next unless ($board_color == $color)  or  ($board_color == 0);
-      if ($board_color == $color){
-         $mask->[$row][$col] = $to;
-         push @nodes, [$row-1, $col] unless $row == 0;
-         push @nodes, [$row+1, $col] unless $row == $size-1;
-         push @nodes, [$row, $col-1] unless $col == 0;
-         push @nodes, [$row, $col+1] unless $col == $size-1;
-      }
-   }
-}
 
 use Digest::MD5 'md5'; # qw(md5 md5_hex md5_base64);
 
