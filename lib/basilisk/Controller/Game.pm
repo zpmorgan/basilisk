@@ -159,7 +159,7 @@ sub game : Global {
             if ($deadgroups){
                $c->stash->{new_also_dead} = $deadgroups;
                $c->stash->{death_mask} = $deathmask;
-               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $deathmask));
+               my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $deathmask);
                $c->stash->{territory_mask} = $terr_mask;
                $c->stash->{terr_points} = $terr_points;
             }
@@ -252,6 +252,19 @@ sub prev_p_moves_were_passes { #p=2players
    return '2nd-to-lastmove not pass' unless $game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass';
    return '';
 }
+sub dead_from_last_move{ #returns mask,stringofgroups
+   my $c = shift;
+   my $game = $c->stash->{game};
+   my $board = $c->stash->{board};
+   my $last_move = $c->stash->{game}->last_move;   
+    return unless $last_move;
+   my $dead_groups = $last_move->dead_groups;
+    return unless $dead_groups;
+   #TODO: generic
+   my @dlist = map {[split'-',$_]} (split '_',$dead_groups);# convert to node list 
+   my $death_mask = $c->stash->{rulemap}->death_mask_from_list ($board, \@dlist);
+   return ($dead_groups, $death_mask);
+}
 #TODO: make score calc generic
 sub finish_game{ #This does not check permissions. it just wraps things up
    my $c = shift;
@@ -275,20 +288,31 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    $totalscore[2] += 6.5;
    my $winning_side = largest (@totalscore);
    #die $totalscore[1];$winning_side;
-   my $result = "b:$totalscore[1], b:$totalscore[1]";
+   my $result = "b:$totalscore[1], w:$totalscore[2]";
    $game->set_column ('status', Util::FINISHED());
    $game->set_column ('result', $result);
    $game->update();
 }
+#index of largest in list
+sub largest{my ($i,$g,$v)=(0,0,-555);for$i(0..$#_){next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
 sub largest{my ($i,$g,$v)=(0,0,-555);for$i(0..$#_){next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
 sub build_rulemap{
    my $c = shift;
    my $game = $c->stash->{game};
+   my $ruleset = $game->ruleset;
+   my $topo = 'plane';
+   my @extra_rules = $ruleset->extra_rules;
+   for my $rulerow (@extra_rules){
+      my $rule = $rulerow->rule;
+      if ($rule eq 'torus' or $rule eq 'cylinder'){
+         $topo = $rule;
+      }
+   }
    my $rulemap = new basilisk::Rulemap(
       size => $game->size,
-      topology => 'plane',
+      topology => $topo,
    );
    $c->stash->{rulemap} = $rulemap;
 }
@@ -422,6 +446,7 @@ sub render_board_table{
    my ($c) = @_;
    my $size = $c->stash->{game}->size;
    my $board = $c->stash->{board};
+   my $rulemap = $c->stash->{rulemap};
    my $death_mask = $c->stash->{death_mask};
    my $terr_mask = $c->stash->{territory_mask};
    $terr_mask = {} unless $terr_mask;
@@ -429,7 +454,7 @@ sub render_board_table{
    
    for my $row (0..$size-1){
       for my $col (0..$size-1){ #get image and url for table cell
-         my $image = select_g_file ($board, $size, $row, $col);
+         my $image = select_g_file ($rulemap, $board, $row, $col);
          my $stone = $board->[$row]->[$col]; #0 if empty, 1 b, 2 w
          my $terr = $terr_mask->{$row.'-'.$col}; #0 if empty, 1 b, 2 w
          my $dead = $death_mask->{$row.'-'.$col};
@@ -467,25 +492,12 @@ sub render_board_table{
 }
 
 sub select_g_file{ #default board
-   my ($board, $size, $row, $col) = @_;
+   my ($rulemap, $board, $row, $col) = @_;
    my $stone = $board->[$row][$col];
    return 'b.gif' if $stone == 1;
    return 'w.gif' if $stone == 2;
    #so it's an empty intersection
-   #several empties to choose from:
-   if ($row == 0){
-      return 'ul.gif' if $col == 0;
-      return 'ur.gif' if $col == $size-1;
-      return 'u.gif' ;
-   }
-   if ($row == $size-1){
-      return 'dl.gif' if $col == 0;
-      return 'dr.gif' if $col == $size-1;
-      return 'd.gif' ;
-   }
-   return 'el.gif' if $col == 0;
-   return 'er.gif' if $col == $size-1;
-   return 'e.gif'
+   return $rulemap->grid_node_is_on_edge($row, $col) . '.gif';
 }
 
 my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;

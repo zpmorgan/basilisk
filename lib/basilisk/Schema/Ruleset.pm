@@ -20,6 +20,7 @@ __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (positions => 'basilisk::Schema::Position', 'ruleset');
 __PACKAGE__->has_many (games => 'basilisk::Schema::Game', 'ruleset');
 __PACKAGE__->has_many (proposed_games => 'basilisk::Schema::Game_proposal', 'ruleset');
+__PACKAGE__->has_many (extra_rules => 'basilisk::Schema::Extra_rule', 'ruleset');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;
