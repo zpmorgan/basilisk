@@ -8,12 +8,13 @@ use basilisk::Rulemap;
 
 #__PACKAGE__->config->{namespace} = '';
 
-# 404
+# /game
 sub default :Path {
    my ( $self, $c ) = @_;
    $c->forward('game');
    $c->forward('render');
 }
+#grid nodes are [row,col] starting at top-left
 #Note: death_mask and territory_mask should not be stored in the database.
 # what you need to get them is a list of dead groups.
 
@@ -24,22 +25,9 @@ sub default :Path {
 # $c->stash->{death_mask}
 #and for cgi params: $c->stash->{caps, new_also_dead}
 
-my %action_dispatch = (
-   move => \&action_move,
-   pass => \&action_pass,
-   mark_dead => \&action_mark_dead_or_alive,
-   mark_alive=> \&action_mark_dead_or_alive,
-   submit_dead_selection => \&action_submit_dead_selection,
-   'continue' => \&action_continue,
-);
-
-#TODO: Does this have to suck so much?
-#TODO: Can this be made generic?
-
 # /game/14/move/4-4
 # /game/14/pass
 # /game/14/dead/10-9/3-3_4-5_19-19 #or s/dead/alive/
-#co=(row)-(col) starting at top-left
 sub game : Chained('/') CaptureArgs(1){ 
    my ( $self, $c, $gameid) = @_;
    unless ($gameid ){
@@ -61,9 +49,8 @@ sub game : Chained('/') CaptureArgs(1){
    my $rulemap = $c->stash->{rulemap};
    my $board = Util::unpack_position($pos_data, $size);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
-   
-}
-#cant have multiple ActionClass('RenderView')s?
+} #dow c does move, etc
+
 sub render: Private{
    my ($self, $c) = @_;
    my ($rulemap, $board, $game) = @{$c->stash}{qw/rulemap board game/};
@@ -106,13 +93,14 @@ sub render: Private{
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';
-}
-sub view : Chained('game') PathPart {
+}# now goes to view
+
+sub view : Chained('game') {
    my ($self, $c) = @_;
    $c->forward('render');
 }
 
-sub move : Chained('game') PathPart Args(1){ #evaluate & do move:
+sub move : Chained('game') Args(1){ #evaluate & do move:
    my ($self, $c, $movestring) = @_;
    my $err = seek_permission_to_move($c);
    if ($err){
@@ -132,7 +120,7 @@ sub move : Chained('game') PathPart Args(1){ #evaluate & do move:
    $c->stash->{msg} = 'move is success';
    $c->forward('render');
 }
-sub pass : PathPart('pass') Chained('game') { #evaluate & do pass: Args(0)
+sub pass : Chained('game') { #evaluate & do pass: Args(0)
    my ($self, $c) = @_;
    my $err = seek_permission_to_move($c);
    if ($err){
@@ -146,7 +134,7 @@ sub pass : PathPart('pass') Chained('game') { #evaluate & do pass: Args(0)
 }
 
 #not a move. just update board in html: #/game/44/mark/dead/3-13
-sub mark_dead_or_alive : PathPart('mark') Chained('game') Args(2){
+sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
    my ($self, $c, $mark, $node, $also_dead) = @_;
    die "no $mark" unless $mark eq 'dead' or $mark eq 'alive';
    
@@ -160,15 +148,16 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args(2){
    
    my $rulemap = $c->stash->{rulemap};
    my $board = $c->stash->{board};
-   my $mark_co = [split '-', $node]; #todo: generic!
+   my $mark_node = [split '-', $node]; #todo: generic!
    #my $also_dead = $c->req->param('also_dead');
    my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
-   push @marked_dead_stones, $mark_co;
+   push @marked_dead_stones, $mark_node;
    my $death_mask = $rulemap->death_mask_from_list($board, \@marked_dead_stones);
    if ($mark eq 'alive'){
-      $rulemap->mark_alive($board, $death_mask, $mark_co);
+      $rulemap->mark_alive($board, $death_mask, $mark_node);
    }
    my $new_death_list = $rulemap->death_mask_to_list($board, $death_mask);
+   
    $c->stash->{death_mask} = $death_mask;
    my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
    $c->stash->{territory_mask} = $terr_mask;
@@ -182,12 +171,12 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args(2){
 #The move will point to the same position,
 #and a string of dead groups is stored as the move text
 #OR, if it's the same as the prev. score submission, the game is over.
-sub action_submit_dead_selection: PathPart('submit') Chained('game') Args(1){ 
-   my ($c, $action, $deadstring) = @_;
+sub action_submit_dead_selection: PathPart('submit') Chained('game'){ 
+   my ($self, $c, $deadstring) = @_;
    my $err = seek_permission_to_mark_dead($c);
    if ($err){
       action_abort ($c, "permission fail: $err");
-      return;
+      $c->detach('render')
    }
    my $game = $c->stash->{game};
    do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
@@ -195,12 +184,21 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game') Args(1){
    my @prev_2_moves = $game->moves->search ({}, {
       order_by=>'movenum DESC',
       rows => 2});
-   if ($prev_2_moves[1]->movestring eq 'submit_dead_selection'){
-      if ($prev_2_moves[0]->dead_groups eq $prev_2_moves[1]->dead_groups){
-         #so they agree on dead groups.
+   #this is very much not generic!
+   if (($prev_2_moves[0]->movestring eq 'submit_dead_selection')
+     and ($prev_2_moves[1]->movestring eq 'submit_dead_selection')
+     and ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups)
+     and ($prev_2_moves[0]->dead_groups eq $prev_2_moves[1]->dead_groups)) {
+         #so both players agree on dead groups.
          finish_game($c);
-      }
    }
+   else {
+      $c->stash->{msg} = $prev_2_moves[0]->movestring . '<br>' .
+                        $prev_2_moves[0]->dead_groups . '<br>' .
+                        $prev_2_moves[1]->movestring . '<br>' .
+                        $prev_2_moves[1]->dead_groups ;
+                     }
+   $c->forward('render');
 }
 #to place a stone instead of scoring after 2+ passes:
 sub wants_to_stop_scoring : PathPart('continue') Chained('game'){ 
@@ -218,7 +216,7 @@ sub action_abort{ #not an action. this aborts the action.
    my ($c, $err) = @_;
    $c->stash->{message} = $err;
    $c->stash->{template} = 'message.tt';
-   #should probably return where this sub is called;
+   $c->detach('render')
 }
 
 #returns error string if error. #TODO: these could return true, or set some stash error var
@@ -313,7 +311,7 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    $game->update();
 }
 #index of largest in list
-sub largest{my ($i,$g,$v)=(0,0,-555);for$i(0..$#_){next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
+sub largest{my ($i,$g,$v)=(-1,-1,-1);for$i(0..$#_){next if!$_;next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
 sub build_rulemap{
    my $c = shift;
@@ -498,7 +496,7 @@ sub render_board_table{
             }
             elsif ($c->stash->{marking_dead_stones}){ #stone here
                my $mark = $death_mask->{$row.'-'.$col} ? 'alive' : 'dead'; #have clicker flip stone status
-               my $url = "game/".$c->stash->{gameid} . "/$mark/" . $row .'-'.$col;
+               my $url = "game/".$c->stash->{gameid} . "/mark/$mark/" . $row .'-'.$col;
                $url .= "/" . $c->stash->{new_also_dead};
                $table[$row][$col]->{ref} = $url;
             }

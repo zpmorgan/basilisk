@@ -3,6 +3,7 @@ use basilisk::Util;
 use strict;
 use warnings;
 
+#TODO: continuous groups are called strings here. they could be called chains.
 
 # This class evaluates moves and determines new board positions.
 # This class stores no board/position data.
