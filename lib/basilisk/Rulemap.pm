@@ -3,6 +3,7 @@ use basilisk::Util;
 use strict;
 use warnings;
 
+#TODO: continuous groups are called strings here. they could be called chains.
 
 # This class evaluates moves and determines new board positions.
 # This class stores no board/position data.
@@ -87,11 +88,12 @@ sub all_nodes{
 
 #This is the default. Used for normal games on rect grid
 sub default_evaluate_move{
-   my ($self, $board, $row, $col, $color) = @_;
+   my ($self, $board, $node, $color) = @_;
    die "badcolor $color" unless $color =~ /^[12]$/;
-   die "blah" unless defined $row and defined $col;
+   die (ref $node . $node) unless ref $node eq 'ARRAY';
    die 'badboard' unless ref $board eq 'ARRAY';
    
+   my ($row,$col) = @$node;
    if ($board->[$row][$col]){
       return (undef,"stone exists at row $row col $col"); }
    
@@ -290,6 +292,7 @@ sub mark_alive{
 #this returns (terr_mask, [terr_points_b, terr_pts_w], [kill_points_b, kill_pts_w])
 sub find_territory_mask{
    my ($self, $board, $death_mask) = @_;
+   $death_mask ||= {};
    my %seen; #accounts for all empty nodes.
    my %terr_mask;
    my @terr_points;
