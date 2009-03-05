@@ -35,34 +35,48 @@ sub players :Global{
 
 #todo: prefetch?
 sub get_list_of_games{
-   my ($c, $page) = @_;
+   my ($c, $page, $playername) = @_;
    my $pagesize = 25;
    my ($num_games, $num_pages);
-   my %playerinfo; #contains player name, from id
    my %gameplayers; #to show who plays which game
    my $games_rs;
    my $gamesearch_constraints = {status => Util::RUNNING()};
    #transaction!
    $c->model('DB')->schema->txn_do( sub{
-      $games_rs = $c->model('DB::Game')->search($gamesearch_constraints, {rows=>$pagesize})->page($page);
+      my $gid_col; #used to resolve resultset col naming issue
+      if ($playername){#only look at this player's games
+         my $p = $c->model('DB::Player')->find ({name=>$playername});
+         return 'nosuchplayer' unless $p;
+         my $relevant_p2g = $c->model('DB::Player_to_game')->search(
+            {'me.pid' => $p->id},
+            #{select => ['me.pid'], as => ['blah']}
+         );
+         $games_rs = $relevant_p2g->search_related('game',
+              $gamesearch_constraints, 
+              {rows => $pagesize,
+               }#select => ['game.id'], as => ['gid'] }
+         )->page($page);
+         $gid_col = 'game.id'; 
+      }
+      else{
+         $games_rs = $c->model('DB::Game')->search(
+              $gamesearch_constraints, 
+              {rows=>$pagesize,
+               }#'+select' => ['id'], '+as' => ['id']}
+         )->page($page);
+         $gid_col = 'me.id';
+      }
       my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
          {
             join => ['player'],
-            select => ['player.id', 'player.name', 'gid', 'side'],
-            as => ['pid', 'pname', 'gid', 'side'],
+            select => ['player.name', $gid_col, 'player_to_game.pid', 'player_to_game.side'],
+            as => ['pname', 'gid', 'pid', 'side'],
          });
-      for my $p2g($p2g_rs->all()) {
-         #todo: only set once per pid
-         my $pid = $p2g->get_column('pid');
-         $playerinfo{$pid} = $p2g;
-      }
+      $num_games = $games_rs->count();
       for my $p2g ($p2g_rs->all()){ #who plays what game
-         #my $gid = $p2g->get_column('gid');
          my %data = $p2g->get_columns;
          $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
-         #$c->stash->{msg} .= join ('.',@{$gameplayers{$data{gid}}}) . "<br>";
       }
-      $num_games = $c->model('DB::Game')->count($gamesearch_constraints, {});
    });
    $c->stash->{num_pages} = int ($num_games / $pagesize) + 1;
    $c->stash->{num_games} = $num_games;
@@ -76,8 +90,7 @@ sub get_list_of_games{
          wname => $gameplayers{$gid}->[2]->{pname},
          bid => $gameplayers{$gid}->[1]->{pid},
          wid => $gameplayers{$gid}->[2]->{pid},
-         #wname => 'whitie',
-         size => $game->size,
+         size => 'foo', #$game->size,
       }
    }
    return \@games_data;
@@ -85,11 +98,12 @@ sub get_list_of_games{
 
 #list of all games on server
 sub games :Global{
-   my ( $self, $c ) = @_;
+   my ( $self, $c, $player) = @_;
    $c->stash->{title} = 'All games';
+   $c->stash->{title} .= "of $player" if $player;
    $c->stash->{template} = 'all_games.tt';
-   my $games_data = get_list_of_games ($c,0); #this is what template uses
-   $c->stash->{games_data} = $games_data
+   my $games_data = get_list_of_games ($c,0, $player); 
+   $c->stash->{games_data} = $games_data #this is for template
 }
 
 

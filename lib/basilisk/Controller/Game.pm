@@ -93,22 +93,23 @@ sub render: Private{
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';
-}# now goes to view
+}# now goes to template
 
+#view this game
 sub view : Chained('game') {
    my ($self, $c) = @_;
    $c->forward('render');
 }
 
 sub move : Chained('game') Args(1){ #evaluate & do move:
-   my ($self, $c, $movestring) = @_;
+   my ($self, $c, $nodestring) = @_;
    my $err = seek_permission_to_move($c);
    if ($err){
       action_abort ($c, "permission fail: $err");
       return;
    }
-   #extract coordinates from url: #TODO: finish making generic!
-   $c->stash->{move_node} = [split '-', $movestring];
+   #extract coordinates from url:
+   $c->stash->{move_node} = $c->stash->{rulemap}->node_from_string ($nodestring);
    my ($err2, $newboard, $caps) = evaluate_move($c);
    if ($err2){
       action_abort ($c, "move is failure: $err2");
@@ -135,7 +136,7 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
 
 #not a move. just update board in html: #/game/44/mark/dead/3-13
 sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
-   my ($self, $c, $mark, $node, $also_dead) = @_;
+   my ($self, $c, $mark, $nodestring, $also_dead) = @_;
    die "no $mark" unless $mark eq 'dead' or $mark eq 'alive';
    
    my $err = seek_permission_to_mark_dead($c);
@@ -148,7 +149,7 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
    
    my $rulemap = $c->stash->{rulemap};
    my $board = $c->stash->{board};
-   my $mark_node = [split '-', $node]; #todo: generic!
+   my $mark_node = $rulemap->node_from_string ($nodestring);
    #my $also_dead = $c->req->param('also_dead');
    my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
    push @marked_dead_stones, $mark_node;
@@ -173,6 +174,7 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
 #OR, if it's the same as the prev. score submission, the game is over.
 sub action_submit_dead_selection: PathPart('submit') Chained('game'){ 
    my ($self, $c, $deadstring) = @_;
+   $deadstring ||= '';
    my $err = seek_permission_to_mark_dead($c);
    if ($err){
       action_abort ($c, "permission fail: $err");
@@ -186,11 +188,13 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
       rows => 2});
    #this is very much not generic!
    if (($prev_2_moves[0]->movestring eq 'submit_dead_selection')
-     and ($prev_2_moves[1]->movestring eq 'submit_dead_selection')
-     and ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups)
-     and ($prev_2_moves[0]->dead_groups eq $prev_2_moves[1]->dead_groups)) {
-         #so both players agree on dead groups.
-         finish_game($c);
+     and ($prev_2_moves[1]->movestring eq 'submit_dead_selection')){
+        if ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups){
+           finish_game($c);
+        }
+        unless ($prev_2_moves[0]->dead_groups or $prev_2_moves[1]->dead_groups){
+           finish_game($c);
+        }
    }
    else {
       $c->stash->{msg} = $prev_2_moves[0]->movestring . '<br>' .
@@ -271,15 +275,16 @@ sub prev_p_moves_were_passes { #p=2players
 }
 sub get_marked_dead_from_last_move{ #returns mask,stringofgroups
    my $c = shift;
+   my $rulemap = $c->stash->{rulemap};
    my $game = $c->stash->{game};
    my $board = $c->stash->{board};
    my $last_move = $c->stash->{game}->last_move;   
     return unless $last_move;
    my $dead_groups = $last_move->dead_groups;
     return unless $dead_groups;
-   #TODO: generic
-   my @dlist = map {[split'-',$_]} (split '_',$dead_groups);# convert to node list 
-   my $death_mask = $c->stash->{rulemap}->death_mask_from_list ($board, \@dlist);
+   # convert to list of nodes:
+   my @dlist = map {$rulemap->node_from_string($_)} (split '_',$dead_groups); 
+   my $death_mask = $rulemap->death_mask_from_list ($board, \@dlist);
    return ($dead_groups, $death_mask);
 }
 #TODO: make score calc generic
@@ -296,10 +301,10 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
    $kills = $rulemap->count_kills($board, $death_mask);
    my @totalscore;
-   for (@p2g){
-      my $side = $_->side;
+   for (1..@p2g-1){ #starts at 1
+      my $side = $_; # n $_->side;
       #die ref $_->side if ref $side eq 'ARRAY';
-      $caps->[$side] = $_->captures;
+      $caps->[$side] = $p2g[$_]->captures;
       $totalscore[$side] = $caps->[$side] + $terr_points->[$side] - $kills->[$side];
    }
    $totalscore[2] += 6.5;
@@ -387,7 +392,7 @@ sub do_move{#todo:mv to game class?
       $posid = $game->current_position_id;
    }
    else { # it eq ''
-      my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
+      my ($row, $col) = @{$c->stash->{move_node}};
       $movestring = ($side==1?'b':'w') . " row$row, col$col";
       $new_pos_data = Util::pack_board($newboard, $size);
       Util::ensure_position_size($new_pos_data, $size); #sanity?
@@ -467,6 +472,8 @@ sub render_board_table{
    $terr_mask = {} unless $terr_mask;
    my @table; #html cells representing nodes
    
+   #TODO: each board type needs a template.
+   #This one could be in templates/game/rectgrid.tt
    for my $row (0..$size-1){
       for my $col (0..$size-1){ #get image and url for table cell
          my $image = select_g_file ($rulemap, $board, $row, $col);

@@ -9,7 +9,7 @@ isa_ok ($rulemap, 'basilisk::Rulemap');
 
 my $rulemap2 = new basilisk::Rulemap(size => 4);
 
-#test some move on an empty board (small/generic)
+#test some move on an empty board (small/vanilla)
 {
    my $board = Util::board_from_text (
       '0000
@@ -23,7 +23,7 @@ my $rulemap2 = new basilisk::Rulemap(size => 4);
    is_deeply ($board2, $board, "move on empty board valid (actual err?: $err)");
 }
 
-#test a small capturing move on a populated board (small/generic)
+#test a small capturing move on a populated board (small/vanilla)
 {
    my $board3 = Util::board_from_text (
       '0100

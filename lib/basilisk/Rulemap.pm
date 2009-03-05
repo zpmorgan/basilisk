@@ -28,6 +28,7 @@ use warnings;
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
 #   functions may handle as they will. Nodes by default are [$row,$col].
 #TODO: shifting turns&teams&colors in new ways (rengo,zen,consensus?)
+# also: sides(1 and 2) shouldn't be tied to colors(1 and 2)
 
 my %defaults = (
    size => 19,
@@ -36,6 +37,7 @@ my %defaults = (
    wrap_ew => 0,
    eval_move_func => \&default_evaluate_move,
    node_to_string_func => \&default_node_to_string,
+   node_from_string_func => \&default_node_from_string,
    node_liberties_func => \&default_node_liberties,
    stone_at_node_func => \&default_stone_at_node,
    all_nodes_func     => \&default_all_nodes,
@@ -73,6 +75,10 @@ sub node_to_string{ #never use _ in string. - is okay.
    my $self = shift;
    return  $self->{node_to_string_func}->($self, @_);
 }
+sub node_from_string{ # default: '3-4'
+   my $self = shift;
+   return  $self->{node_from_string_func}->($self, @_);
+}
 sub node_liberties{
    my $self = shift;
    return  $self->{node_liberties_func}->($self, @_);
@@ -101,7 +107,7 @@ sub default_evaluate_move{
    my $newboard = [ map {[@$_]} @$board ];
    $newboard->[$row]->[$col] = $color;
    # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
-   my ($string, $libs, $foes) = $self->get_string($newboard, [$row, $col]);
+   my ($chain, $libs, $foes) = $self->get_chain($newboard, [$row, $col]);
    my $caps = $self->find_captured ($newboard, $foes);
    if (@$libs == 0 and @$caps == 0){
       return (undef,'suicide');
@@ -112,13 +118,13 @@ sub default_evaluate_move{
    return ($newboard, '', $caps);#no err
 }
 
-#turn [13,3] into 13-3
+#turns [13,3] into 13-3
 #TODO: something else for 'go-style' coordinates
 sub default_node_to_string{ 
    my ($self, $node) = @_;
    return join '-', @$node;
 }
-sub default_string_to_node{ 
+sub default_node_from_string{ 
    my ($self, $string) = @_;
    return [split '-', $string];
 }
@@ -165,7 +171,7 @@ sub default_node_liberties{
 
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
-sub get_string { #for all board types
+sub get_chain { #for all board types
    my ($self, $board, $node1) = @_; #start row/column
    my $size = scalar @$board; #assuming square
    
@@ -235,9 +241,9 @@ sub find_captured{
    while (@nodes){
       my $node = pop @nodes;
       next if $seen {$self->node_to_string($node)};
-      my ($string, $libs, $foes) = $self->get_string ($board, $node);
+      my ($chain, $libs, $foes) = $self->get_chain ($board, $node);
       my $capture_these = scalar @$libs ? '0' : '1';
-      for my $n (@$string){
+      for my $n (@$chain){
          $seen {$self->node_to_string($n)} = 1;
          push @caps, $n if $capture_these;
       }
@@ -255,8 +261,8 @@ sub death_mask_from_list{
    my ($self, $board, $list) = @_;
    my %mask;
    for my $node (@$list){
-      my ($deadstring, $libs, $foes) = $self->get_string ($board, $node);
-      for my $deadnode (@$deadstring){
+      my ($deadchain, $libs, $foes) = $self->get_chain ($board, $node);
+      for my $deadnode (@$deadchain){
          $mask {$self->node_to_string($deadnode)} = 1;
       }
    }
@@ -271,7 +277,7 @@ sub death_mask_to_list{
       my $nodestring = $self->node_to_string($node);
       if ($mask->{$nodestring}) { #marked dead
          next if $seen {$nodestring};
-         my ($deadnodes, $libs, $foes) = $self->get_string ($board, $node);
+         my ($deadnodes, $libs, $foes) = $self->get_chain ($board, $node);
          die 'blah?' unless @$deadnodes;
          for my $deadnode (@$deadnodes){
             $seen {$self->node_to_string($deadnode)} = 1;
@@ -283,7 +289,7 @@ sub death_mask_to_list{
 }
 sub mark_alive{
    my ($self, $board, $mask, $node) = @_;
-   my ($alivenodes, $libs, $foes) = $self->get_string ($board, $node);
+   my ($alivenodes, $libs, $foes) = $self->get_chain ($board, $node);
    for my $n (@$alivenodes){
       $mask->{$self->node_to_string($n)} = 0;
    }

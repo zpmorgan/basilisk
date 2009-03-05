@@ -34,7 +34,7 @@ $row = $player_rs->create({
     pass=> Util::pass_hash "georgia"
 });
 
-#make generic empty game with cannon and georgia
+#make empty vanilla game with cannon and georgia
 my $ruleset_rs = $schema->resultset('Ruleset');
 my $new_ruleset = $ruleset_rs->create({size => 6}); #default everything
 
