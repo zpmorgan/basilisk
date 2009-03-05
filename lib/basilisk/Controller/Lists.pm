@@ -77,11 +77,6 @@ sub get_list_of_games{
          my %data = $p2g->get_columns;
          $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
       }
-  #~ ##~ ###    for my $p2g($p2g_rs->all()) {
-  #~ ##~ ###       #todo: only set once per pid
-  #~ ##~ ###       my $pid = $p2g->get_column('pid');
-  #~ ##~ ###       $playerinfo{$pid} = $p2g;
-  #~ ##~ ###    }
    });
    $c->stash->{num_pages} = int ($num_games / $pagesize) + 1;
    $c->stash->{num_games} = $num_games;

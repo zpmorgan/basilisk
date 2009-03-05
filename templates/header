@@ -124,6 +124,9 @@ a:hover     {color:#000000}
  <tr><td>
    <a href="[%url_base%]/userinfo">User info</a>
  </tr></td>
+ <tr><td>
+   <a href="[%url_base%]/messages">Messages</a>
+ </tr></td>
 [% ELSE %]
  <tr><td>
    <a href="[%url_base%]/login">Log in</a>
