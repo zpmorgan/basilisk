@@ -174,6 +174,7 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
 #OR, if it's the same as the prev. score submission, the game is over.
 sub action_submit_dead_selection: PathPart('submit') Chained('game'){ 
    my ($self, $c, $deadstring) = @_;
+   $deadstring ||= '';
    my $err = seek_permission_to_mark_dead($c);
    if ($err){
       action_abort ($c, "permission fail: $err");
@@ -187,11 +188,13 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
       rows => 2});
    #this is very much not generic!
    if (($prev_2_moves[0]->movestring eq 'submit_dead_selection')
-     and ($prev_2_moves[1]->movestring eq 'submit_dead_selection')
-     and ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups)
-     and ($prev_2_moves[0]->dead_groups eq $prev_2_moves[1]->dead_groups)) {
-         #so both players agree on dead groups.
-         finish_game($c);
+     and ($prev_2_moves[1]->movestring eq 'submit_dead_selection')){
+        if ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups){
+           finish_game($c);
+        }
+        unless ($prev_2_moves[0]->dead_groups or $prev_2_moves[1]->dead_groups){
+           finish_game($c);
+        }
    }
    else {
       $c->stash->{msg} = $prev_2_moves[0]->movestring . '<br>' .
@@ -300,7 +303,7 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    for (1..@p2g-1){ #starts at 1
       my $side = $_; # n $_->side;
       #die ref $_->side if ref $side eq 'ARRAY';
-      $caps->[$side] = $_->captures;
+      $caps->[$side] = $p2g[$_]->captures;
       $totalscore[$side] = $caps->[$side] + $terr_points->[$side] - $kills->[$side];
    }
    $totalscore[2] += 6.5;

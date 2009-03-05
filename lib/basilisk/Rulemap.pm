@@ -28,6 +28,7 @@ use warnings;
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
 #   functions may handle as they will. Nodes by default are [$row,$col].
 #TODO: shifting turns&teams&colors in new ways (rengo,zen,consensus?)
+# also: sides(1 and 2) shouldn't be tied to colors(1 and 2)
 
 my %defaults = (
    size => 19,
