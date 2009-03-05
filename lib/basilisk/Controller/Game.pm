@@ -102,14 +102,14 @@ sub view : Chained('game') {
 }
 
 sub move : Chained('game') Args(1){ #evaluate & do move:
-   my ($self, $c, $movestring) = @_;
+   my ($self, $c, $nodestring) = @_;
    my $err = seek_permission_to_move($c);
    if ($err){
       action_abort ($c, "permission fail: $err");
       return;
    }
    #extract coordinates from url:
-   $c->stash->{move_node} = $c->stash->{rulemap}->node_from_string ($movestring);
+   $c->stash->{move_node} = $c->stash->{rulemap}->node_from_string ($nodestring);
    my ($err2, $newboard, $caps) = evaluate_move($c);
    if ($err2){
       action_abort ($c, "move is failure: $err2");
