@@ -100,7 +100,7 @@ sub get_list_of_games{
 sub games :Global{
    my ( $self, $c, $player) = @_;
    $c->stash->{title} = 'All games';
-   $c->stash->{title} .= "of $player" if $player;
+   $c->stash->{title} .= " of $player" if $player;
    $c->stash->{template} = 'all_games.tt';
    my $games_data = get_list_of_games ($c,0, $player); 
    $c->stash->{games_data} = $games_data #this is for template
