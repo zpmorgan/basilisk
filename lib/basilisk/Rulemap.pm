@@ -37,6 +37,7 @@ my %defaults = (
    wrap_ew => 0,
    eval_move_func => \&default_evaluate_move,
    node_to_string_func => \&default_node_to_string,
+   node_from_string_func => \&default_node_from_string,
    node_liberties_func => \&default_node_liberties,
    stone_at_node_func => \&default_stone_at_node,
    all_nodes_func     => \&default_all_nodes,
@@ -73,6 +74,10 @@ sub evaluate_move{ #returns (board,'',caps) or (undef, err)
 sub node_to_string{ #never use _ in string. - is okay.
    my $self = shift;
    return  $self->{node_to_string_func}->($self, @_);
+}
+sub node_from_string{ # default: '3-4'
+   my $self = shift;
+   return  $self->{node_from_string_func}->($self, @_);
 }
 sub node_liberties{
    my $self = shift;
@@ -113,13 +118,13 @@ sub default_evaluate_move{
    return ($newboard, '', $caps);#no err
 }
 
-#turn [13,3] into 13-3
+#turns [13,3] into 13-3
 #TODO: something else for 'go-style' coordinates
 sub default_node_to_string{ 
    my ($self, $node) = @_;
    return join '-', @$node;
 }
-sub default_string_to_node{ 
+sub default_node_from_string{ 
    my ($self, $string) = @_;
    return [split '-', $string];
 }

@@ -108,8 +108,8 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
       action_abort ($c, "permission fail: $err");
       return;
    }
-   #extract coordinates from url: #TODO: finish making generic!
-   $c->stash->{move_node} = [split '-', $movestring];
+   #extract coordinates from url:
+   $c->stash->{move_node} = $c->stash->{rulemap}->node_from_string ($movestring);
    my ($err2, $newboard, $caps) = evaluate_move($c);
    if ($err2){
       action_abort ($c, "move is failure: $err2");
@@ -136,7 +136,7 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
 
 #not a move. just update board in html: #/game/44/mark/dead/3-13
 sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
-   my ($self, $c, $mark, $node, $also_dead) = @_;
+   my ($self, $c, $mark, $nodestring, $also_dead) = @_;
    die "no $mark" unless $mark eq 'dead' or $mark eq 'alive';
    
    my $err = seek_permission_to_mark_dead($c);
@@ -149,7 +149,7 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
    
    my $rulemap = $c->stash->{rulemap};
    my $board = $c->stash->{board};
-   my $mark_node = [split '-', $node]; #todo: generic!
+   my $mark_node = $rulemap->node_from_string ($node);
    #my $also_dead = $c->req->param('also_dead');
    my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
    push @marked_dead_stones, $mark_node;
@@ -275,15 +275,16 @@ sub prev_p_moves_were_passes { #p=2players
 }
 sub get_marked_dead_from_last_move{ #returns mask,stringofgroups
    my $c = shift;
+   my $rulemap = $c->stash->{rulemap};
    my $game = $c->stash->{game};
    my $board = $c->stash->{board};
    my $last_move = $c->stash->{game}->last_move;   
     return unless $last_move;
    my $dead_groups = $last_move->dead_groups;
     return unless $dead_groups;
-   #TODO: generic
-   my @dlist = map {[split'-',$_]} (split '_',$dead_groups);# convert to node list 
-   my $death_mask = $c->stash->{rulemap}->death_mask_from_list ($board, \@dlist);
+   # convert to list of nodes:
+   my @dlist = map {$rulemap->node_from_string($_)} (split '_',$dead_groups); 
+   my $death_mask = $rulemap->death_mask_from_list ($board, \@dlist);
    return ($dead_groups, $death_mask);
 }
 #TODO: make score calc generic
