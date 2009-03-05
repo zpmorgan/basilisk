@@ -102,7 +102,7 @@ sub default_evaluate_move{
    my $newboard = [ map {[@$_]} @$board ];
    $newboard->[$row]->[$col] = $color;
    # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
-   my ($string, $libs, $foes) = $self->get_string($newboard, [$row, $col]);
+   my ($chain, $libs, $foes) = $self->get_chain($newboard, [$row, $col]);
    my $caps = $self->find_captured ($newboard, $foes);
    if (@$libs == 0 and @$caps == 0){
       return (undef,'suicide');
@@ -166,7 +166,7 @@ sub default_node_liberties{
 
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
-sub get_string { #for all board types
+sub get_chain { #for all board types
    my ($self, $board, $node1) = @_; #start row/column
    my $size = scalar @$board; #assuming square
    
@@ -236,9 +236,9 @@ sub find_captured{
    while (@nodes){
       my $node = pop @nodes;
       next if $seen {$self->node_to_string($node)};
-      my ($string, $libs, $foes) = $self->get_string ($board, $node);
+      my ($chain, $libs, $foes) = $self->get_chain ($board, $node);
       my $capture_these = scalar @$libs ? '0' : '1';
-      for my $n (@$string){
+      for my $n (@$chain){
          $seen {$self->node_to_string($n)} = 1;
          push @caps, $n if $capture_these;
       }
@@ -256,8 +256,8 @@ sub death_mask_from_list{
    my ($self, $board, $list) = @_;
    my %mask;
    for my $node (@$list){
-      my ($deadstring, $libs, $foes) = $self->get_string ($board, $node);
-      for my $deadnode (@$deadstring){
+      my ($deadchain, $libs, $foes) = $self->get_chain ($board, $node);
+      for my $deadnode (@$deadchain){
          $mask {$self->node_to_string($deadnode)} = 1;
       }
    }
@@ -272,7 +272,7 @@ sub death_mask_to_list{
       my $nodestring = $self->node_to_string($node);
       if ($mask->{$nodestring}) { #marked dead
          next if $seen {$nodestring};
-         my ($deadnodes, $libs, $foes) = $self->get_string ($board, $node);
+         my ($deadnodes, $libs, $foes) = $self->get_chain ($board, $node);
          die 'blah?' unless @$deadnodes;
          for my $deadnode (@$deadnodes){
             $seen {$self->node_to_string($deadnode)} = 1;
@@ -284,7 +284,7 @@ sub death_mask_to_list{
 }
 sub mark_alive{
    my ($self, $board, $mask, $node) = @_;
-   my ($alivenodes, $libs, $foes) = $self->get_string ($board, $node);
+   my ($alivenodes, $libs, $foes) = $self->get_chain ($board, $node);
    for my $n (@$alivenodes){
       $mask->{$self->node_to_string($n)} = 0;
    }
