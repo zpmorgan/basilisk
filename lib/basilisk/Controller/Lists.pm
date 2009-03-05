@@ -38,12 +38,12 @@ sub get_list_of_games{
    my ($c, $page, $playername) = @_;
    my $pagesize = 25;
    my ($num_games, $num_pages);
-   my %playerinfo; #contains player name, from id
    my %gameplayers; #to show who plays which game
    my $games_rs;
    my $gamesearch_constraints = {status => Util::RUNNING()};
    #transaction!
    $c->model('DB')->schema->txn_do( sub{
+      my $gid_col; #used to resolve resultset col naming issue
       if ($playername){#only look at this player's games
          my $p = $c->model('DB::Player')->find ({name=>$playername});
          return 'nosuchplayer' unless $p;
@@ -54,31 +54,34 @@ sub get_list_of_games{
          $games_rs = $relevant_p2g->search_related('game',
               $gamesearch_constraints, 
               {rows => $pagesize,
-               select => ['game.id'], as => ['id'] }
+               }#select => ['game.id'], as => ['gid'] }
          )->page($page);
+         $gid_col = 'game.id'; 
       }
       else{
          $games_rs = $c->model('DB::Game')->search(
-              $gamesearch_constraints, {rows=>$pagesize})->page($page);
+              $gamesearch_constraints, 
+              {rows=>$pagesize,
+               }#'+select' => ['id'], '+as' => ['id']}
+         )->page($page);
+         $gid_col = 'me.id';
       }
       my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
          {
             join => ['player'],
-            select => ['player.name', 'game.id', 'player_to_game.pid', 'player_to_game.side'],
+            select => ['player.name', $gid_col, 'player_to_game.pid', 'player_to_game.side'],
             as => ['pname', 'gid', 'pid', 'side'],
          });
-      for my $p2g($p2g_rs->all()) {
-         #todo: only set once per pid
-         my $pid = $p2g->get_column('pid');
-         $playerinfo{$pid} = $p2g;
-      }
+      $num_games = $games_rs->count();
       for my $p2g ($p2g_rs->all()){ #who plays what game
-         #my $gid = $p2g->get_column('gid');
          my %data = $p2g->get_columns;
          $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
-         #$c->stash->{msg} .= join ('.',@{$gameplayers{$data{gid}}}) . "<br>";
       }
-      $num_games = $c->model('DB::Game')->count($gamesearch_constraints, {});
+  #~ ##~ ###    for my $p2g($p2g_rs->all()) {
+  #~ ##~ ###       #todo: only set once per pid
+  #~ ##~ ###       my $pid = $p2g->get_column('pid');
+  #~ ##~ ###       $playerinfo{$pid} = $p2g;
+  #~ ##~ ###    }
    });
    $c->stash->{num_pages} = int ($num_games / $pagesize) + 1;
    $c->stash->{num_games} = $num_games;
