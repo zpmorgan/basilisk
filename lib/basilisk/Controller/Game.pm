@@ -93,8 +93,9 @@ sub render: Private{
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';
-}# now goes to view
+}# now goes to template
 
+#view this game
 sub view : Chained('game') {
    my ($self, $c) = @_;
    $c->forward('render');
@@ -296,8 +297,8 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
    $kills = $rulemap->count_kills($board, $death_mask);
    my @totalscore;
-   for (@p2g){
-      my $side = $_->side;
+   for (1..@p2g-1){ #starts at 1
+      my $side = $_; # n $_->side;
       #die ref $_->side if ref $side eq 'ARRAY';
       $caps->[$side] = $_->captures;
       $totalscore[$side] = $caps->[$side] + $terr_points->[$side] - $kills->[$side];
@@ -387,7 +388,7 @@ sub do_move{#todo:mv to game class?
       $posid = $game->current_position_id;
    }
    else { # it eq ''
-      my ($row, $col) = ($c->stash->{move_row}, $c->stash->{move_col});
+      my ($row, $col) = @{$c->stash->{move_node}};
       $movestring = ($side==1?'b':'w') . " row$row, col$col";
       $new_pos_data = Util::pack_board($newboard, $size);
       Util::ensure_position_size($new_pos_data, $size); #sanity?
@@ -467,6 +468,8 @@ sub render_board_table{
    $terr_mask = {} unless $terr_mask;
    my @table; #html cells representing nodes
    
+   #TODO: each board type needs a template.
+   #This one could be in templates/game/rectgrid.tt
    for my $row (0..$size-1){
       for my $col (0..$size-1){ #get image and url for table cell
          my $image = select_g_file ($rulemap, $board, $row, $col);
