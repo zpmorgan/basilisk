@@ -35,7 +35,7 @@ sub players :Global{
 
 #todo: prefetch?
 sub get_list_of_games{
-   my ($c, $page) = @_;
+   my ($c, $page, $playername) = @_;
    my $pagesize = 25;
    my ($num_games, $num_pages);
    my %playerinfo; #contains player name, from id
@@ -44,12 +44,28 @@ sub get_list_of_games{
    my $gamesearch_constraints = {status => Util::RUNNING()};
    #transaction!
    $c->model('DB')->schema->txn_do( sub{
-      $games_rs = $c->model('DB::Game')->search($gamesearch_constraints, {rows=>$pagesize})->page($page);
+      if ($playername){#only look at this player's games
+         my $p = $c->model('DB::Player')->find ({name=>$playername});
+         return 'nosuchplayer' unless $p;
+         my $relevant_p2g = $c->model('DB::Player_to_game')->search(
+            {'me.pid' => $p->id},
+            #{select => ['me.pid'], as => ['blah']}
+         );
+         $games_rs = $relevant_p2g->search_related('game',
+              $gamesearch_constraints, 
+              {rows => $pagesize,
+               select => ['game.id'], as => ['id'] }
+         )->page($page);
+      }
+      else{
+         $games_rs = $c->model('DB::Game')->search(
+              $gamesearch_constraints, {rows=>$pagesize})->page($page);
+      }
       my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
          {
             join => ['player'],
-            select => ['player.id', 'player.name', 'gid', 'side'],
-            as => ['pid', 'pname', 'gid', 'side'],
+            select => ['player.name', 'game.id', 'player_to_game.pid', 'player_to_game.side'],
+            as => ['pname', 'gid', 'pid', 'side'],
          });
       for my $p2g($p2g_rs->all()) {
          #todo: only set once per pid
@@ -76,8 +92,7 @@ sub get_list_of_games{
          wname => $gameplayers{$gid}->[2]->{pname},
          bid => $gameplayers{$gid}->[1]->{pid},
          wid => $gameplayers{$gid}->[2]->{pid},
-         #wname => 'whitie',
-         size => $game->size,
+         size => 'foo', #$game->size,
       }
    }
    return \@games_data;
@@ -85,11 +100,12 @@ sub get_list_of_games{
 
 #list of all games on server
 sub games :Global{
-   my ( $self, $c ) = @_;
+   my ( $self, $c, $player) = @_;
    $c->stash->{title} = 'All games';
+   $c->stash->{title} .= "of $player" if $player;
    $c->stash->{template} = 'all_games.tt';
-   my $games_data = get_list_of_games ($c,0); #this is what template uses
-   $c->stash->{games_data} = $games_data
+   my $games_data = get_list_of_games ($c,0, $player); 
+   $c->stash->{games_data} = $games_data #this is for template
 }
 
 

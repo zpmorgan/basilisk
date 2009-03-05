@@ -149,7 +149,7 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
    
    my $rulemap = $c->stash->{rulemap};
    my $board = $c->stash->{board};
-   my $mark_node = $rulemap->node_from_string ($node);
+   my $mark_node = $rulemap->node_from_string ($nodestring);
    #my $also_dead = $c->req->param('also_dead');
    my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
    push @marked_dead_stones, $mark_node;
