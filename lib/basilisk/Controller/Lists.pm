@@ -82,7 +82,11 @@ sub get_list_of_games{
    $c->stash->{num_games} = $num_games;
    
    my @games_data; #this is what template uses
+   my %seen; #unique games in @games_data
    for my $game($games_rs->all) {
+      next if $seen{$game->id};
+      $seen{$game->id} = 1;
+      
       my $gid = $game->id;
       push @games_data, { #todo: make generic for 3+ players
          id => $gid,
@@ -100,7 +104,7 @@ sub get_list_of_games{
 sub games :Global{
    my ( $self, $c, $player) = @_;
    $c->stash->{title} = 'All games';
-   $c->stash->{title} .= "of $player" if $player;
+   $c->stash->{title} .= " of $player" if $player;
    $c->stash->{template} = 'all_games.tt';
    my $games_data = get_list_of_games ($c,0, $player); 
    $c->stash->{games_data} = $games_data #this is for template
