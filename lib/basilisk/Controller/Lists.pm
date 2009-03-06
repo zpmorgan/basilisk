@@ -82,7 +82,11 @@ sub get_list_of_games{
    $c->stash->{num_games} = $num_games;
    
    my @games_data; #this is what template uses
+   my %seen; #unique games in @games_data
    for my $game($games_rs->all) {
+      next if $seen{$game->id};
+      $seen{$game->id} = 1;
+      
       my $gid = $game->id;
       push @games_data, { #todo: make generic for 3+ players
          id => $gid,
