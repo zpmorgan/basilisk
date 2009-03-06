@@ -98,7 +98,7 @@ a:hover     {color:#000000}
 
  </STYLE>
  
-<body>
+<body onload="drawPlease();">
 
 <table id="pagehead" class="pagehead" >
  <tr>

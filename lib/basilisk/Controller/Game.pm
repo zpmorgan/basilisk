@@ -84,8 +84,15 @@ sub render: Private{
       my ($dg,$dm) = get_marked_dead_from_last_move ($c);
       $c->stash->{death_mask} = $dm;
    }
-   render_board_table($c);
-   
+   if ($rulemap->{topology} eq 'C20'){
+      $c->stash->{topo} = 'graph';
+      $c->stash->{nodes} = $rulemap->all_node_coordinates;
+      $c->stash->{edges} = $rulemap->node_adjacency_list;
+      $c->stash->{stones} = $board;
+   }
+   else{ #grid
+      render_board_table($c);
+   }
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    $c->stash->{players_data} = get_game_player_data($c);
    $c->stash->{to_move_img} = ($game->turn) == 1 ? 'b.gif' : 'w.gif';
@@ -326,7 +333,7 @@ sub build_rulemap{
    my @extra_rules = $ruleset->extra_rules;
    for my $rulerow (@extra_rules){
       my $rule = $rulerow->rule;
-      if ($rule eq 'torus' or $rule eq 'cylinder'){
+      if ($rule eq 'torus' or $rule eq 'cylinder' or $rule eq 'C20'){
          $topo = $rule;
       }
    }

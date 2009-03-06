@@ -1,0 +1,59 @@
+
+
+<canvas id="board" width="500" height="500">
+
+</canvas>
+
+
+
+<script type="application/x-javascript">
+   var bg; //wood background
+   var require_draw = 1;
+   
+   function drawPlease() {
+      bg=document.createElement("img");
+      bg.src="[% img_path %]/wood.gif";
+
+      var canvas = document.getElementById('board');
+      if (canvas.getContext) {
+         setTimeout ("draw();",50);
+      }
+   }
+   
+   function draw() {
+      if (!bg.complete){return;}
+      if (!require_draw){return;}
+      require_draw = 0;
+      var canvas = document.getElementById("board");
+      var ctx = canvas.getContext("2d");
+      
+      var backcolor = "goldenrod";
+      ctx.fillStyle = backcolor;
+      ctx.fillRect(0,0,500,500); // clear canvas
+      
+      ctx.fillStyle = backcolor;
+      ctx.strokestyle = "white";
+      
+      [% FOR e = edges %]
+         
+      [% END %]
+      [% FOREACH n IN nodes %]
+         drawStone (ctx, [% GET n.0 %], [% GET n.1 %], "white");
+      [% END %]
+      
+      ctx.fillStyle = "rgb(200,0,0)";
+      ctx.fillRect (10, 10, 55, 50);
+      
+      ctx.fillStyle = "rgba(0, 0, 200, 0.5)";
+      ctx.fillRect (30, 30, 55, 50);
+   }
+   function drawStone (ctx, x, y, color){
+      ctx.strokeStyle = "black";
+      ctx.fillStyle = color;
+      
+      ctx.moveTo(x*100+250, y*100+250);
+      ctx.arc ((x*100)+250, (y*100)+250, 14, 0, 6.28, 0);
+      ctx.fill();
+      ctx.stroke();
+   }
+</script>
