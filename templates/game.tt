@@ -30,23 +30,15 @@
 
 <br>
 
-<table class="Goban" style="background-image: url([%img_base%]/wood.gif);">
- [% coordinate_letter_row %]
- [% FOREACH row = board_data -%]
-  <tr>
-  [% row_number_cell(loop.count) %]
-    [%- FOREACH cell = row -%]
-      [% IF cell.ref -%]
-        <td> <a href="[%url_base%]/[% cell.ref %]">  <img src="[%img_base%]/[% cell.g %]">  </a> </td>
-      [% ELSE -%]
-        <td> <img src="[%img_base%]/[% cell.g %]"> </td>
-      [% END -%]
-    [% END -%]
-  [% row_number_cell(loop.count) %]
-  </tr>
- [% END %]
- [% coordinate_letter_row %]
-</table>
+
+
+[% IF topo == 'graph'; 
+      INCLUDE game/graphboard; 
+   ELSE; 
+      INCLUDE game/rectboard;  END
+%]
+
+
 
 [% IF board_clickable %]
    [% IF marking_dead_stones %]

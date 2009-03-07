@@ -32,7 +32,7 @@ use warnings;
 
 my %defaults = (
    size => 19,
-   #topology => 'plane',
+   topology => 'plane',
    wrap_ns => 0,
    wrap_ew => 0,
    eval_move_func => \&default_evaluate_move,
@@ -53,10 +53,23 @@ sub new{
    if ($params{size}){
       $self->{size} = $params{size};
    }
-   if ($params{topology}){
-      $self->{wrap_ns} = 1 if $params{topology} eq 'torus';
-      $self->{wrap_ew} = 1 if $params{topology} eq 'torus';
-      $self->{wrap_ew} = 1 if $params{topology} eq 'cylinder';
+   if ($params{topology}){ #moose roles might be supreme here
+      if ($params{topology} eq 'C20'){
+         my ($node_coordinates, $adjacent) = build_20_fullerene();
+         $self->{nodes_co} = $node_coordinates;
+         $self->{adjacent} = $adjacent;
+         $self->{all_nodes_func} = \&graph_all_nodes;
+         $self->{node_liberties_func} = \&graph_node_liberties;
+         $self->{node_from_string_func} = \&graph_node_from_string;
+         $self->{node_to_string_func} = \&graph_node_to_string;
+         $self->{stone_at_node_func} = \&default_stone_at_node;
+      }
+      else{
+         $self->{wrap_ns} = 1 if $params{topology} eq 'torus';
+         $self->{wrap_ew} = 1 if $params{topology} eq 'torus';
+         $self->{wrap_ew} = 1 if $params{topology} eq 'cylinder';
+      }
+      $self->{topology} = $params{topology};
    }
    bless $self, $class;
    return $self;
@@ -90,6 +103,16 @@ sub stone_at_node{
 sub all_nodes{
    my $self = shift;
    return  $self->{all_nodes_func}->($self, @_);
+}
+
+
+sub all_node_coordinates{ #only for graph
+   my $self = shift;
+   return  $self->{nodes_co};
+}
+sub node_adjacency_list{ #only for graph
+   my $self = shift;
+   return  $self->{adjacent};
 }
 
 #This is the default. Used for normal games on rect grid
@@ -353,6 +376,67 @@ sub grid_node_is_on_edge{
       elsif ($col==$size-1) {$string .= 'r'}
    }
    return $string;
+}
+
+### NON-SQUARE GRID STUFF BELOW
+# nodes are represented as an integer, from 0 to num_nodes-1.
+# boards are lists of ints representing color: 0=empty,1=b,2=w
+
+sub graph_all_nodes{
+   my $self = shift;
+   my $num_nodes = scalar @{$self->{nodes}};
+   return (0..$num_nodes-1);
+}
+sub graph_node_liberties{
+   my ($self, $node) = @_;
+   return @{ $self->{adjacent_nodes}{$node} };
+}
+sub graph_stone_at_node{
+   my ($self, $board, $node) = @_;
+   return $board->[$node]
+}
+
+#going by the picture in wikipedia..
+#coordinates from 0 to 1
+sub build_20_fullerene{
+   my @nodes; #really has planar coordinates (x,y)
+   my @edges;
+   my @ring; #a 5-gon
+   for (0..4){
+      push @ring, [cos (6.28*$_/5), sin (6.28*$_/5)]
+   }
+   push @nodes, @ring;
+   for my $n (0..4){ #scale & push
+      my @node = @{$nodes[$n]};
+      $node[0] *= 1.5;
+      $node[1] *= 1.5;
+      push @nodes, \@node;
+      push @edges, [$n,$n+5];
+   }
+   for my $n (5..9){ #flip, scale & push
+      my @node = @{$nodes[$n]};
+      $node[0] *= -1.3;
+      $node[1] *= -1.3;
+      push @nodes, \@node;
+      push @edges, [5+($n+2)%5,$n+5];
+      push @edges, [5+($n+3)%5,$n+5];
+   }
+   for my $n (10..14){ #scale & push
+      my @node = @{$nodes[$n]};
+      $node[0] *= 1.2;
+      $node[1] *= 1.2;
+      push @nodes, \@node;
+      push @edges, [$n,$n+5];
+   }
+   for my $n (15..19){ #connect last 5gon
+      push @edges, [$n,15+($n+1)%5];
+   }
+   my @adjacent;
+   for (@edges){
+      push @{$adjacent[$_->[0]]}, $_->[1];
+      push @{$adjacent[$_->[1]]}, $_->[0];
+   }
+   return (\@nodes, \@adjacent)
 }
 
 1;

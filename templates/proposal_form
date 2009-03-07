@@ -38,6 +38,7 @@
       <OPTION value="plane">Plane</OPTION>
       <OPTION value="cylinder">Cylinder</OPTION>
       <OPTION value="torus">Torus</OPTION>
+      <OPTION value="C20">C20</OPTION>
      </SELECT></td>
   </tr>
   <tr>
