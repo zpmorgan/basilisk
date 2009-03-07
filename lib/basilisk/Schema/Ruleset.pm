@@ -5,7 +5,8 @@ __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Ruleset');
 __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
-    'size'          => { data_type => 'INTEGER', is_nullable => 0, default_value => '19'},
+    'h'          => { data_type => 'INTEGER', is_nullable => 0, default_value => '19'},
+    'w'          => { data_type => 'INTEGER', is_nullable => 0, default_value => '19'},
     'handicap'       => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
     'initial_time'   => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
     'byo'            => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
@@ -24,7 +25,7 @@ __PACKAGE__->has_many (extra_rules => 'basilisk::Schema::Extra_rule', 'ruleset')
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;
-    $table->add_index(name => idx_size => fields => [qw/size/]);
+    $table->add_index(name => idx_size => fields => [qw/h w/]);
     $table->add_index(name => idx_itime => fields => [qw/initial_time/]);
     $table->add_index(name => idx_hcp => fields => [qw/handicap/]);
 }

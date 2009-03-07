@@ -46,9 +46,10 @@ sub game : Chained('/') CaptureArgs(1){
    build_rulemap($c);
    
    my $pos_data = $game->current_position;
-   my $size = $game->size;
+   my $h = $game->h;
+   my $w = $game->w;
    my $rulemap = $c->stash->{rulemap};
-   my $board = Util::unpack_position($pos_data, $size);
+   my $board = Util::unpack_position($pos_data, $h, $w);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
 } #dow c does move, etc
 
@@ -338,9 +339,12 @@ sub build_rulemap{
          $topo = $rule;
       }
    }
-   my $rulemap = new basilisk::Rulemap(
-      size => $game->size,
-      topology => $topo,
+   my $rulemap = new basilisk::Rulemap::Rect(
+      h => $game->h,
+      w => $game->w,
+      wrap_ew => ($topo eq 'torus' or $topo eq 'cylinder'),
+      wrap_ns => ($topo eq 'torus'),
+      #topology => $topo,
    );
    $c->stash->{rulemap} = $rulemap;
 }
@@ -348,8 +352,9 @@ sub build_rulemap{
 
 sub detect_duplicate_position{
    my ($c, $newboard) = @_;
-   my $size = $c->stash->{game}->size;
-   my $newpos = Util::pack_board($newboard, $size);
+   my $h = $c->stash->{game}->h;
+   my $w = $c->stash->{game}->w;
+   my $newpos = Util::pack_board($newboard, $h, $w);
    
    #search position table for the same board state from the same game
    my $oldmove = $c->model('DB::Move')->find (
@@ -382,19 +387,19 @@ sub evaluate_move{
 #die join';',map{@$_}@$libs; #err list of coordinates
 
 #insert into db
-#TODO: make generic
 sub do_move{#todo:mv to game class?
    my ($c, $movestring, $newboard, $caps, $deadgroups) = @_;
    my $new_pos_data;
    my $game = $c->stash->{game}; #die $game->num_moves;
    my $side = $c->stash->{side}; #1 if B,2 if W
-   my $size = $game->size;
+   my $h = $c->stash->{game}->h;
+   my $w = $c->stash->{game}->w;
    my $posid; #maybe we reuse last one
    
    #determine move string and new position
    if ($movestring eq 'pass'){
       $new_pos_data = $c->stash->{old_pos_data};
-      Util::ensure_position_size($new_pos_data, $size); #sanity?
+      Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
    }
    elsif ($movestring eq 'submit_dead_selection'){ #we reuse last position
       $posid = $game->current_position_id;
@@ -402,8 +407,8 @@ sub do_move{#todo:mv to game class?
    else { # it eq ''
       my ($row, $col) = @{$c->stash->{move_node}};
       $movestring = ($side==1?'b':'w') . " row$row, col$col";
-      $new_pos_data = Util::pack_board($newboard, $size);
-      Util::ensure_position_size($new_pos_data, $size); #sanity?
+      $new_pos_data = Util::pack_board($newboard, $h, $w);
+      Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
    }
    
    #transaction!
@@ -472,7 +477,8 @@ sub get_game_player_data{ #for game.tt
 #todo: move url param stuff into tt
 sub render_board_table{
    my ($c) = @_;
-   my $size = $c->stash->{game}->size;
+   my $h = $c->stash->{game}->h;
+   my $w = $c->stash->{game}->w;
    my $board = $c->stash->{board};
    my $rulemap = $c->stash->{rulemap};
    my $death_mask = $c->stash->{death_mask};
@@ -482,8 +488,8 @@ sub render_board_table{
    
    #TODO: each board type needs a template.
    #This one could be in templates/game/rectgrid.tt
-   for my $row (0..$size-1){
-      for my $col (0..$size-1){ #get image and url for table cell
+   for my $row (0..$h-1){
+      for my $col (0..$w-1){ #get image and url for table cell
          my $image = select_g_file ($rulemap, $board, $row, $col);
          my $stone = $board->[$row]->[$col]; #0 if empty, 1 b, 2 w
          my $terr = $terr_mask->{$row.'-'.$col}; #0 if empty, 1 b, 2 w
@@ -519,15 +525,17 @@ sub render_board_table{
       }
    }
    $c->stash->{board_data} = \@table;
+   $c->stash->{h} = $h;
+   $c->stash->{w} = $w;
 }
 
-sub select_g_file{ #default board
+sub select_g_file{ #only for rect board
    my ($rulemap, $board, $row, $col) = @_;
    my $stone = $board->[$row][$col];
    return 'b.gif' if $stone == 1;
    return 'w.gif' if $stone == 2;
    #so it's an empty intersection
-   return $rulemap->grid_node_is_on_edge($row, $col) . '.gif';
+   return $rulemap->node_is_on_edge($row, $col) . '.gif';
 }
 
 my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;

@@ -31,41 +31,17 @@ use basilisk::Util;
 #TODO: shifting turns&teams&colors in new ways (rengo,zen,consensus?)
 # also: sides(1 and 2) shouldn't be tied to colors(1 and 2)
 
-my %defaults = (
-   topology => 'plane',
+#TODO: use these
+has capture_hook => (
+   is => 'ro',
+   isa => 'CodeRef',
+   default => sub{sub{}},
 );
-#TODO: hooks on capture & placement
-
-
-sub new{
-   my $class = shift;
-   my %params = @_;
-   #copy & modify defaults:
-   my $self = { %defaults }; 
-   if ($params{size}){
-      $self->{size} = $params{size};
-   }
-   if ($params{topology}){ #moose roles might be supreme here
-      if ($params{topology} eq 'C20'){
-         my ($node_coordinates, $adjacent) = build_20_fullerene();
-         $self->{nodes_co} = $node_coordinates;
-         $self->{adjacent} = $adjacent;
-         $self->{all_nodes_func} = \&graph_all_nodes;
-         $self->{node_liberties_func} = \&graph_node_liberties;
-         $self->{node_from_string_func} = \&graph_node_from_string;
-         $self->{node_to_string_func} = \&graph_node_to_string;
-         $self->{stone_at_node_func} = \&default_stone_at_node;
-      }
-      else{
-         $self->{wrap_ns} = 1 if $params{topology} eq 'torus';
-         $self->{wrap_ew} = 1 if $params{topology} eq 'torus';
-         $self->{wrap_ew} = 1 if $params{topology} eq 'cylinder';
-      }
-      $self->{topology} = $params{topology};
-   }
-   bless $self, $class;
-   return $self;
-}
+has placement_hook => (
+   is => 'ro',
+   isa => 'CodeRef',
+   default => sub{sub{}},
+);
 
 #These must be implemented in a subclass
 my $blah = 'use a subclass instead of basilisk::Rulemap';
@@ -82,7 +58,6 @@ sub all_nodes{ die $blah;}
 #returns (string, liberties, adjacent_foes)
 sub get_chain { #for all board types
    my ($self, $board, $node1) = @_; #start row/column
-   my $size = scalar @$board; #assuming square
    
    my %seen; #indexed by stringified nodes
    my @found;

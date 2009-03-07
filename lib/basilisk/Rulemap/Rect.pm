@@ -66,7 +66,6 @@ sub stone_at_node{ #0 if empty, 1 black, 2 white
 }
 sub all_nodes{ #return list coordinates
    my ($self) = @_;
-   my ($size) = $self->{size};
    my @nodes;
    for my $i (0..$self->h-1){
       push @nodes, map {[$i,$_]} (0..$self->w-1)
@@ -76,7 +75,6 @@ sub all_nodes{ #return list coordinates
 
 sub node_liberties{
    my ($self, $node) = @_;
-   #my $size = $self->{size};
    my ($row, $col) = @$node;
    my @nodes;
    if ($self->{wrap_ns}){
@@ -100,21 +98,20 @@ sub node_liberties{
 }
 
 #return a dgs-filename-like string, such as e, dl, ur
-sub grid_node_is_on_edge{
+sub node_is_on_edge{
    my ($self, $row, $col) = @_;
    my $string;
-   my $size = $self->{size};
    if ($self->{wrap_ns}){
       $string = 'e'
    }
    else {
       if ($row==0) {$string = 'u'}
-      elsif ($row==$size-1) {$string = 'd'}
+      elsif ($row==$self->h-1) {$string = 'd'}
       else {$string = 'e'}
    }
    unless ($self->{wrap_ew}){
       if ($col==0) {$string .= 'l'}
-      elsif ($col==$size-1) {$string .= 'r'}
+      elsif ($col==$self->w-1) {$string .= 'r'}
    }
    return $string;
 }

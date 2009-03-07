@@ -13,24 +13,6 @@
 
 <br>
 
-[% size = board_data.size %]
-[% MACRO coordinate_letter_row BLOCK %]
-  <tr>
-   <td><img src="[%img_base%]/blank.gif" width="31" height="25"> </td>
-   [% c=0; WHILE c < size -%]
-    <td> <img src="[%img_base%]/c[% c_letter(c) %].gif"> </td>
-   [% c=c+1;END -%]
-   <td><img src="[%img_base%]/blank.gif" width="31" height="25"> </td>
-  </tr>
-[% END %]
-
-[% MACRO row_number_cell(row) BLOCK -%]
-  <td><img src="[%img_base%]/c[% size +1 - row %].gif"></td>
-[% END %]
-
-<br>
-
-
 
 [% IF topo == 'graph'; 
       INCLUDE game/graphboard; 

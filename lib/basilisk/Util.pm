@@ -13,6 +13,8 @@ sub RUNNING {1}
 sub FINISHED {2}
 sub PAUSED {3}
 
+#rect-only stuff--mv to rulemap::rect.
+
 sub empty_pos{ #create a long string of unset bits
    my ($h,$w) = @_;
    $w = $h unless $w;

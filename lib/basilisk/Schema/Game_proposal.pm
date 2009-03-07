@@ -27,7 +27,15 @@ sub sqlt_deploy_hook {
 
 sub size{
    my $self = shift;
-   return $self->ruleset->size
+   return $self->ruleset->w . '*' . $self->ruleset->h
+}
+sub h{
+   my $self = shift;
+   return $self->ruleset->h
+}
+sub w{
+   my $self = shift;
+   return $self->ruleset->w
 }
 sub decrease_quantity{ #by just one
    my $self = shift;
