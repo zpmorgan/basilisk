@@ -36,7 +36,7 @@ $row = $player_rs->create({
 
 #make empty vanilla game with cannon and georgia
 my $ruleset_rs = $schema->resultset('Ruleset');
-my $new_ruleset = $ruleset_rs->create({size => 6}); #default everything
+my $new_ruleset = $ruleset_rs->create({h=>6,w=>6}); #default everything
 
 my $game_rs = $schema->resultset('Game');
 my $new_game = $game_rs->create({
@@ -60,7 +60,8 @@ $p2g_rs->create({
 
 #2nd game--make toroidal, with some initial position#initialize with some position.
 my $ruleset_2 = $ruleset_rs->create({
-   size => 9,
+   h => 9,
+   w => 9,
  #  wrap_ns => 1,
  #  wrap_ew => 1, #need extra_rule entries for these
 });

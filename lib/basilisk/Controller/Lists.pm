@@ -116,12 +116,15 @@ sub add_wgame{
    my $c = shift;
    return 'log in first' unless $c->session->{logged_in};
    my $topo = $c->req->param('topology');
-   my $desc = ''; # description of interesting rules
+   my $h = $c->req->param('h');
+   my $w = $c->req->param('w');
+   my $desc = $w .'x'. $h; # description of interesting rules
    $desc .= $topo unless $topo eq 'plane';  #planes are not interesting
    
    $c->model('DB')->schema->txn_do(  sub{
       my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
-         size => $c->req->param('size'),
+         h => $c->req->param('h'),
+         w => $c->req->param('w'),
          rules_description => $desc,
       });
       my $row = $c->model('DB::Game_proposal')->create({

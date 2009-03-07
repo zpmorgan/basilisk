@@ -64,7 +64,7 @@ sub current_position{
          return $initial_pos->position;
       }
       else{
-         return Util::empty_pos($self->size); #blob
+         return Util::empty_pos($self->h, $self->w); #blob
       }
    }
    my $move = $self->moves->find({
@@ -88,9 +88,13 @@ sub current_board{
    return Util::unpack_position($self->current_position, $self->size);
 }
 
-sub size{
+sub h{
    my $self = shift;
-   return $self->ruleset->size
+   return $self->ruleset->h
+}
+sub w{
+   my $self = shift;
+   return $self->ruleset->w
 }
 
 1;
