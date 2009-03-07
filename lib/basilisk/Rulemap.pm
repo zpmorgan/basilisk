@@ -1,22 +1,22 @@
 package basilisk::Rulemap;
-use basilisk::Util;
-use strict;
-use warnings;
 
-#TODO: continuous groups are called strings here. they could be called chains.
+use Moose;
+use basilisk::Rulemap::Rect;
+use basilisk::Util;
+
 
 # This class evaluates moves and determines new board positions.
 # This class stores no board/position data.
-# Also, it must be used to determine visible portions of the board if there's fog of war.
-# So you actually MIGHT need one of these to view any game at all.
+# Also, will must be used to determine visible portions of the board if there's fog of war.
 
-# Rulemaps are not stored in the database. However they are derived from
+# Rulemaps are not stored in the database. They are derived from
 #   entries in the Ruleset and Extra_rule tables.
 # This is also where parameters relevant to specific rulesets are stored.
 #   Example: 'size' might be meaningless for some boards.
 #   Example: 'visibility' with fog of war.
 #   Example: 'collisions' with fog of war.
-# For a ruleset with an arbitrary graph, the whole graph is to be in rulemap.
+# For a ruleset with an arbitrary graph, the whole graph is to be in rulemap. 
+#   Not the position though
 
 # This class is basically here to define default behavior and
 #   to provide a mechanism to override it.
@@ -26,23 +26,15 @@ use warnings;
 #   for a duplicate position.
 
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
-#   functions may handle as they will. Nodes by default are [$row,$col].
+#   subclasses may handle as they will. Nodes by default are [$row,$col].
+
 #TODO: shifting turns&teams&colors in new ways (rengo,zen,consensus?)
 # also: sides(1 and 2) shouldn't be tied to colors(1 and 2)
 
 my %defaults = (
-   size => 19,
    topology => 'plane',
-   wrap_ns => 0,
-   wrap_ew => 0,
-   eval_move_func => \&default_evaluate_move,
-   node_to_string_func => \&default_node_to_string,
-   node_from_string_func => \&default_node_from_string,
-   node_liberties_func => \&default_node_liberties,
-   stone_at_node_func => \&default_stone_at_node,
-   all_nodes_func     => \&default_all_nodes,
-   #move_is_legal_func => sub{'jazzersize'},
 );
+#TODO: hooks on capture & placement
 
 
 sub new{
@@ -75,122 +67,16 @@ sub new{
    return $self;
 }
 
-#These will be the accessible for any game.
-sub move_is_valid{ #returns (true, '') or (false, err)
-   my $self = shift;
-   return 1 if $self->{eval_move_func}->($self, @_);
-}
-sub evaluate_move{ #returns (board,'',caps) or (undef, err)
-   my $self = shift;
-   return  $self->{eval_move_func}->($self, @_);
-}
-sub node_to_string{ #never use _ in string. - is okay.
-   my $self = shift;
-   return  $self->{node_to_string_func}->($self, @_);
-}
-sub node_from_string{ # default: '3-4'
-   my $self = shift;
-   return  $self->{node_from_string_func}->($self, @_);
-}
-sub node_liberties{
-   my $self = shift;
-   return  $self->{node_liberties_func}->($self, @_);
-}
-sub stone_at_node{
-   my $self = shift;
-   return  $self->{stone_at_node_func}->($self, @_);
-}
-sub all_nodes{
-   my $self = shift;
-   return  $self->{all_nodes_func}->($self, @_);
-}
+#These must be implemented in a subclass
+my $blah = 'use a subclass instead of basilisk::Rulemap';
+sub move_is_valid{ die $blah;}
+sub evaluate_move{ die $blah;}
+sub node_to_string{ die $blah;}
+sub node_from_string{ die $blah;}
+sub node_liberties{ die $blah;}
+sub stone_at_node{ die $blah;}
+sub all_nodes{ die $blah;}
 
-
-sub all_node_coordinates{ #only for graph
-   my $self = shift;
-   return  $self->{nodes_co};
-}
-sub node_adjacency_list{ #only for graph
-   my $self = shift;
-   return  $self->{adjacent};
-}
-
-#This is the default. Used for normal games on rect grid
-sub default_evaluate_move{
-   my ($self, $board, $node, $color) = @_;
-   die "badcolor $color" unless $color =~ /^[12]$/;
-   die (ref $node . $node) unless ref $node eq 'ARRAY';
-   die 'badboard' unless ref $board eq 'ARRAY';
-   
-   my ($row,$col) = @$node;
-   if ($board->[$row][$col]){
-      return (undef,"stone exists at row $row col $col"); }
-   
-   #produce copy of board for evaluation -> add stone at $row $col
-   my $newboard = [ map {[@$_]} @$board ];
-   $newboard->[$row]->[$col] = $color;
-   # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
-   my ($chain, $libs, $foes) = $self->get_chain($newboard, [$row, $col]);
-   my $caps = $self->find_captured ($newboard, $foes);
-   if (@$libs == 0 and @$caps == 0){
-      return (undef,'suicide');
-   }
-   for my $cap(@$caps){ # just erase captured stones
-      $newboard->[$cap->[0]]->[$cap->[1]] = 0;
-   }
-   return ($newboard, '', $caps);#no err
-}
-
-#turns [13,3] into 13-3
-#TODO: something else for 'go-style' coordinates
-sub default_node_to_string{ 
-   my ($self, $node) = @_;
-   return join '-', @$node;
-}
-sub default_node_from_string{ 
-   my ($self, $string) = @_;
-   return [split '-', $string];
-}
-sub default_stone_at_node{ #0 if empty, 1 black, 2 white
-   my ($self, $board, $node) = @_;
-   #die unless $node
-   my ($row, $col) = @$node;
-   return $board->[$row][$col];
-}
-sub default_all_nodes{ #return square block of coordinates
-   my ($self) = @_;
-   my ($size) = $self->{size};
-   my @nodes;
-   for my $i (0..$size-1){
-      push @nodes, map {[$i,$_]} (0..$size-1)
-   }
-   return @nodes;
-}
-
-sub default_node_liberties{
-   my ($self, $node) = @_;
-   my $size = $self->{size};
-   my ($row, $col) = @$node;
-   my @nodes;
-   if ($self->{wrap_ns}){
-      push @nodes, [($row-1)% $size, $col];
-      push @nodes, [($row+1)% $size, $col];
-   }
-   else{
-      push @nodes, [$row-1, $col] unless $row == 0;
-      push @nodes, [$row+1, $col] unless $row == $size-1;
-   }
-   
-   if ($self->{wrap_ew}){
-      push @nodes, [$row, ($col-1)% $size];
-      push @nodes, [$row, ($col+1)% $size];
-   }
-   else{
-      push @nodes, [$row, $col-1] unless $col == 0;
-      push @nodes, [$row, $col+1] unless $col == $size-1;
-   }
-   return @nodes;
-}
 
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
@@ -227,6 +113,7 @@ sub get_chain { #for all board types
    return (\@found, \@libs, \@foes);
 }
 
+#opposite of get_chain
 sub get_empty_space{
    my ($self, $board, $node1, $ignore_stones) = @_; #start row/column
    return ([],[]) if $self->stone_at_node ($board, $node1);
@@ -255,7 +142,7 @@ sub get_empty_space{
 }
 
 
-#take a list of stones, returns connected strings which have no libs,
+#take a list of stones, returns those which have no libs, as chains
 sub find_captured{
    my ($self, $board, $nodes) = @_;
    my @nodes = @$nodes; #list
@@ -356,87 +243,6 @@ sub count_kills{
       $kills[$color]++;
    }
    return \@kills;
-}
-
-#return a dgs-filename-like string, such as e, dl, ur
-sub grid_node_is_on_edge{
-   my ($self, $row, $col) = @_;
-   my $string;
-   my $size = $self->{size};
-   if ($self->{wrap_ns}){
-      $string = 'e'
-   }
-   else {
-      if ($row==0) {$string = 'u'}
-      elsif ($row==$size-1) {$string = 'd'}
-      else {$string = 'e'}
-   }
-   unless ($self->{wrap_ew}){
-      if ($col==0) {$string .= 'l'}
-      elsif ($col==$size-1) {$string .= 'r'}
-   }
-   return $string;
-}
-
-### NON-SQUARE GRID STUFF BELOW
-# nodes are represented as an integer, from 0 to num_nodes-1.
-# boards are lists of ints representing color: 0=empty,1=b,2=w
-
-sub graph_all_nodes{
-   my $self = shift;
-   my $num_nodes = scalar @{$self->{nodes}};
-   return (0..$num_nodes-1);
-}
-sub graph_node_liberties{
-   my ($self, $node) = @_;
-   return @{ $self->{adjacent_nodes}{$node} };
-}
-sub graph_stone_at_node{
-   my ($self, $board, $node) = @_;
-   return $board->[$node]
-}
-
-#going by the picture in wikipedia..
-#coordinates from 0 to 1
-sub build_20_fullerene{
-   my @nodes; #really has planar coordinates (x,y)
-   my @edges;
-   my @ring; #a 5-gon
-   for (0..4){
-      push @ring, [cos (6.28*$_/5), sin (6.28*$_/5)]
-   }
-   push @nodes, @ring;
-   for my $n (0..4){ #scale & push
-      my @node = @{$nodes[$n]};
-      $node[0] *= 1.5;
-      $node[1] *= 1.5;
-      push @nodes, \@node;
-      push @edges, [$n,$n+5];
-   }
-   for my $n (5..9){ #flip, scale & push
-      my @node = @{$nodes[$n]};
-      $node[0] *= -1.3;
-      $node[1] *= -1.3;
-      push @nodes, \@node;
-      push @edges, [5+($n+2)%5,$n+5];
-      push @edges, [5+($n+3)%5,$n+5];
-   }
-   for my $n (10..14){ #scale & push
-      my @node = @{$nodes[$n]};
-      $node[0] *= 1.2;
-      $node[1] *= 1.2;
-      push @nodes, \@node;
-      push @edges, [$n,$n+5];
-   }
-   for my $n (15..19){ #connect last 5gon
-      push @edges, [$n,15+($n+1)%5];
-   }
-   my @adjacent;
-   for (@edges){
-      push @{$adjacent[$_->[0]]}, $_->[1];
-      push @{$adjacent[$_->[1]]}, $_->[0];
-   }
-   return (\@nodes, \@adjacent)
 }
 
 1;

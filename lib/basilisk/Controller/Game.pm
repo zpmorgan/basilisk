@@ -5,6 +5,7 @@ use warnings;
 use parent 'Catalyst::Controller';
 use basilisk::Util;
 use basilisk::Rulemap;
+use basilisk::Rulemap::Rect;
 
 #__PACKAGE__->config->{namespace} = '';
 
