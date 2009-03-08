@@ -32,15 +32,13 @@ sub default :Path {
 sub game : Chained('/') CaptureArgs(1){ 
    my ( $self, $c, $gameid) = @_;
    unless ($gameid ){
-      action_abort ($c, 'invalid request: please supply a game id');
-      return;
+      $c->go ('invalid_request', ['please supply a game id']);
    }
    $c->stash->{gameid} = $gameid;
    my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
    $c->stash->{game} = $game;
    unless ($game){
-      action_abort ($c, 'invalid request: no game with that id');
-      return;
+      $c->go ('invalid_request', ['no game with that id']);
    }
    $c->stash->{ruleset} = $game->ruleset;
    build_rulemap($c);
@@ -225,10 +223,16 @@ sub wants_to_stop_scoring : PathPart('continue') Chained('game'){
    $c->forward('render');
 }
 
+sub invalid_request : Private{
+   my ($self, $c, $err) = @_;
+   $c->stash->{message} = "Invalid request: $err";
+   $c->stash->{template} = 'message.tt';
+}
+
 sub action_abort{ #not an action. this aborts the action.
    my ($c, $err) = @_;
-   $c->stash->{message} = $err;
-   $c->stash->{template} = 'message.tt';
+   $c->stash->{msg} = $err;
+   #$c->stash->{template} = 'message.tt';
    $c->detach('render')
 }
 

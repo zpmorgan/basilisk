@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 10;
+use Test::More tests => 11;
 use basilisk::Rulemap;
 
 
@@ -61,7 +61,7 @@ isa_ok ($rulemap2, 'basilisk::Rulemap::Rect');
 #wrapping variant
 #test a small capturing move on a populated board (small/TORUS)
 {
-   my $rulemap3 = new basilisk::Rulemap::Rect (h=>4,w=>4, wrap_ew=>1, wrap_sq=>1);
+   my $rulemap3 = new basilisk::Rulemap::Rect (h=>4,w=>4, wrap_ew=>1, wrap_ns=>1);
    #give this text to 2 boards. (5 & 7)
    my $tboardtext = #on torus, row2col1 kills, row1col2 doesn't
       '0121
