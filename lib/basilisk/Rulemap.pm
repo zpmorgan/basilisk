@@ -178,7 +178,7 @@ sub mark_alive{
    my ($self, $board, $mask, $node) = @_;
    my ($alivenodes, $libs, $foes) = $self->get_chain ($board, $node);
    for my $n (@$alivenodes){
-      $mask->{$self->node_to_string($n)} = 0;
+      delete $mask->{$self->node_to_string($n)};
    }
 }
 
@@ -188,7 +188,7 @@ sub find_territory_mask{
    $death_mask ||= {};
    my %seen; #accounts for all empty nodes.
    my %terr_mask;
-   my @terr_points;
+   my @terr_points = (undef, 0,0); #TODO: sides should start at 0.
    
    for my $node ($self->all_nodes){
       next if $seen{$self->node_to_string($node)};
