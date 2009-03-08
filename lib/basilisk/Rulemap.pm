@@ -11,27 +11,30 @@ use basilisk::Util;
 # This class stores no board/position data.
 # Also, will must be used to determine visible portions of the board if there's fog of war.
 
-# Rulemaps are not stored in the database. They are derived from
-#   entries in the Ruleset and Extra_rule tables.
-# This is also where parameters relevant to specific rulesets are stored.
-#   Example: 'size' might be meaningless for some boards.
-#   Example: 'visibility' with fog of war.
-#   Example: 'collisions' with fog of war.
-# For a ruleset with an arbitrary graph, the whole graph is to be in rulemap. 
-#   Not the position though
-
 # This class is basically here to define default behavior and
 #   to provide a mechanism to override it.
 # However this class will not handle rendering.
+
+# Rulemaps are not stored in the database. They are derived from
+#   entries in the Ruleset and Extra_rule tables.
+# Some extra rules could be assigned using Moose's roles.
+# Example: 'fog of war', 'atom go' each could be assigned to several variants.
 
 # Also: This does not involve the ko rule. That requires a database search 
 #   for a duplicate position.
 
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
-#   subclasses may handle as they will. Nodes by default are [$row,$col].
+#   subclasses may handle as they will. Rect nodes [$row,$col].
 
-#TODO: shifting turns&teams&colors in new ways (rengo,zen,consensus?)
-# also: sides(1 and 2) shouldn't be tied to colors(1 and 2)
+# Also: sides(1 and 2) shouldn't be tied to colors(1 and 2)
+# TODO: This plan:
+# Maybe each game could have a 'phase' to determine who's turn it is 
+# and each ruleset could have a 'phase description' to describe the recurring sequence of turns
+#  default description is '0b 1r'
+#  zen's is '0b 1w 2b 0w 1b 2w'
+#  rengo is '0b 1w 2b 3w'
+#  3-color could be '0b 1w 2r'
+
 
 #TODO: use these
 has capture_hook => (
@@ -182,13 +185,13 @@ sub mark_alive{
    }
 }
 
-#this returns (terr_mask, [terr_points_b, terr_pts_w], [kill_points_b, kill_pts_w])
+#this returns (terr_mask, [terr_points_b, terr_pts_w])
 sub find_territory_mask{
    my ($self, $board, $death_mask) = @_;
    $death_mask ||= {};
    my %seen; #accounts for all empty nodes.
    my %terr_mask;
-   my @terr_points = (undef, 0,0); #TODO: sides should start at 0.
+   my @terr_points = (undef, 0,0);
    
    for my $node ($self->all_nodes){
       next if $seen{$self->node_to_string($node)};

@@ -216,8 +216,7 @@ sub waiting_room :Global{
             $c->stash->{template} = 'message.tt'; return
          }
          my $id = $c->stash->{newgame}->id;
-         $c->stash->{msg} = "<a href='[%url_base%]/game/$id'>Game joined!</a>";
-         #TODO: forward to joined game?
+         $c->stash->{msg} = "<a href='[%url_base%]/game/$id'>Game joined!</a>";  
       }
    }
    $c->stash->{title} = 'Waiting room';
