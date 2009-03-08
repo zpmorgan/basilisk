@@ -11,11 +11,9 @@ __PACKAGE__->add_columns(
     'initial_time'   => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
     'byo'            => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
     'byo_periods'    => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
-    #variant rules:
-    'num_players'    => { data_type => 'INTEGER', is_nullable => 0, default_value => '2'},
-    
-    'rules_description' => { data_type => 'TEXT', is_nullable => 1},
-    #'turn_mode'       => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'}, for rengo, zen, normal, etc
+    'rules_description' => { data_type => 'TEXT', is_nullable => 1}, #for humans to read
+    #for machines to read & shift phase: #like '0b 1w 2r'
+    'phase_description' => { data_type => 'TEXT', is_nullable => 0, default_value => '0b 1w'},
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (positions => 'basilisk::Schema::Position', 'ruleset');
@@ -29,4 +27,17 @@ sub sqlt_deploy_hook {
     $table->add_index(name => idx_itime => fields => [qw/initial_time/]);
     $table->add_index(name => idx_hcp => fields => [qw/handicap/]);
 }
+
+sub num_players{
+   my $self = shift;
+   my $pd = $self->phase_description;
+   #return max digit in desc
+   my @digits = $pd =~ /(\d)/g;
+   return maxdigit (@digits)
+}
+sub maxdigit {
+   my $max = -1;
+   for (@_) {$max= $_>$max ?$_ :$max}  $max
+}
+
 1

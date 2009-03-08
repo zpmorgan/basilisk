@@ -26,7 +26,7 @@ use basilisk::Util;
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
 #   subclasses may handle as they will. Rect nodes [$row,$col].
 
-# Also: sides(1 and 2) shouldn't be tied to colors(1 and 2)
+# Also: sides(0 and 1) shouldn't be tied to colors(1 and 2)
 # TODO: This plan:
 # Maybe each game could have a 'phase' to determine who's turn it is 
 # and each ruleset could have a 'phase description' to describe the recurring sequence of turns
@@ -68,9 +68,9 @@ sub get_chain { #for all board types
    my @found;
    my @libs; #liberties
    my @foes; #enemy stones adjacent to string
-   my $string_color = $self->stone_at_node($board, $node1);
-   return if $string_color==0; #empty
-   #color 0 has to mean empty, (1 black, 2 white.)
+   my $string_side = $self->stone_at_node($board, $node1);
+   return unless defined $string_side; #empty
+   #undef has to mean empty, (0 black, 1 white, ...)
    my @nodes = ($node1); #array of adjacent intersections to consider
    
    while (@nodes) {
@@ -78,17 +78,19 @@ sub get_chain { #for all board types
       next if $seen {$self->node_to_string ($node)};
       $seen {$self->node_to_string ($node)} = 1;
       
-      my $here_color = $self->stone_at_node ($board, $node);
-      if ($here_color == $string_color){
+      my $here_side = $self->stone_at_node ($board, $node);
+      
+      unless (defined $here_side){ #empty
+         push @libs, $node;
+         next
+      }
+      if ($here_side == $string_side){
          push @found, $node;
          push @nodes, $self->node_liberties ($node)
+         next
       }
-      elsif ($here_color == 0){ #empty
-         push @libs, $node;
-      }
-      else { #enemy
-         push @foes, $node;
-      }
+      # else enemy
+      push @foes, $node;
    }
    return (\@found, \@libs, \@foes);
 }

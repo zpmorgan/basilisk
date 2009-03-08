@@ -24,8 +24,8 @@ has wrap_ew => (
 );
 
 sub evaluate_move{
-   my ($self, $board, $node, $color) = @_;
-   die "badcolor $color" unless $color =~ /^[12]$/;
+   my ($self, $board, $node, $side) = @_;
+   die "bad side $side" unless $side =~ /^[12]$/;
    die (ref $node . $node) unless ref $node eq 'ARRAY';
    die 'badboard' unless ref $board eq 'ARRAY';
    
@@ -35,7 +35,7 @@ sub evaluate_move{
    
    #produce copy of board for evaluation -> add stone at $row $col
    my $newboard = [ map {[@$_]} @$board ];
-   $newboard->[$row]->[$col] = $color;
+   $newboard->[$row]->[$col] = $side;
    # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
    my ($chain, $libs, $foes) = $self->get_chain($newboard, [$row, $col]);
    my $caps = $self->find_captured ($newboard, $foes);

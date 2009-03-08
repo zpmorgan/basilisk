@@ -376,8 +376,7 @@ sub detect_duplicate_position{
 sub evaluate_move{
    my $c = shift;
    my ($node, $board) = @{$c->stash}{qw/move_node board/};
-   my $turn = $c->stash->{game}->turn; #turn==color, right?
-   
+   my $phase = $c->stash->{game}->phase;
    #find next board position:
    my ($newboard, $err, $caps) = $c->stash->{rulemap}->evaluate_move
          ($board,$node,$turn);

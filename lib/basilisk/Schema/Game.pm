@@ -15,10 +15,10 @@ __PACKAGE__->add_columns(
     'ruleset'        => { data_type => 'INTEGER', is_nullable => 0 },
     'status'        => { data_type => 'INTEGER', default_value => 1 },
     'result'        => { data_type => 'TEXT', is_nullable => 1 },
-    #turn--player currently with the initiative(index as 'side' col from player_to_game)
-    'turn'           => { data_type => 'INTEGER', is_nullable => 0, default_value => 1 },
     'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
     'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
+    #phase--
+    'phase' => { data_type => 'INTEGER', is_nullable => 1 },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -45,6 +45,18 @@ sub shift_turn{
    $self->set_column('num_moves', $self->num_moves + 1);
    $self->update;
 }
+sub shift_phase{
+   my $self = shift;
+   my $num_players = $self->num_players;
+   $self->set_column('turn', ($self->phase)%2 + 1);
+   $self->set_column('num_moves', $self->num_moves + 1);
+   $self->update;
+}
+sub num_players{
+   my $self = shift;
+   return $self->ruleset->num_players;
+}
+
 sub last_move{ #'pass' or 'b t4' etc
    my $self = shift;
    my $mvnum = $self->num_moves;
