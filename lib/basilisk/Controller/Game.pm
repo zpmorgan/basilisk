@@ -469,9 +469,13 @@ sub get_game_player_data{ #for game.tt
       };
    }
    my $terr_points = $c->stash->{terr_points};
+   my $cap_points = $c->stash->{terr_points};
    if ($terr_points){ #set territory point display
+      #kills are negative.
+      my $rulemap = $c->stash->{rulemap};
+      my $kills = $rulemap->count_kills($c->stash->{board}, $c->stash->{death_mask});
       for my $i (1..@$terr_points-1){ #terr_points starts at 1.
-         $playerdata[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (+ foo)'; #+marked caps
+         $playerdata[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$kills->[$i].')'; #+marked caps
       }
    }
    return \@playerdata;

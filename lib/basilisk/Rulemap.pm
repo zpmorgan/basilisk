@@ -214,9 +214,10 @@ sub find_territory_mask{
 
 sub count_kills{
    my ($self, $board, $death_mask) = @_;
-   my @kills; #[1..2]
-   for my $deadnode (keys %$death_mask){
-      my $color = $self->stone_at_node ($board, $deadnode);
+   my @kills = (undef, 0,0); #[1..2]
+   for my $deadnodestring (keys %$death_mask){
+      my $node = $self->node_from_string ($deadnodestring);
+      my $color = $self->stone_at_node ($board, $node);
       $kills[$color]++;
    }
    return \@kills;
