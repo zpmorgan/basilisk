@@ -3,6 +3,8 @@
  <title>[% title %]</title>
 </head>
 
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset/reset-min.css"> 
+<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/base/base-min.css"> 
 <link rel='stylesheet' media='all' href='[%url_base%]/basilisk.css' type='text/css'>
 
 

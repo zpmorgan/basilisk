@@ -3,7 +3,7 @@
 <table id="pagefoot" class="pagefoot">
  <tr>
   <td align="left"> <span style="color: #070"> Save the basilisks.</span> </td>
-  <td align="right" width="40%"> <span style="color: #007"> 
+  <td align="right" width="40%"> <span id="proverb"> 
      [% rand_proverb() %]
   </td>
  </tr>
