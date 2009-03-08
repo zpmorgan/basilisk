@@ -39,6 +39,7 @@ sub get_list_of_games{
    my $pagesize = 25;
    my ($num_games, $num_pages);
    my %gameplayers; #to show who plays which game
+   my %rulestrings; #to summarize game rulesets
    my $games_rs;
    my $gamesearch_constraints = {status => Util::RUNNING()};
    #transaction!
@@ -77,7 +78,18 @@ sub get_list_of_games{
          my %data = $p2g->get_columns;
          $gameplayers{$data{gid}}->[$data{side}] = \%data; #note: 'side' is 1 or 2
       }
-   });
+      #now get ruleset summary
+      my $rulesets_rs = $games_rs->search ( {}, 
+         {
+            join => 'ruleset',
+            select => [$gid_col, 'ruleset.rules_description'],
+            as => ['gid', 'rulestring'],
+         });
+      for my $row($rulesets_rs->all()){
+         $rulestrings{$row->get_column('gid')} = $row->get_column('rulestring');
+      }
+   });#end transaction
+   
    $c->stash->{num_pages} = int ($num_games / $pagesize) + 1;
    $c->stash->{num_games} = $num_games;
    
@@ -94,7 +106,7 @@ sub get_list_of_games{
          wname => $gameplayers{$gid}->[2]->{pname},
          bid => $gameplayers{$gid}->[1]->{pid},
          wid => $gameplayers{$gid}->[2]->{pid},
-         size => 'foo', #$game->size,
+         rulestring => $rulestrings{$gid}, #$game->size,
       }
    }
    return \@games_data;

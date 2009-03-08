@@ -14,9 +14,7 @@ And here's every running game on this server:
       <td>ID</td>
       <td>Black</td>
       <td>White</td>
-      <td>Size</td>
       <td>Rules</td>
-      
    </tr>
    
 [% FOREACH g = games_data %]
@@ -24,8 +22,7 @@ And here's every running game on this server:
       <td><a href="[%url_base%]/game/[% g.id %]"> [% g.id %] </a></td>
       <td> <a href="[%url_base%]/userinfo/[% g.bid %]"> [% g.bname %] </a> </td>
       <td> <a href="[%url_base%]/userinfo/[% g.wid %]"> [% g.wname %] </a> </td>
-      <td> [% g.size %] </td>
-      <td> foo </td>
+      <td> [% g.rulestring %] </td>
    </tr>
 [% END %]
 </table>

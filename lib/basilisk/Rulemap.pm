@@ -1,6 +1,8 @@
 package basilisk::Rulemap;
 
 use Moose;
+#use MooseX::Method::Signatures;
+
 use basilisk::Rulemap::Rect;
 use basilisk::Util;
 
