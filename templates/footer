@@ -2,8 +2,8 @@
 
 <table id="pagefoot" class="pagefoot">
  <tr>
-  <td align="left"> <span style="color: #070"> Save the basilisks.</span> </td>
-  <td align="right" width="40%"> <span id="proverb"> 
+  <td align="left" id="campaign"> Save the basilisks. </td>
+  <td align="right" id="proverb" width="40%">
      [% rand_proverb() %]
   </td>
  </tr>

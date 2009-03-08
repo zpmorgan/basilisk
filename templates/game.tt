@@ -32,7 +32,7 @@
 [% END %]
 <br>
 
-<table style="border: 2px solid #558855;border-spacing: 3px;">
+<table>
 
   [% FOREACH p = players_data %]
    <tr> 

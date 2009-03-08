@@ -13,25 +13,42 @@ table.pagehead a
    color: yellow;
 } 
 table.pagehead {
+   border:1px solid #000;
    background: #0C7311;
    color: #FFFC70;
    width: 100%;"
 }
+table.pagehead td {
+   border:0px;
+	padding:.3em;
+}
 
 table.pagefoot {
-   background: #f0f0ff;
+   border:1px solid #000;
+   background: #bbbbc4;
    color: #111111;
    width: 100%;"
 }
 table.pagefoot a {
-   color: #999;
+   color: #225;
    font-weight: bold;
 }
+table.pagefoot td {
+   border:0px;
+	padding:.3em;
+}
+table.pagefoot td#proverb {
+   color: #000;
+}
+table.pagefoot td#campaign {
+   color: #070;
+}
+
 
 table.gameslist {
    border: 2px solid #337733;
    background: #dddddd;
-   width: 40%;"
+   width: 40%;
    border-collapse: collapse;
 }
 
