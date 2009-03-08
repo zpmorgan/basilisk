@@ -1,103 +1,11 @@
 <html>
+<head>
+ <title>[% title %]</title>
+</head>
 
-  <head>
-        <title>[% title %]</title>
-  </head>
-  
- <STYLE TYPE="text/css">
-a:link { 
-	color: green;
-	}
-a:visited { 
-	color: darkgreen;
-	}
+<link rel='stylesheet' media='all' href='[%url_base%]/basilisk.css' type='text/css'>
 
 
-table.pagehead a
-{
-   color: yellow;
-} 
-table.pagehead {
-   background: #0C7311;
-   color: #FFFC70;
-   width: 100%;"
-}
-
-table.pagefoot {
-   background: #f0f0ff;
-   color: #111111;
-   width: 100%;"
-}
-table.pagefoot a {
-   color: #999;
-   font-weight: bold;
-}
-
-table.gameslist {
-   border: 2px solid #337733;
-   background: #dddddd;
-   width: 40%;"
-   border-collapse: collapse;
-}
-
-table.gameslist tr#headrow {
-}
-table.gameslist tr#headrow td {
-   background: #000000;
-   color: #ffffff;
-   font-weight: bold;
-   font-size: 110%;
-}
-
-table.gameslist td{
-   border-width: 1px;
-   padding: 1px;
-   color: black;
-   text-align: center;
-}
-
-img.brdx{ width:25px; height:25px;}
-img.brdl{ width:25px; height:25px;}
-img.brdn{ width:31px; height:25px;}
-img.capt{ width:25px; height:25px;}
-td.brdx{ width:25px; height:25px;}
-td.brdl{ width:25px; height:25px;}
-td.brdn{ width:31px; height:25px;}
-
-table.Goban {
-   border: 0px solid red;
-   background-repeat: repeat;
-   background-position: top left; /* 0% 0% - top left */
-   background: white;
-   empty-cells: hide;
-   border-collapse: collapse;
-   border-spacing: 0px;
-   margin: 0px auto;
-}
-table.Goban tr {
-}
-
-table.Goban td {
-   border-width: 0px;
-   text-align: left;
-   color: black;
-   padding: 0px;
-   line-height: 0px;
-   white-space: nowrap;
-}
-table.Goban a img,
-table.Goban img {
-   border-width: 0px;
-   margin: 0px;
-   padding: 0px;
-}
-a:link {color:#FF0000}
-a:visited {color:#990000}
-a:active    {color:#0000FF}
-a:hover     {color:#000000}
-
- </STYLE>
- 
 <body onload="drawPlease();">
 
 <table id="pagehead" class="pagehead" >
