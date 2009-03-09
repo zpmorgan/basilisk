@@ -70,7 +70,7 @@ sub get_list_of_games{
       my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
          {
             join => ['player'],
-            select => ['player.name', $gid_col, 'player_to_game.pid', 'player_to_game.side'],
+            select => ['player.name', $gid_col, 'player_to_game.pid', 'player_to_game.entity'],
             as => ['pname', 'gid', 'pid', 'side'],
          });
       $num_games = $games_rs->count();
@@ -82,8 +82,8 @@ sub get_list_of_games{
       my $rulesets_rs = $games_rs->search ( {}, 
          {
             join => 'ruleset',
-            select => [$gid_col, 'ruleset.rules_description'],
-            as => ['gid', 'rulestring'],
+            select => [$gid_col, 'ruleset.rules_description', 'ruleset.phase_description'],
+            as => ['gid', 'rulestring', 'phase_d'],
          });
       for my $row($rulesets_rs->all()){
          $rulestrings{$row->get_column('gid')} = $row->get_column('rulestring');
@@ -102,10 +102,10 @@ sub get_list_of_games{
       my $gid = $game->id;
       push @games_data, { #todo: make generic for 3+ players
          id => $gid,
-         bname => $gameplayers{$gid}->[1]->{pname},
-         wname => $gameplayers{$gid}->[2]->{pname},
-         bid => $gameplayers{$gid}->[1]->{pid},
-         wid => $gameplayers{$gid}->[2]->{pid},
+         bname => $gameplayers{$gid}->[0]->{pname},
+         wname => $gameplayers{$gid}->[1]->{pname},
+         bid => $gameplayers{$gid}->[0]->{pid},
+         wid => $gameplayers{$gid}->[1]->{pid},
          rulestring => $rulestrings{$gid}, #$game->size,
       }
    }

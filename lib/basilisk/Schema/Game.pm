@@ -32,12 +32,13 @@ sub sqlt_deploy_hook { #indices
     my($self, $table) = @_;
     $table->add_index(name => idx_game => fields => [qw/num_moves/]);
 }
-
+#unused:
 sub player_to_move_next{
    my $self = shift;
-   my $player = $self->players->search({side => $self->turn})->next;
+   my ($entity, $side) = $self->turn;
+   my $player = $self->players->find ({entity => $entity});
    return $player if $player;
-   die "no player as side ".$self->turn." in game ".$self->id;
+   die "no player as entity $entity in game ".$self->id;
 }
 sub shift_phase{
    my $self = shift;
