@@ -20,7 +20,7 @@ isa_ok ($rulemap2, 'basilisk::Rulemap::Rect');
 
    #alter original and compare with new:
    my ($board2,$err) = $rulemap2->evaluate_move($board, [2,2], 'w');
-   $board->[2][2] = 'w'; 
+   $rulemap2->set_stone_at_node ($board, [2,2],'w'); 
    is_deeply ($board2, $board, "move on empty board valid (actual err?: $err)");
 }
 
@@ -32,7 +32,7 @@ isa_ok ($rulemap2, 'basilisk::Rulemap::Rect');
        0000
        0000', 4);
    #alter original and compare with new:
-   my ($board4,$err, $caps) = $rulemap2->evaluate_move($board3, [2,1], 1);
+   my ($board4,$err, $caps) = $rulemap2->evaluate_move($board3, [2,1], 'b');
    $board3->[2][1] = 'b'; 
    $board3->[1][1] = 0; #cap
    is_deeply ($board4, $board3, "capture on empty board works (actual err?: $err)");

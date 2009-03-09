@@ -177,7 +177,7 @@ sub create_game{
       $c->model('DB::Player_to_game')->create({
          gid => $game->id,
          pid => $w,
-         wntity => 1, # 1w -- white
+         entity => 1, # 1w -- white
          expiration => 0,
       });
       $wgame->decrease_quantity;
