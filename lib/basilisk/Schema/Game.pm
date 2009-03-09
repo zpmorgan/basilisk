@@ -18,7 +18,7 @@ __PACKAGE__->add_columns(
     'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
     'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
     #phase--
-    'phase' => { data_type => 'INTEGER', is_nullable => 1 },
+    'phase' => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -39,22 +39,28 @@ sub player_to_move_next{
    return $player if $player;
    die "no player as side ".$self->turn." in game ".$self->id;
 }
-sub shift_turn{
+sub shift_phase{
    my $self = shift;
-   $self->set_column('turn', ($self->turn)%2 + 1);
+   #my $num_players = $self->num_players;
+   my $np = $self->ruleset->num_phases;
+   $self->set_column('phase', ($self->phase + 1) % $np);
    $self->set_column('num_moves', $self->num_moves + 1);
    $self->update;
 }
-sub shift_phase{
+sub turn{ #return 'who' and 'what'
    my $self = shift;
-   my $num_players = $self->num_players;
-   $self->set_column('turn', ($self->phase)%2 + 1);
-   $self->set_column('num_moves', $self->num_moves + 1);
-   $self->update;
+   my $pd = $self->ruleset->phase_description;
+   my @phases = split ' ', $pd;
+   my ($entity, $side) = split '', $phases[$self->phase];
+   return ($entity, $side);
 }
 sub num_players{
    my $self = shift;
    return $self->ruleset->num_players;
+}
+sub num_phases{
+   my $self = shift;
+   return $self->ruleset->num_phases;
 }
 
 sub last_move{ #'pass' or 'b t4' etc

@@ -5,8 +5,8 @@ use basilisk::Proverbs;
 
 # using 1 byte per intersection in storage.
 sub EMPTY{0}
-sub BLACK{1}
-sub WHITE{2}
+sub BLACK{'b'}
+sub WHITE{'w'}
 
 #values for game's status column
 sub RUNNING {1}
@@ -19,9 +19,9 @@ sub empty_pos{ #create a long string of unset bits
    my ($h,$w) = @_;
    $w = $h unless $w;
    my $blob = '';
-   my @empty_row = map {0} (1..$w);
+   #my @empty_row = map {0} (1..$w);
    for my $row (1..$h){
-      $blob .= pack ('C*', @empty_row)
+      $blob .= 0 x $w
    }
    return $blob;
 }
@@ -39,7 +39,7 @@ sub pack_board{
    
    my $blob = '';
    for my $row (@$board){
-      $blob .= pack ('C*',@$row)
+      $blob .= join '', @$row
    }
    return $blob;
 }
@@ -51,7 +51,7 @@ sub unpack_position{
    my @board;
    for my $r (0..$h-1){
       my $blobrow = substr($blob, $r*$w, $w);
-      push @board, [unpack('C*', $blobrow)];
+      push @board, [split '', $blobrow];
    }
    return \@board;
 }
@@ -73,7 +73,7 @@ sub board_from_text{
    my ($text, $h, $w) = @_;
    $w = $h unless $w;
    $text =~ s/\s*//g; #rm whitespace
-   die "bad data: $text" if $text =~ /([^012])/;
+   die "bad data: $text" if $text =~ /([^0bw])/;
    die 'bad size' unless length $text == $w*$h;
    
    my @list = split '', $text;

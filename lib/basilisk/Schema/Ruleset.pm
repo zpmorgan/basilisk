@@ -35,6 +35,13 @@ sub num_players{
    my @digits = $pd =~ /(\d)/g;
    return maxdigit (@digits)
 }
+sub num_phases{
+   my $self = shift;
+   my $pd = $self->phase_description;
+   #return num of words in description. '0b 1w' -> 2
+   my @phases = split ' ', $pd;
+   return scalar @phases;
+}
 sub maxdigit {
    my $max = -1;
    for (@_) {$max= $_>$max ?$_ :$max}  $max

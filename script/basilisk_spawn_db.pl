@@ -47,13 +47,13 @@ my $p2g_rs = $schema->resultset('Player_to_game');
 $p2g_rs->create({
    pid  => 2, #cannon
    gid  => $new_game->id,
-   side => 1,
+   entity => 0,
    expiration => 0,
 });
 $p2g_rs->create({
    pid  => 3, #georgia
    gid  => $new_game->id,
-   side => 2,
+   entity => 1,
    expiration => 0,
 });
 
@@ -66,15 +66,15 @@ my $ruleset_2 = $ruleset_rs->create({
  #  wrap_ew => 1, #need extra_rule entries for these
 });
 my $board2 = 
-'000200000
-000000001
-100000012
-002120000
-021112000
-002220000
-000000002
-000000021
-001210010';
+'000w00000
+00000000b
+b000000bw
+00wbw0000
+0wbbbw000
+00www0000
+00000000w
+0000000wb
+00bwb00b0';
 my @board2 = map {[split '', $_]} split "\n",$board2;
 my $pos_data = Util::pack_board(\@board2);
 my $pos_row = $schema->resultset('Position')->create({
@@ -90,27 +90,27 @@ my $new_game_2 = $game_rs->create({
 $p2g_rs->create({
    pid  => 2,
    gid  => $new_game_2->id,
-   side => 1,
+   entity => 0,
    expiration => 0,
 });
 $p2g_rs->create({
    pid  => 2,
    gid  => $new_game_2->id,
-   side => 2,
+   entity => 1,
    expiration => 0,
 });
 
 #game 3 is ready for scoring
 my $board3 = 
-'2 2 0 2 1 1 1 0 0
- 2 1 2 1 0 1 1 0 1
- 2 0 2 2 1 1 1 1 0
- 2 2 2 0 2 1 0 0 1
- 0 2 2 0 0 2 1 1 0
- 0 0 2 2 2 2 2 1 0
- 0 2 2 2 0 1 2 1 2
- 2 1 0 2 0 1 1 2 0
- 0 2 0 2 1 0 2 0 0';
+'w w 0 w b b b 0 0
+ w b w b 0 b b 0 b
+ w 0 w w b b b b 0
+ w w w 0 w b 0 0 b
+ 0 w w 0 0 w b b 0
+ 0 0 w w w w w b 0
+ 0 w w w 0 b w b w
+ w b 0 w 0 b b w 0
+ 0 w 0 w b 0 w 0 0';
 my $pos_row3 = $schema->resultset('Position')->create({
    ruleset => $ruleset_2->id,
    position => Util::pack_board (Util::board_from_text($board3, 9)),
@@ -122,9 +122,9 @@ my $new_game_3 = $game_rs->create({
 #give cannon both sides again.
 $p2g_rs->create({
    pid  => 2,   gid  => $new_game_3->id,
-   side => 1,   expiration => 0,
+   entity => 0,   expiration => 0,
 });
 $p2g_rs->create({
    pid  => 2,   gid  => $new_game_3->id,
-   side => 2,   expiration => 0,
+   entity => 1,   expiration => 0,
 });

@@ -166,17 +166,18 @@ sub create_game{
    $c->model('DB')->schema->txn_do( sub{
       $game = $c->model('DB::Game')->create({
          ruleset => $ruleset_id,
+        # phase => 0,
       });
       $c->model('DB::Player_to_game')->create({
          gid => $game->id,
          pid => $b,
-         side => 1, #black
+         entity => 0, # 0b -- black
          expiration => 0,
       });
       $c->model('DB::Player_to_game')->create({
          gid => $game->id,
          pid => $w,
-         side => 2, #white
+         wntity => 1, # 1w -- white
          expiration => 0,
       });
       $wgame->decrease_quantity;

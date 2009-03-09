@@ -48,6 +48,7 @@ sub game : Chained('/') CaptureArgs(1){
    my $rulemap = $c->stash->{rulemap};
    my $board = Util::unpack_position($pos_data, $h, $w);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
+   @{$c->stash}{qw/entity side/} = $game->turn; #phase data in stash
 } #dow c does move, etc
 
 sub render: Private{
@@ -83,7 +84,7 @@ sub render: Private{
       my ($dg,$dm) = get_marked_dead_from_last_move ($c);
       $c->stash->{death_mask} = $dm;
    }
-   if ($rulemap->{topology} eq 'C20'){
+   if ($rulemap->topology eq 'C20'){
       $c->stash->{topo} = 'graph';
       $c->stash->{nodes} = $rulemap->all_node_coordinates;
       $c->stash->{edges} = $rulemap->node_adjacency_list;
@@ -94,7 +95,7 @@ sub render: Private{
    }
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    $c->stash->{players_data} = get_game_player_data($c);
-   $c->stash->{to_move_img} = ($game->turn) == 1 ? 'b.gif' : 'w.gif';
+   $c->stash->{to_move_img} = ($c->stash->{side} eq 'b') ? 'b.gif' : 'w.gif';
    $c->stash->{result} = $game->result;
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
@@ -242,17 +243,20 @@ sub seek_permission_to_move{
    return 'not registered' if $c->session->{userid} == 1;
    my $game = $c->stash->{game};
    return 'Game is already finished!' unless $game->status == Util::RUNNING();
+   
+   my ($entity, $side) = $game->turn;
+   my $gid = $game->id;
    my $p = $c->model('DB::player_to_game')->find( {
-       gid => $game->id,
-       side => $game->turn,
-   });
-   return "player on side ".$game->turn."not found for game ".$c->stash->{gameid}
-      unless $p;
+       gid => $gid,
+       entity => $entity,
+   }); 
+   return "entity $entity not found for game $gid" unless $p;
    return 'not your turn.' unless $c->session->{userid} == $p->pid;
    #success
-   return 'strange' unless $game->turn == $p->side;
+   #return 'strange' unless $entity == $p->entity;
    $c->stash->{p2g} = $p;
-   $c->stash->{side} = $p->side;
+   $c->stash->{entity} = $entity;
+   $c->stash->{side} = $side;
    return ''
 }
    
@@ -376,10 +380,11 @@ sub detect_duplicate_position{
 sub evaluate_move{
    my $c = shift;
    my ($node, $board) = @{$c->stash}{qw/move_node board/};
-   my $phase = $c->stash->{game}->phase;
+   my $side = $c->stash->{side};
+   die $side unless $side =~ /^[bwr]$/;
    #find next board position:
    my ($newboard, $err, $caps) = $c->stash->{rulemap}->evaluate_move
-         ($board,$node,$turn);
+         ($board,$node,$side);
    return $err unless $newboard;
    if (detect_duplicate_position($c, $newboard)){
       return 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum
@@ -436,7 +441,7 @@ sub do_move{#todo:mv to game class?
          time => time,
          dead_groups => $deadgroups,
       });
-      $game->shift_turn; #b to w, etc num_moves++
+      $game->shift_phase; #b to w, etc num_moves++
    });
    return;
 }
@@ -457,9 +462,9 @@ sub get_game_player_data{ #for game.tt
    #put data in hashes in @playerdata for template
    for my $p (@players){
       #todo: calc time remaining, render human readable
-      my $img = ($p->side==1 ? 'b' : 'w') . '.gif';
+      my $img = ($p->entity==0 ? 'b' : 'w') . '.gif';
       push @playerdata, {
-         side => $p->side,
+         entity => $p->entity,
          stone_img => $img,
          name => $p->get_column('name'),
          id => $p->pid,
@@ -515,7 +520,7 @@ sub render_board_table{
          $table[$row][$col]->{g} = $image;
          #url if applicable:
          if ($c->stash->{board_clickable}) {
-            if ($stone==0){ #empty intersection
+            unless ($stone){ #empty intersection
                unless ($c->stash->{marking_dead_stones}){ #can't move when marking dead
                   my $url = "game/".$c->stash->{gameid} . "/move/" . $row .'-'.$col;
                   $table[$row][$col]->{ref} = $url;
@@ -538,8 +543,8 @@ sub render_board_table{
 sub select_g_file{ #only for rect board
    my ($rulemap, $board, $row, $col) = @_;
    my $stone = $board->[$row][$col];
-   return 'b.gif' if $stone == 1;
-   return 'w.gif' if $stone == 2;
+   return 'b.gif' if $stone eq 'b';
+   return 'w.gif' if $stone eq 'w';
    #so it's an empty intersection
    return $rulemap->node_is_on_edge($row, $col) . '.gif';
 }

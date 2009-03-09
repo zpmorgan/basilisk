@@ -25,27 +25,32 @@ has wrap_ew => (
 
 sub evaluate_move{
    my ($self, $board, $node, $side) = @_;
-   die "bad side $side" unless $side =~ /^[12]$/;
-   die (ref $node . $node) unless ref $node eq 'ARRAY';
-   die 'badboard' unless ref $board eq 'ARRAY';
+   die "bad side $side" unless $side =~ /^[bw]$/;
+   #die (ref $node . $node) unless ref $node eq 'ARRAY';
+   #die 'badboard' unless ref $board eq 'ARRAY';
    
-   my ($row,$col) = @$node;
-   if ($board->[$row][$col]){
-      return (undef,"stone exists at row $row col $col"); }
+   if ($self->stone_at_node ($board, $node)){
+      return (undef,"stone exists at ". $self->node_to_string($node)); }
    
-   #produce copy of board for evaluation -> add stone at $row $col
-   my $newboard = [ map {[@$_]} @$board ];
-   $newboard->[$row]->[$col] = $side;
-   # $string is a list of strongly connected stones: $foes=enemies adjacent to $string
-   my ($chain, $libs, $foes) = $self->get_chain($newboard, [$row, $col]);
+   #produce copy of board for evaluation -> add stone at $node
+   my $newboard = $self->copy_board ($board);
+   $self->set_stone_at_node ($newboard, $node, $side);
+   # $chain is a list of strongly connected stones,
+   # and $foes=enemies,$libs=liberties adjacent to $chain
+   my ($chain, $libs, $foes) = $self->get_chain($newboard, $node);
    my $caps = $self->find_captured ($newboard, $foes);
    if (@$libs == 0 and @$caps == 0){
       return (undef,'suicide');
    }
    for my $cap(@$caps){ # just erase captured stones
-      $newboard->[$cap->[0]]->[$cap->[1]] = 0;
+      $self->set_stone_at_node ($newboard, $cap, 0);
    }
    return ($newboard, '', $caps);#no err
+}
+
+sub copy_board{
+   my ($self, $board) = @_;
+   return [ map {[@$_]} @$board ];
 }
 
 #turns [13,3] into 13-3
@@ -58,11 +63,15 @@ sub node_from_string{
    my ($self, $string) = @_;
    return [split '-', $string];
 }
-sub stone_at_node{ #0 if empty, 1 black, 2 white
+sub stone_at_node{ #0 if empty, b black, w white, r red, etc
    my ($self, $board, $node) = @_;
-   #die unless $node
    my ($row, $col) = @$node;
    return $board->[$row][$col];
+}
+sub set_stone_at_node{
+   my ($self, $board, $node, $side) = @_;
+   my ($row, $col) = @$node;
+   $board->[$row][$col] = $side;
 }
 sub all_nodes{ #return list coordinates
    my ($self) = @_;

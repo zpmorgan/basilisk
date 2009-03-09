@@ -30,11 +30,15 @@ use basilisk::Util;
 # TODO: This plan:
 # Maybe each game could have a 'phase' to determine who's turn it is 
 # and each ruleset could have a 'phase description' to describe the recurring sequence of turns
-#  default description is '0b 1r'
+#  default description is  '0b 1w'
+#  maybe handicap would be '1w 0b'
 #  zen's is '0b 1w 2b 0w 1b 2w'
 #  rengo is '0b 1w 2b 3w'
 #  3-color could be '0b 1w 2r'
-
+# Within a phase description:
+#  b and w are the 'sides'
+#  0 and 1 are the 'entities', mapped to 'entity' col in p2g table
+# Idea: entities could be something other than players, such as 'random' or 'consensus'
 
 #TODO: use these
 has capture_hook => (
@@ -47,17 +51,24 @@ has placement_hook => (
    isa => 'CodeRef',
    default => sub{sub{}},
 );
+has topology => (
+   is => 'ro',
+   isa => 'Str',
+   default => 'plane'
+);
+
 
 #These must be implemented in a subclass
 my $blah = 'use a subclass instead of basilisk::Rulemap';
-sub move_is_valid{ die $blah;}
-sub evaluate_move{ die $blah;}
-sub node_to_string{ die $blah;}
-sub node_from_string{ die $blah;}
-sub node_liberties{ die $blah;}
-sub stone_at_node{ die $blah;}
-sub all_nodes{ die $blah;}
-
+sub move_is_valid{ die $blah}
+sub evaluate_move{ die $blah}
+sub node_to_string{ die $blah}
+sub node_from_string{ die $blah}
+sub node_liberties{ die $blah}
+sub set_stone_at_node{ die $blah}
+sub stone_at_node{ die $blah}
+sub all_nodes{ die $blah}
+sub copy_board{ die $blah}
 
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
@@ -70,7 +81,7 @@ sub get_chain { #for all board types
    my @foes; #enemy stones adjacent to string
    my $string_side = $self->stone_at_node($board, $node1);
    return unless defined $string_side; #empty
-   #undef has to mean empty, (0 black, 1 white, ...)
+   #0 has to mean empty, (b black, w white, ...)
    my @nodes = ($node1); #array of adjacent intersections to consider
    
    while (@nodes) {
@@ -80,13 +91,13 @@ sub get_chain { #for all board types
       
       my $here_side = $self->stone_at_node ($board, $node);
       
-      unless (defined $here_side){ #empty
+      unless ($here_side){ #empty
          push @libs, $node;
          next
       }
-      if ($here_side == $string_side){
+      if ($here_side eq $string_side){
          push @found, $node;
-         push @nodes, $self->node_liberties ($node)
+         push @nodes, $self->node_liberties ($node);
          next
       }
       # else enemy
