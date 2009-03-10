@@ -17,6 +17,7 @@ requires 'DBIx::Class';
 requires 'Template';
 requires 'DBD::SQLite';
 requires 'Test::More';
+requires 'Mouse';
 
 catalyst;
 

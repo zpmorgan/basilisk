@@ -1,6 +1,6 @@
 package basilisk::Rulemap;
 
-use Moose;
+use Mouse;
 #use MooseX::Method::Signatures;
 
 use basilisk::Rulemap::Rect;

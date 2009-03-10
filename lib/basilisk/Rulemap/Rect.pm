@@ -1,5 +1,5 @@
 package basilisk::Rulemap::Rect;
-use Moose;
+use Mouse;
 extends 'basilisk::Rulemap';
 
 has h  => ( #height

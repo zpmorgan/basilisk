@@ -1,5 +1,5 @@
 package basilisk::Rulemap::Graph;
-use Moose;
+use Mouse;
 extends 'basilisk::Rulemap';
 
 #TODO: perhaps subclasses fpr polyhedra, streetmaps, lattice, & custom
