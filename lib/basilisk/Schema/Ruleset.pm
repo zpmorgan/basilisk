@@ -1,6 +1,18 @@
 package basilisk::Schema::Ruleset;
 use base qw/DBIx::Class/;
 
+# Each game could has a 'phase' to determine who's turn it is 
+# Each ruleset has a 'phase description' to describe the recurring sequence of turns
+#  default description is  '0b 1w'
+#  maybe handicap would be '1w 0b'
+#  zen's is '0b 1w 2b 0w 1b 2w'
+#  rengo is '0b 1w 2b 3w'
+#  3-color could be '0b 1w 2r'
+# Within a phase description:
+#  b and w are the 'sides'
+#  0 and 1 are the 'entities', mapped to 'entity' col in p2g table
+# Idea: entities could be something other than players, such as 'random' or 'consensus'
+
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Ruleset');
 __PACKAGE__->add_columns(
@@ -45,6 +57,16 @@ sub num_phases{
 sub maxdigit {
    my $max = -1;
    for (@_) {$max= $_>$max ?$_ :$max}  $max
+}
+sub sides { #returns ('w','r','b'), etc
+   my $self = shift;
+   my $pd = $self->phase_description;
+   my %sides;
+   for my $p (split ' ', $pd){
+      $p =~ /(\d)/;
+      $sides {$1} = 1;
+   }
+   return keys %sides;
 }
 
 1

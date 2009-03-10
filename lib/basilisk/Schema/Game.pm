@@ -17,8 +17,10 @@ __PACKAGE__->add_columns(
     'result'        => { data_type => 'TEXT', is_nullable => 1 },
     'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
     'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
-    #phase--
+    #phase-- rule description is in ruleset
     'phase' => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
+    #captures--space separated string, has sum of all captures per phase
+    'captures' => { data_type => 'TEXT', is_nullable => 0} #'0 0'
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -114,6 +116,21 @@ sub h{
 sub w{
    my $self = shift;
    return $self->ruleset->w
+}
+sub sides{
+   my $self = shift;
+   return $self->ruleset->sides
+}
+sub captures_per_side{ #{w=>3,b=>1}
+   my $self = shift;
+   my @caps = split ' ', $self->captures;
+   my @phases = split ' ', $self->phase_description;
+   my %cps;
+   for (0..@phases-1){ #1w
+      $phases[$_] =~ /([bwr])/; #w
+      $cps{$1} += $caps[$0];
+   }
+   return \%cps
 }
 
 1;

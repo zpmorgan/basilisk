@@ -166,6 +166,7 @@ sub create_game{
    $c->model('DB')->schema->txn_do( sub{
       $game = $c->model('DB::Game')->create({
          ruleset => $ruleset_id,
+         captures => '0 0',
         # phase => 0,
       });
       $c->model('DB::Player_to_game')->create({

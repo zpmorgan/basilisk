@@ -9,7 +9,8 @@ __PACKAGE__->add_columns(
     'entity'         => { data_type => 'INTEGER', is_nullable => 0 }, #typically either 0 or 1
     #time remaining:  store a time of a player's 'expiration', 0=nolimit
     'expiration'      => { data_type => 'INTEGER', default_value => 0},
-    'captures'      => { data_type => 'INTEGER', is_nullable => 0 , default_value => 0},
+    ###'captures'      => { data_type => 'INTEGER', is_nullable => 0 , default_value => 0},
+    #caps now in game table
 );
 __PACKAGE__->set_primary_key('gid', 'entity');
 __PACKAGE__->belongs_to (player => 'basilisk::Schema::Player', 'pid');

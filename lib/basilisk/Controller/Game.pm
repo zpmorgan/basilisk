@@ -309,30 +309,32 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    my $rulemap = $c->stash->{rulemap};
    my $game = $c->stash->{game};
    my $board = $c->stash->{board};
-   my ($caps, $kills, $terr_points); #all [1..2]. these add. kills are negative.
+   my ($caps, $kills, $terr_points); #all {b,w,r}. these add. kills are negative.
    my ($death_mask, $terr_mask);
-   my @p2g = $game->player_to_game; #sides 1..2
-   
    $death_mask = $c->stash->{death_mask};
    ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
    $kills = $rulemap->count_kills($board, $death_mask);
-   my @totalscore;
-   for (1..@p2g-1){ #starts at 1
+   $caps = $game->captures_per_side;
+   
+   my %totalscore; #{b,w,r}
+   my @sides = $game->sides;
+   for (@sides){ #starts at 1
       my $side = $_; # n $_->side;
       #die ref $_->side if ref $side eq 'ARRAY';
-      $caps->[$side] = $p2g[$_]->captures;
-      $totalscore[$side] = $caps->[$side] + $terr_points->[$side] - $kills->[$side];
+      $totalscore{$side} = $caps->{$side} + $terr_points->{$side} - $kills->{$side};
    }
-   $totalscore[2] += 6.5;
-   my $winning_side = largest (@totalscore);
-   #die $totalscore[1];$winning_side;
-   my $result = "b:$totalscore[1], w:$totalscore[2]";
+   $totalscore{1} += 6.5;#bad
+   my $winning_side = hashlargest (%totalscore);
+   my $result = "b:$totalscore{b}, w:$totalscore{w}";
    $game->set_column ('status', Util::FINISHED());
    $game->set_column ('result', $result);
    $game->update();
 }
 #index of largest in list
-sub largest{my ($i,$g,$v)=(-1,-1,-1);for$i(0..$#_){next if!$_;next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
+sub largest{my ($i,$g,$v)=(-1,-1,-1);for$i(0..$#_){next if!defined$_[$i];next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
+
+#index of largest in hash
+sub hashlargest{my%h=@_;my ($i,$g,$v)=(-1,-1,-1);for$i(keys%h){next if!defined$h{$i};next if$h{$i}<$v;$v=$h{$i};$g=$i}return$i}
 
 sub build_rulemap{
    my $c = shift;
@@ -422,9 +424,10 @@ sub do_move{#todo:mv to game class?
    $c->model('DB')->schema->txn_do(  sub{
       die 'Check whether game is finished before do_move!' unless $game->status == Util::RUNNING();
       if ($caps and @$caps){ #update capture count
-         my $p2g = $c->stash->{p2g};#player_to_game
-         $p2g->set_column('captures',$p2g->captures + @$caps); #INT
-         $p2g->update;
+         my @all_caps = split ' ', $game->captures;
+         $all_caps [$game->phase] += @$caps;
+         $game->set_column('captures', join ' ', @all_caps); #INT
+         $game->update;
       }
       unless ($posid){
          my $posrow = $c->model('DB::Position')->create( {
@@ -469,7 +472,7 @@ sub get_game_player_data{ #for game.tt
          name => $p->get_column('name'),
          id => $p->pid,
          time_remaining => $p->expiration,
-         captures => $p->captures,
+         #captures => $p->captures,
       };
    }
    my $terr_points = $c->stash->{terr_points};

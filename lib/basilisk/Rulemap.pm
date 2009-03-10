@@ -26,20 +26,6 @@ use basilisk::Util;
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
 #   subclasses may handle as they will. Rect nodes [$row,$col].
 
-# Also: sides(0 and 1) shouldn't be tied to colors(1 and 2)
-# TODO: This plan:
-# Maybe each game could have a 'phase' to determine who's turn it is 
-# and each ruleset could have a 'phase description' to describe the recurring sequence of turns
-#  default description is  '0b 1w'
-#  maybe handicap would be '1w 0b'
-#  zen's is '0b 1w 2b 0w 1b 2w'
-#  rengo is '0b 1w 2b 3w'
-#  3-color could be '0b 1w 2r'
-# Within a phase description:
-#  b and w are the 'sides'
-#  0 and 1 are the 'entities', mapped to 'entity' col in p2g table
-# Idea: entities could be something other than players, such as 'random' or 'consensus'
-
 #TODO: use these
 has capture_hook => (
    is => 'ro',
@@ -204,39 +190,39 @@ sub find_territory_mask{
    $death_mask ||= {};
    my %seen; #accounts for all empty nodes.
    my %terr_mask;
-   my @terr_points = (undef, 0,0);
+   my %terr_points;# {b,w,r}
    
    for my $node ($self->all_nodes){
       next if $seen{$self->node_to_string($node)};
       my ($empties, $others) = $self->get_empty_space($board, $node, $death_mask);
       next unless @$empties and @$others;
       
-      my $terr_color = $self->stone_at_node ($board, $others->[0]);
+      my $terr_side = $self->stone_at_node ($board, $others->[0]);
       my $is_terr = 1; #true, if this space is someone's territory
       for my $stone (@$others){
          next if $death_mask->{$self->node_to_string($stone)};
-         $is_terr = 0 unless $self->stone_at_node ($board, $stone) == $terr_color;
+         $is_terr = 0 unless $self->stone_at_node ($board, $stone) eq $terr_side;
       }
       for my $e (@$empties){
          $seen{$self->node_to_string($e)} = 1;
          if ($is_terr){
-            $terr_mask{$self->node_to_string($e)} = $terr_color;
-            $terr_points[$terr_color]++;
+            $terr_mask{$self->node_to_string($e)} = $terr_side;
+            $terr_points{$terr_side}++;
          }
       }
    }
-   return (\%terr_mask, \@terr_points);
+   return (\%terr_mask, \%terr_points);
 }
 
 sub count_kills{
    my ($self, $board, $death_mask) = @_;
-   my @kills = (undef, 0,0); #[1..2]
+   my %kills; #{b,w,r}
    for my $deadnodestring (keys %$death_mask){
       my $node = $self->node_from_string ($deadnodestring);
-      my $color = $self->stone_at_node ($board, $node);
-      $kills[$color]++;
+      my $side = $self->stone_at_node ($board, $node);
+      $kills{$side}++;
    }
-   return \@kills;
+   return \%kills;
 }
 
 1;
