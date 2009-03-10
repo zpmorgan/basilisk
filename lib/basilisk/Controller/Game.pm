@@ -318,12 +318,11 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    
    my %totalscore; #{b,w,r}
    my @sides = $game->sides;
-   for (@sides){ #starts at 1
-      my $side = $_; # n $_->side;
-      #die ref $_->side if ref $side eq 'ARRAY';
+   for (0..@sides-1){
+      my $side = $sides[$_];
       $totalscore{$side} = $caps->{$side} + $terr_points->{$side} - $kills->{$side};
    }
-   $totalscore{1} += 6.5;#bad
+   $totalscore{'w'} += 6.5;#bad
    my $winning_side = hashlargest (%totalscore);
    my $result = "b:$totalscore{b}, w:$totalscore{w}";
    $game->set_column ('status', Util::FINISHED());
@@ -333,7 +332,7 @@ sub finish_game{ #This does not check permissions. it just wraps things up
 #index of largest in list
 sub largest{my ($i,$g,$v)=(-1,-1,-1);for$i(0..$#_){next if!defined$_[$i];next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
-#index of largest in hash
+#key of largest in hash
 sub hashlargest{my%h=@_;my ($i,$g,$v)=(-1,-1,-1);for$i(keys%h){next if!defined$h{$i};next if$h{$i}<$v;$v=$h{$i};$g=$i}return$i}
 
 sub build_rulemap{
@@ -415,7 +414,7 @@ sub do_move{#todo:mv to game class?
    }
    else { # it eq ''
       my ($row, $col) = @{$c->stash->{move_node}};
-      $movestring = ($side==1?'b':'w') . " row$row, col$col";
+      $movestring = "$side row$row, col$col";
       $new_pos_data = Util::pack_board($newboard, $h, $w);
       Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
    }
@@ -451,7 +450,7 @@ sub do_move{#todo:mv to game class?
 
 sub get_game_player_data{ #for game.tt
    my ($c) = @_;
-   my @lines;
+   my $game = $c->stash->{game};
    #get player-game data
    my @players = $c->model('DB::Player_to_game')->search( 
       {gid => $c->stash->{gameid}},
@@ -460,30 +459,30 @@ sub get_game_player_data{ #for game.tt
          '+as'     => ['name']
       }
    );
-   
    my @playerdata;
    #put data in hashes in @playerdata for template
+   my $caps = $game->captures_per_side;
    for my $p (@players){
       #todo: calc time remaining, render human readable
-      my $img = ($p->entity==0 ? 'b' : 'w') . '.gif';
+      my $side = $game->side_of_entity($p->entity);
+      my $img = $side . '.gif';
       push @playerdata, {
          entity => $p->entity,
          stone_img => $img,
          name => $p->get_column('name'),
          id => $p->pid,
          time_remaining => $p->expiration,
-         #captures => $p->captures,
+         captures => $caps->{$side},
       };
    }
    my $terr_points = $c->stash->{terr_points};
-   my $cap_points = $c->stash->{terr_points};
    if ($terr_points){ #set territory point display
       #kills are negative.
       my $rulemap = $c->stash->{rulemap};
       my $kills = $rulemap->count_kills($c->stash->{board}, $c->stash->{death_mask});
-      for my $i (1..@$terr_points-1){ #terr_points starts at 1.
-         $playerdata[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$kills->[$i].')'; #+marked caps
-      }
+      #for my $i (1..@$terr_points-1){ #terr_points starts at 1.
+      #   $playerdata[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$kills->[$i].')'; #+marked caps
+      #}
    }
    return \@playerdata;
 }

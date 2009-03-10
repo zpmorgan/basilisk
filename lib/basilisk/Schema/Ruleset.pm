@@ -58,12 +58,13 @@ sub maxdigit {
    my $max = -1;
    for (@_) {$max= $_>$max ?$_ :$max}  $max
 }
+
 sub sides { #returns ('w','r','b'), etc
    my $self = shift;
    my $pd = $self->phase_description;
    my %sides;
    for my $p (split ' ', $pd){
-      $p =~ /(\d)/;
+      $p =~ /([bwr])/;
       $sides {$1} = 1;
    }
    return keys %sides;

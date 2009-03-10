@@ -121,6 +121,10 @@ sub sides{
    my $self = shift;
    return $self->ruleset->sides
 }
+sub phase_description{
+   my $self = shift;
+   return $self->ruleset->phase_description
+}
 sub captures_per_side{ #{w=>3,b=>1}
    my $self = shift;
    my @caps = split ' ', $self->captures;
@@ -128,9 +132,17 @@ sub captures_per_side{ #{w=>3,b=>1}
    my %cps;
    for (0..@phases-1){ #1w
       $phases[$_] =~ /([bwr])/; #w
-      $cps{$1} += $caps[$0];
+      $cps{$1} += $caps[$_];
    }
    return \%cps
+}
+
+sub side_of_entity{ #return undef if zen,etc
+   my ($self, $ent) = @_;
+   my $pd = $self->phase_description;
+   return undef if (scalar $pd =~ /($ent)/g) > 1;
+   $pd =~ /$ent([bwr])/;
+   return $1;
 }
 
 1;
