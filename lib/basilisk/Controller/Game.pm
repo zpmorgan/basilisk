@@ -475,16 +475,22 @@ sub get_game_player_data{ #for game.tt
          captures => $caps->{$side},
       };
    }
+   return \@playerdata;
+}
+
+sub get_score_data{
+   my ($c) = @_;
+   my @score_data;
    my $terr_points = $c->stash->{terr_points};
    if ($terr_points){ #set territory point display
       #kills are negative.
       my $rulemap = $c->stash->{rulemap};
       my $kills = $rulemap->count_kills($c->stash->{board}, $c->stash->{death_mask});
-      #for my $i (1..@$terr_points-1){ #terr_points starts at 1.
-      #   $playerdata[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$kills->[$i].')'; #+marked caps
-      #}
+      for my $i (1..@$terr_points-1){ #terr_points starts at 1.
+         $score_data[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$kills->[$i].')'; #+marked caps
+      }
    }
-   return \@playerdata;
+   
 }
 
 #todo: move url param stuff into tt
@@ -515,8 +521,8 @@ sub render_board_table{
          }
          else {#no stone
             if ($terr) { #territory
-               $image =~ s/\.gif/b\.gif/ if $terr==1;
-               $image =~ s/\.gif/w\.gif/ if $terr==2;
+               $image =~ s/\.gif/b\.gif/ if $terr eq 'b';
+               $image =~ s/\.gif/w\.gif/ if $terr eq 'w';
             }
          }
          $table[$row][$col]->{g} = $image;

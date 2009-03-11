@@ -109,7 +109,7 @@ sub get_empty_space{
       $seen {$nodestring} = 1;
       
       my $here_color = $self->stone_at_node ($board, $node);
-      if ($here_color == 0 or $ignore_stones->{$nodestring}){ #empty
+      if (!$here_color or $ignore_stones->{$nodestring}){ #empty
          push @found, $node;
          push @nodes, $self->node_liberties ($node)
       }
