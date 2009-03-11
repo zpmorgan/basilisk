@@ -1,4 +1,5 @@
 package basilisk::Schema::Ruleset;
+use List::Util;
 use base qw/DBIx::Class/;
 
 # Each game could has a 'phase' to determine who's turn it is 
@@ -40,12 +41,12 @@ sub sqlt_deploy_hook {
     $table->add_index(name => idx_hcp => fields => [qw/handicap/]);
 }
 
-sub num_players{
+sub num_entities{
    my $self = shift;
    my $pd = $self->phase_description;
    #return max digit in desc
    my @digits = $pd =~ /(\d)/g;
-   return maxdigit (@digits)
+   return max(@digits) + 1
 }
 sub num_phases{
    my $self = shift;
@@ -53,10 +54,6 @@ sub num_phases{
    #return num of words in description. '0b 1w' -> 2
    my @phases = split ' ', $pd;
    return scalar @phases;
-}
-sub maxdigit {
-   my $max = -1;
-   for (@_) {$max= $_>$max ?$_ :$max}  $max
 }
 
 sub sides { #returns ('w','r','b'), etc

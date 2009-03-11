@@ -42,6 +42,11 @@ has topology => (
    isa => 'Str',
    default => 'plane'
 );
+has phase_description => (
+   is => 'ro',
+   isa => 'Str',
+   default => '0b 1w'
+);
 
 
 #These must be implemented in a subclass
@@ -191,6 +196,7 @@ sub find_territory_mask{
    my %seen; #accounts for all empty nodes.
    my %terr_mask;
    my %terr_points;# {b,w,r}
+   $terr_points{$_}=0 for $self->all_sides;
    
    for my $node ($self->all_nodes){
       next if $seen{$self->node_to_string($node)};
@@ -214,15 +220,73 @@ sub find_territory_mask{
    return (\%terr_mask, \%terr_points);
 }
 
-sub count_kills{
+sub count_deads{
    my ($self, $board, $death_mask) = @_;
-   my %kills; #{b,w,r}
+   my %deads; #{b,w,r}
+   for ($self->all_sides){
+      $deads{$_} = 0;
+   }
    for my $deadnodestring (keys %$death_mask){
       my $node = $self->node_from_string ($deadnodestring);
       my $side = $self->stone_at_node ($board, $node);
-      $kills{$side}++;
+      $deads{$side}++;
    }
-   return \%kills;
+   return \%deads;
+}
+
+#TODO: moose's roles for different modes
+sub score_mode{
+   my $self = shift;
+   my @phases = split ' ', $self->phase_description;
+   my (%entities, %sides);
+   for (@phases){
+      /(\d)([wbr])/;
+      $entities{$1}++;
+      $sides{$2}++;
+   }
+   return 'ffa' if (@phases == keys %sides)
+}
+
+sub captures_of_side {die'do'}
+sub captures_of_entity{
+   my ($self, $entity, $captures) = @_;
+   die 'wrong score mode' unless $self->score_mode eq 'ffa';
+   my @caps = split ' ', $captures;
+   for my $phase (split ' ', $self->phase_description) {
+      if ($phase =~ m/$entity/){
+         shift @caps
+      }
+      else {
+         return shift @caps
+      }
+   }
+}
+sub side_of_entity{
+   my ($self, $entity) = @_;
+   die 'wrong score mode' unless $self->score_mode eq 'ffa';
+   for my $phase (split ' ', $self->phase_description) {
+      if ($phase =~ m/$entity([wbr])/){
+         return $1;
+      }
+   }
+}
+sub all_entities{
+   my $self = shift;
+   my $pd = $self->phase_description;
+   my %e;
+   while($pd=~/(\d)/g){
+      $e{$1}=1
+   }
+   return keys %e;
+}
+sub all_sides{
+   my $self = shift;
+   my $pd = $self->phase_description;
+   my %s;
+   while($pd=~/([bwr])/g){
+      $s{$1}=1
+   }
+   return keys %s;
 }
 
 1;

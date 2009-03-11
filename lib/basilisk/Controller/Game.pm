@@ -309,22 +309,31 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    my $rulemap = $c->stash->{rulemap};
    my $game = $c->stash->{game};
    my $board = $c->stash->{board};
-   my ($caps, $kills, $terr_points); #all {b,w,r}. these add. kills are negative.
-   my ($death_mask, $terr_mask);
+   my ($death_mask, $terr_mask, $terr_points);
    $death_mask = $c->stash->{death_mask};
    ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
-   $kills = $rulemap->count_kills($board, $death_mask);
-   $caps = $game->captures_per_side;
+   my $deads = $rulemap->count_deads($board, $death_mask);
+   #$caps = $game->captures_per_side;
    
-   my %totalscore; #{b,w,r}
-   my @sides = $game->sides;
-   for (0..@sides-1){
-      my $side = $sides[$_];
-      $totalscore{$side} = $caps->{$side} + $terr_points->{$side} - $kills->{$side};
+   # scoremodes are 'ffa','team', ?other?
+   # is this a bad system?
+   my $result;
+   my $scoremode = $rulemap->score_mode; # ($pd)
+   if ($scoremode eq 'ffa'){
+      my @totalscore;
+      for my $entity ($rulemap->all_entities){ #0,1,etc
+         my $caps = $rulemap->captures_of_entity($entity,$game->captures);
+         my $side = $rulemap->side_of_entity($entity);
+         $totalscore[$entity] = $caps + $terr_points->{$side} - $deads->{$side};
+         $totalscore[$entity] += 6.5 if $side eq 'w';
+      }
+      my $winning_entity = largest (@totalscore);
+      $result = "b:$totalscore[0], w:$totalscore[1]"; #not generic
    }
-   $totalscore{'w'} += 6.5;#bad
-   my $winning_side = hashlargest (%totalscore);
-   my $result = "b:$totalscore{b}, w:$totalscore{w}";
+   else{
+      die 'scoremode neq ffa';
+   }
+   #my %entity_score_data = get_entity_score_data($c);
    $game->set_column ('status', Util::FINISHED());
    $game->set_column ('result', $result);
    $game->update();
@@ -339,6 +348,7 @@ sub build_rulemap{
    my $c = shift;
    my $game = $c->stash->{game};
    my $ruleset = $game->ruleset;
+   my $pd = $ruleset->phase_description;
    my $topo = 'plane';
    my @extra_rules = $ruleset->extra_rules;
    for my $rulerow (@extra_rules){
@@ -352,7 +362,8 @@ sub build_rulemap{
       w => $game->w,
       wrap_ew => ($topo eq 'torus' or $topo eq 'cylinder'),
       wrap_ns => ($topo eq 'torus'),
-      #topology => $topo,
+      topology => $topo,
+      phase_description => $pd,
    );
    $c->stash->{rulemap} = $rulemap;
 }
@@ -451,6 +462,7 @@ sub do_move{#todo:mv to game class?
 sub get_game_player_data{ #for game.tt
    my ($c) = @_;
    my $game = $c->stash->{game};
+   my $rulemap = $c->stash->{rulemap};
    #get player-game data
    my @players = $c->model('DB::Player_to_game')->search( 
       {gid => $c->stash->{gameid}},
@@ -461,7 +473,6 @@ sub get_game_player_data{ #for game.tt
    );
    my @playerdata;
    #put data in hashes in @playerdata for template
-   my $caps = $game->captures_per_side;
    for my $p (@players){
       #todo: calc time remaining, render human readable
       my $side = $game->side_of_entity($p->entity);
@@ -472,8 +483,15 @@ sub get_game_player_data{ #for game.tt
          name => $p->get_column('name'),
          id => $p->pid,
          time_remaining => $p->expiration,
-         captures => $caps->{$side},
       };
+   }
+   if ($rulemap->score_mode eq 'ffa'){
+      my $caps = $game->captures;
+      for my $entitydata (@playerdata){
+         $entitydata->{captures} = $rulemap->captures_of_entity 
+                                    ($entitydata->{entity}, 
+                                    $caps);
+      }
    }
    return \@playerdata;
 }
@@ -485,9 +503,9 @@ sub get_score_data{
    if ($terr_points){ #set territory point display
       #kills are negative.
       my $rulemap = $c->stash->{rulemap};
-      my $kills = $rulemap->count_kills($c->stash->{board}, $c->stash->{death_mask});
+      my $deads = $rulemap->count_deads($c->stash->{board}, $c->stash->{death_mask});
       for my $i (1..@$terr_points-1){ #terr_points starts at 1.
-         $score_data[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$kills->[$i].')'; #+marked caps
+         $score_data[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$deads->[$i].')'; #+marked caps
       }
    }
    

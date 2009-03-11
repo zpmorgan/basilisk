@@ -44,7 +44,6 @@ sub player_to_move_next{
 }
 sub shift_phase{
    my $self = shift;
-   #my $num_players = $self->num_players;
    my $np = $self->ruleset->num_phases;
    $self->set_column('phase', ($self->phase + 1) % $np);
    $self->set_column('num_moves', $self->num_moves + 1);
@@ -57,9 +56,9 @@ sub turn{ #return 'who' and 'what'
    my ($entity, $side) = split '', $phases[$self->phase];
    return ($entity, $side);
 }
-sub num_players{
+sub num_entities{
    my $self = shift;
-   return $self->ruleset->num_players;
+   return $self->ruleset->num_entities;
 }
 sub num_phases{
    my $self = shift;
@@ -125,17 +124,7 @@ sub phase_description{
    my $self = shift;
    return $self->ruleset->phase_description
 }
-sub captures_per_side{ #{w=>3,b=>1}
-   my $self = shift;
-   my @caps = split ' ', $self->captures;
-   my @phases = split ' ', $self->phase_description;
-   my %cps;
-   for (0..@phases-1){ #1w
-      $phases[$_] =~ /([bwr])/; #w
-      $cps{$1} += $caps[$_];
-   }
-   return \%cps
-}
+
 
 sub side_of_entity{ #return undef if zen,etc
    my ($self, $ent) = @_;
