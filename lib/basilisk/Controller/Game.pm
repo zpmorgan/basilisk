@@ -56,11 +56,9 @@ sub render: Private{
    my ($rulemap, $board, $game) = @{$c->stash}{qw/rulemap board game/};
    
    unless ($c->stash->{board_clickable}){ #default: determine level of interaction with game
-      my $err = seek_permission_to_move($c);
-      unless ($err){ #your turn
+      if ($c->forward ('permission_to_move')){ #your turn
          $c->stash->{board_clickable} = 1;
-         $err = seek_permission_to_mark_dead($c);
-         unless ($err){ #mark dead
+         if ($c->forward('permission_to_mark_dead')){ #mark dead
             $c->stash->{marking_dead_stones} = 1;
             my ($deadgroups, $deathmask) = get_marked_dead_from_last_move ($c);
             if ($deadgroups){
@@ -110,17 +108,16 @@ sub view : Chained('game') {
 
 sub move : Chained('game') Args(1){ #evaluate & do move:
    my ($self, $c, $nodestring) = @_;
-   my $err = seek_permission_to_move($c);
-   if ($err){
-      action_abort ($c, "permission fail: $err");
-      return;
+   unless ($c->forward ('permission_to_move')){
+      $c->stash->{msg} = "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
    }
    #extract coordinates from url:
    $c->stash->{move_node} = $c->stash->{rulemap}->node_from_string ($nodestring);
-   my ($err2, $newboard, $caps) = evaluate_move($c);
-   if ($err2){
-      action_abort ($c, "move is failure: $err2");
-      return;
+   my ($newboard, $caps) = evaluate_move($c);
+   unless ($newboard){
+      $c->stash->{msg} = "move is failure: ".$c->stash->{whynot};
+      $c->detach('render');
    }
    #alter db
    do_move ($c, '', $newboard, $caps);
@@ -130,10 +127,9 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
 }
 sub pass : Chained('game') { #evaluate & do pass: Args(0)
    my ($self, $c) = @_;
-   my $err = seek_permission_to_move($c);
-   if ($err){
-      action_abort ($c, "permission fail: $err");
-      return;
+   unless ($c->forward ('permission_to_move')){
+      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
    }
    do_move ($c, 'pass');
    #$c->stash->{board} = $board; #ALREADY_IN_STASH
@@ -146,10 +142,9 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
    my ($self, $c, $mark, $nodestring, $also_dead) = @_;
    die "no $mark" unless $mark eq 'dead' or $mark eq 'alive';
    
-   my $err = seek_permission_to_mark_dead($c);
-   if ($err){
-      action_abort ($c, "permission fail: $err");
-      return;
+   unless ($c->forward('permission_to_mark_dead')){
+      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
    }
    $c->stash->{marking_dead_stones} = 1;
    $c->stash->{board_clickable} = 1;
@@ -182,10 +177,9 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
 sub action_submit_dead_selection: PathPart('submit') Chained('game'){ 
    my ($self, $c, $deadstring) = @_;
    $deadstring ||= '';
-   my $err = seek_permission_to_mark_dead($c);
-   if ($err){
-      action_abort ($c, "permission fail: $err");
-      $c->detach('render')
+   unless ($c->forward('permission_to_mark_dead')){
+      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
    }
    my $game = $c->stash->{game};
    do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
@@ -214,10 +208,9 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
 #to place a stone instead of scoring after 2+ passes:
 sub wants_to_stop_scoring : PathPart('continue') Chained('game'){ 
    my ($self, $c) = @_;
-   my $err = seek_permission_to_move($c);
-   if ($err){
-      action_abort ($c, "permission fail: $err");
-      return;
+   unless ($c->forward ('permission_to_move')){
+      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
    }
    $c->stash->{board_clickable} = 1;
    $c->forward('render');
@@ -229,65 +222,74 @@ sub invalid_request : Private{
    $c->stash->{template} = 'message.tt';
 }
 
-sub action_abort{ #not an action. this aborts the action.
-   my ($c, $err) = @_;
-   $c->stash->{msg} = $err;
-   #$c->stash->{template} = 'message.tt';
-   $c->detach('render')
-}
-
 #returns error string if error. #TODO: these could return true, or set some stash error var
-sub seek_permission_to_move{
-   my $c = shift;
-   return 'not logged in' unless $c->session->{logged_in};
-   return 'not registered' if $c->session->{userid} == 1;
+sub permission_to_move : Private{
+   my ($self, $c) = @_;
+   $c->stash->{whynot} = '';
+   $c->stash->{whynot} = 'not logged in' unless $c->session->{logged_in};
+   $c->stash->{whynot} = 'not registered' if $c->session->{userid} == 1;
+   return 0 if $c->stash->{whynot};
    my $game = $c->stash->{game};
-   return 'Game is already finished!' unless $game->status == Util::RUNNING();
-   
+   unless ($game->status == Util::RUNNING()){
+      $c->stash->{whynot} = 'Game is already finished!';
+      return 0
+   }
    my ($entity, $side) = $game->turn;
    my $gid = $game->id;
    my $p = $c->model('DB::player_to_game')->find( {
        gid => $gid,
        entity => $entity,
    }); 
-   return "entity $entity not found for game $gid" unless $p;
-   return 'not your turn.' unless $c->session->{userid} == $p->pid;
+   $c->stash->{whynot} = "entity $entity not found for game $gid" unless $p;
+   $c->stash->{whynot} = 'not your turn.' unless $c->session->{userid} == $p->pid;
+   return 0 if $c->stash->{whynot};
+   
    #success
    #return 'strange' unless $entity == $p->entity;
    $c->stash->{p2g} = $p;
    $c->stash->{entity} = $entity;
    $c->stash->{side} = $side;
-   return ''
+   return 1
 }
    
-sub seek_permission_to_mark_dead{ #returns err if err
-   my $c = shift;
-   my $err = seek_permission_to_move($c);
-   return $err if $err;
+sub permission_to_mark_dead : Private{ #returns err if err
+   my ($self, $c) = @_;
+   return 0 unless ($c->forward ('permission_to_move'));
    #last 2 moves should be passes to start scoring process
-   $err = last_move_was_score($c);
-   return '' unless $err;
-   $err = prev_p_moves_were_passes($c);
-   return $err
+   return 1 if $c->forward('last_move_was_score');
+   return 1 if $c->forward('prev_p_moves_were_passes');
+   return 0;
 }
-sub last_move_was_score{
-   my $c = shift;
+sub last_move_was_score : Private{
+   my ($self,$c) = @_;
    my $game = $c->stash->{game};
    my $nummoves = $game->num_moves;
-   return 'You hound! You just started!' unless $nummoves >= 3;
+   unless ($nummoves >= 3){ #impossible--require 2 pass moves + 1 score move
+      $c->stash->{whynot} = 'You hound! You just started!';
+      return 0;
+   }
    my $prevmovestring = $game->moves->find ({movenum => $nummoves})->movestring;
-   return 'lastmove not score' unless $prevmovestring eq 'submit_dead_selection';
-   return '';
+   unless ($prevmovestring eq 'submit_dead_selection'){
+      $c->stash->{whynot} = 'lastmove not score';
+      return 0;
+   }
+   return 1;
 }
 #returns explanation if no, '' if yes
-sub prev_p_moves_were_passes { #p=2players
-   my $c = shift;
+sub prev_p_moves_were_passes : Private { #p=2players
+   my ($self,$c) = @_;
    my $game = $c->stash->{game};
    my $nummoves = $game->num_moves;
-   return 'You hound! You just started!' unless $nummoves >= 2;
-   return 'lastmove not pass' unless $game->moves->find ({movenum => $nummoves})->movestring eq 'pass';
-   return '2nd-to-lastmove not pass' unless $game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass';
-   return '';
+   unless ($nummoves >= 2){
+      $c->stash->{whynot} = 'You hound! You just started!';
+      return 0}
+   unless ($game->moves->find ({movenum => $nummoves})->movestring eq 'pass'){
+      $c->stash->{whynot} = 'lastmove not pass';
+      return 0}
+   unless ($game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass'){
+      $c->stash->{whynot} = '2nd-to-lastmove not pass';
+      return 0}
+   return 1;
 }
 sub get_marked_dead_from_last_move{ #returns mask,stringofgroups
    my $c = shift;
@@ -397,11 +399,15 @@ sub evaluate_move{
    #find next board position:
    my ($newboard, $err, $caps) = $c->stash->{rulemap}->evaluate_move
          ($board,$node,$side);
-   return $err unless $newboard;
-   if (detect_duplicate_position($c, $newboard)){
-      return 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum
+   unless ($newboard){
+      $c->stash->{whynot} = $err;
+      return
    }
-   return ('',$newboard, $caps);#no err
+   if (detect_duplicate_position($c, $newboard)){
+      $c->stash->{whynot} = 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum;
+      return;
+   }
+   return ($newboard, $caps);#no err
 }
 #die join';',map{@$_}@$libs; #err list of coordinates
 
