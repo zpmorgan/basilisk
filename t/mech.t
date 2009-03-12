@@ -3,6 +3,7 @@ use warnings;
 
 use Test::More tests => 12;
 
+$ENV{CATALYST_DEBUG}=0; 
 use_ok 'Test::WWW::Mechanize::Catalyst' => 'basilisk';
 
 my $mech = Test::WWW::Mechanize::Catalyst->new;
