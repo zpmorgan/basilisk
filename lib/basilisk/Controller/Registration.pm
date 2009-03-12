@@ -36,7 +36,7 @@ sub login :Global{
       $c->stash->{message} = 'login successful';
       $c->stash->{template} = 'message.tt';
       $c->session->{name} = $username;
-      $c->session->{player} = $c->model('DB::Player')->find (name=>$username);
+      $c->session->{player} = $c->model('DB::Player')->find ({name=>$username});
       $c->session->{userid} = $c->session->{player}->id;
       $c->session->{logged_in} = 1;
       return;
