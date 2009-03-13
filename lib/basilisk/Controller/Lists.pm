@@ -48,10 +48,7 @@ sub get_list_of_games{
       if ($playername){#only look at this player's games
          my $p = $c->model('DB::Player')->find ({name=>$playername});
          return 'nosuchplayer' unless $p;
-         my $relevant_p2g = $c->model('DB::Player_to_game')->search(
-            {'me.pid' => $p->id},
-            #{select => ['me.pid'], as => ['blah']}
-         );
+         my $relevant_p2g = $p->search_related('player_to_game', {});
          $games_rs = $relevant_p2g->search_related('game',
               $gamesearch_constraints, 
               {rows => $pagesize,
@@ -268,7 +265,6 @@ sub waiting_room :Global{
 sub status :Global{
    my ( $self, $c ) = @_;
    $c->stash->{title} = $c->session->{name} . '\'s status';
-   #$c->stash->{username} = $c->session->{name};
    $c->stash->{'template'} = 'status.tt';
 }
 

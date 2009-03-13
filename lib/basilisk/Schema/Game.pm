@@ -71,7 +71,7 @@ sub num_phases{
 sub last_move{ #'pass' or 'b t4' etc
    my $self = shift;
    my $mvnum = $self->num_moves;
-   return $self->moves->find ({movenum => $mvnum});
+   return $self->find_related ('moves', {movenum => $mvnum});
 }
 sub last_move_string{ #'pass' or 'b t4' etc
    my $c = shift;
@@ -99,8 +99,7 @@ sub current_position{
 sub current_position_id{
    my $self = shift;
    return 0 if $self->num_moves == 0;
-   my $move = $self->moves->find({
-      gid => $self->id,
+   my $move = $self->find_related ('moves', {
       movenum => $self->num_moves,
    });
    return $move->position->id;

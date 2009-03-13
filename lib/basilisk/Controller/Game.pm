@@ -184,7 +184,7 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
    my $game = $c->stash->{game};
    do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
    #Should game end?
-   my @prev_2_moves = $game->moves->search ({}, {
+   my @prev_2_moves = $game->search_related ('moves', {}, {
       order_by=>'movenum DESC',
       rows => 2});
    #this is very much not generic!
@@ -375,11 +375,11 @@ sub detect_duplicate_position{
    my $h = $c->stash->{game}->h;
    my $w = $c->stash->{game}->w;
    my $newpos = Util::pack_board($newboard, $h, $w);
+   my $game = $c->stash->{game};
    
    #search position table for the same board state from the same game
-   my $oldmove = $c->model('DB::Move')->find (
+   my $oldmove = $game->find_related ( 'moves',
      {
-      gid => $c->stash->{game}->id,
       'position.position' => $newpos,
      },{
       'join' => 'position',
