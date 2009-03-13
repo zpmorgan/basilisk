@@ -41,7 +41,7 @@ Info on proposal [%proposal_info.id%]:<br>
    <td>[% proposal_info.quantity %]</td>
   </tr>
   <tr>
-   <td colspan="2" align="center">  <a href=[%url_base%]/waiting_room?action=join&wgameid=[%proposal_info.id%]>Join!</a>  <td>
+   <td colspan="2" align="center">  <a href=[%url_base%]/waiting_room?action=join&wgameid=[%proposal_info.id%]>Join!</a>  </td>
   </tr> 
  </table>
 

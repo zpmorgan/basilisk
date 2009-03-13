@@ -6,7 +6,37 @@
  </tr>
  
  
- <tr>
+ <script language="javascript" type="text/javascript">
+   function changeBoardSettings (form){
+      var type = form.topology.value;
+      //alert (type);
+      document.getElementById('h setting').style.display = "none";
+      document.getElementById('w setting').style.display = "none";
+      document.getElementById('poly setting').style.display = "none";
+      switch (type) {
+       case 'poly':
+         document.getElementById('poly setting').style.display = "";
+         break;
+       default: //grid
+         document.getElementById('h setting').style.display = "";
+         document.getElementById('w setting').style.display = "";
+         break;
+      }
+   }
+ </script>
+ 
+  <tr>
+   <td align="right">Topology:</td>
+   <td align="left">
+     <SELECT name="topology" size="1" onChange="changeBoardSettings(this.form)">
+      <OPTION value="plane">Plane</OPTION>
+      <OPTION value="cylinder">Cylinder</OPTION>
+      <OPTION value="torus">Torus</OPTION>
+      <OPTION value="poly">Polyhedron</OPTION>
+     </SELECT></td>
+  </tr>
+  
+  <tr id="h setting">
    <td align="right">Board height:</td>
    <td align="left"><SELECT name="h" size="1">
       <OPTION value="5">5</OPTION>
@@ -34,7 +64,7 @@
       <OPTION value="25">25</OPTION>
      </SELECT></td>
   </tr>
- <tr>
+  <tr id="w setting">
    <td align="right">Board width:</td>
    <td align="left"><SELECT name="w" size="1">
       <OPTION value="5">5</OPTION>
@@ -62,18 +92,17 @@
       <OPTION value="25">25</OPTION>
      </SELECT></td>
   </tr>
-  
-  
-  
-  <tr>
-   <td align="right">Topology:</td>
-   <td align="left"><SELECT name="topology" size="1">
-      <OPTION value="plane">Plane</OPTION>
-      <OPTION value="cylinder">Cylinder</OPTION>
-      <OPTION value="torus">Torus</OPTION>
-      <OPTION value="C20">C20</OPTION>
-     </SELECT></td>
+  <tr id="poly setting" style="display:none">
+   <td>
+      Shape
+   </td>
+   <td>
+      C20
+   </td>
   </tr>
+  
+  
+  
   <tr>
    <td colspan="2" align="center">  <INPUT type="submit" name="add_game" value="Add Game">  </td>
   </tr>
