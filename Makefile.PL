@@ -19,6 +19,7 @@ requires 'DBD::SQLite';
 requires 'Test::More';
 requires 'Mouse';
 requires 'Test::WWW::Mechanize::Catalyst';
+requires 'XML::Atom::SimpleFeed';
 
 catalyst;
 

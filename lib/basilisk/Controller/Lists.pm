@@ -3,6 +3,7 @@ package basilisk::Controller::Lists;
 use strict;
 use warnings;
 use parent 'Catalyst::Controller';
+use XML::Atom::SimpleFeed;
 __PACKAGE__->config->{namespace} = '';
 
 #inbox, etc
@@ -52,7 +53,7 @@ sub get_list_of_games{
          $games_rs = $relevant_p2g->search_related('game',
               $gamesearch_constraints, 
               {rows => $pagesize,
-               }#select => ['game.id'], as => ['gid'] }
+               }
          )->page($page);
          $gid_col = 'game.id'; 
       }
@@ -60,7 +61,7 @@ sub get_list_of_games{
          $games_rs = $c->model('DB::Game')->search(
               $gamesearch_constraints, 
               {rows=>$pagesize,
-               }#'+select' => ['id'], '+as' => ['id']}
+               }
          )->page($page);
          $gid_col = 'me.id';
       }
@@ -117,6 +118,74 @@ sub games :Global{
    $c->stash->{template} = 'all_games.tt';
    my $games_data = get_list_of_games ($c,0, $player); 
    $c->stash->{games_data} = $games_data #this is for template
+}
+
+#All waiting games
+sub games_rss : Global{
+   my ( $self, $c, $player) = @_;
+   my @games;
+   my %opponents;
+   $c->model('DB')->schema->txn_do( sub{
+      my $p = $c->model('DB::Player')->find ({name=>$player});
+      return 'nosuchplayer' unless $p;
+      my $relevant_p2g = $p->search_related('player_to_game', {});
+      my $games = $relevant_p2g->search_related ('game', 
+      {
+         status => Util::RUNNING(),
+      },
+      {
+         join => ['ruleset'],
+         select => ['entity', 'phase', 'game.id', 'ruleset.phase_description'],
+         as =>     ['entity', 'phase', 'gid', 'pd'],
+      });
+      #find opponents:
+      my @all_p2g = $games->search_related ('player_to_game',
+         {},
+         {
+            join => ['player'],
+            select => ['game.id', 'player.name'],
+            as => ['gid', 'name'],
+         }
+      );
+      for (@all_p2g){ # opponents per game
+         my $opponent_name = $_->get_column ('name');
+         next if $opponent_name eq $player;
+         my $gid = $_->get_column ('gid');
+         push @{$opponents{$gid}}, $opponent_name;
+      }
+      @games = grep {entity_to_move($_->get_columns())} $games->all;
+      #$c->stash->{games} = \@games;
+      #$c->stash->{template} = 'games_rss.tt'
+   });
+   my $feed = XML::Atom::SimpleFeed->new( #TODO: make this a View
+      title   => 'Your waiting basilisk games',
+    #  link    => 'http://example.org/',
+    #  link    => { rel => 'self', href => 'http://example.org/atom', },
+    #  updated => '2003-12-13T18:30:02Z',
+      author  => 'basilisk',
+      id      => 'urn:uuid:d090fc40-0f95-11de-b50f-0002a5d5c51b',
+   );
+   my %seen_games;
+   for (@games){
+      my $gid = $_->get_column('gid');
+      next if $seen_games{$gid}++;
+      my $opponent = $opponents{$gid} 
+                  ?  join (', ', @{$opponents{$gid}}) 
+                  :  "$player!";
+      $feed->add_entry(
+         title     => $opponent,
+         link      => 'http://span.uncg.edu/basilisk/go/game/'.$gid,
+      );
+   }
+   $c->response->content_type ('text/xml');
+   $c->response->body ($feed->as_string);
+   #doesnt use a template
+}
+sub entity_to_move{
+   my %d = @_;
+   my $p = (split ' ', $d{pd})[$d{phase}];
+   $p =~ /(\d)/;
+   return $1 == $d{phase};
 }
 
 
