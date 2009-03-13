@@ -41,7 +41,6 @@ my $new_ruleset = $ruleset_rs->create({h=>6,w=>6}); #default everything
 my $game_rs = $schema->resultset('Game');
 my $new_game = $game_rs->create({
    ruleset => $new_ruleset->id,
-   captures => '0 0',
 });
 
 my $p2g_rs = $schema->resultset('Player_to_game');
@@ -86,7 +85,6 @@ my $pos_row = $schema->resultset('Position')->create({
 my $new_game_2 = $game_rs->create({
    ruleset => $ruleset_2->id,
    initial_position => $pos_row->id,
-   captures => '0 0',
 });
 #give cannon both sides.
 $p2g_rs->create({
@@ -120,7 +118,6 @@ my $pos_row3 = $schema->resultset('Position')->create({
 my $new_game_3 = $game_rs->create({
    ruleset => $ruleset_2->id,
    initial_position => $pos_row3->id,
-   captures => '0 0',
 });
 #give cannon both sides again.
 $p2g_rs->create({

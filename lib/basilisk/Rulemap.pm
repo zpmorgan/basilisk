@@ -251,6 +251,7 @@ sub captures_of_side {die'do'}
 sub captures_of_entity{
    my ($self, $entity, $captures) = @_;
    die 'wrong score mode' unless $self->score_mode eq 'ffa';
+   unless (defined $captures) {$captures = $self->default_captures}
    my @caps = split ' ', $captures;
    for my $phase (split ' ', $self->phase_description) {
       if ($phase =~ m/$entity/){
@@ -287,6 +288,12 @@ sub all_sides{
       $s{$1}=1
    }
    return keys %s;
+}
+
+sub default_captures {#for before move 1
+   my $self = shift;
+   my @phases = split ' ', $self->phase_description;
+   return join ' ', map {0} (1..@phases) #'0 0'
 }
 
 1;

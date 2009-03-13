@@ -315,7 +315,6 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    $death_mask = $c->stash->{death_mask};
    ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
    my $deads = $rulemap->count_deads($board, $death_mask);
-   #$caps = $game->captures_per_side;
    
    # scoremodes are 'ffa','team', ?other?
    # is this a bad system?
@@ -324,7 +323,7 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    if ($scoremode eq 'ffa'){
       my @totalscore;
       for my $entity ($rulemap->all_entities){ #0,1,etc
-         my $caps = $rulemap->captures_of_entity($entity,$game->captures);
+         my $caps = $rulemap->captures_of_entity($entity, $game->captures);
          my $side = $rulemap->side_of_entity($entity);
          $totalscore[$entity] = $caps + $terr_points->{$side} - $deads->{$side};
          $totalscore[$entity] += 6.5 if $side eq 'w';
@@ -419,6 +418,7 @@ sub do_move{#todo:mv to game class?
    my $side = $c->stash->{side}; #1 if B,2 if W
    my $h = $c->stash->{game}->h;
    my $w = $c->stash->{game}->w;
+   my $rulemap = $c->stash->{rulemap};
    my $posid; #maybe we reuse last one
    
    #determine move string and new position
@@ -435,16 +435,22 @@ sub do_move{#todo:mv to game class?
       $new_pos_data = Util::pack_board($newboard, $h, $w);
       Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
    }
+   my $captures = $game->captures;
+   my $new_captures =
    
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
       die 'Check whether game is finished before do_move!' unless $game->status == Util::RUNNING();
+      
+      my $captures = $game->captures;
+      unless (defined $captures) {$captures = $rulemap->default_captures}
+      my $new_captures = $captures;
       if ($caps and @$caps){ #update capture count
-         my @all_caps = split ' ', $game->captures;
-         $all_caps [$game->phase] += @$caps;
-         $game->set_column('captures', join ' ', @all_caps); #INT
-         $game->update;
+         my @phase_caps = split ' ', $game->captures;
+         $phase_caps[$game->phase] += @$caps;
+         $new_captures = join ' ', @phase_caps;
       }
+      
       unless ($posid){
          my $posrow = $c->model('DB::Position')->create( {
             ruleset => $c->stash->{ruleset}->id,
@@ -452,13 +458,14 @@ sub do_move{#todo:mv to game class?
          });
          $posid = $posrow->id;
       }
-      my $moverow = $c->model('DB::Move')->create( {
-         gid => $game->id,
+      my $moverow = $game->create_related( 'moves',
+      {
          position_id => $posid,
          movestring => $movestring,
          movenum => $game->num_moves+1,
          time => time,
          dead_groups => $deadgroups,
+         captures => $new_captures,
       });
       $game->shift_phase; #b to w, etc num_moves++
    });
@@ -470,8 +477,8 @@ sub get_game_player_data{ #for game.tt
    my $game = $c->stash->{game};
    my $rulemap = $c->stash->{rulemap};
    #get player-game data
-   my @players = $c->model('DB::Player_to_game')->search( 
-      {gid => $c->stash->{gameid}},
+   my @players = $game->search_related( 'player_to_game',
+      {},
       {join => 'player',
          '+select' => ['player.name'],
          '+as'     => ['name']

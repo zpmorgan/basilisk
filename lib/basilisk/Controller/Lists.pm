@@ -166,8 +166,8 @@ sub create_game{
    $c->model('DB')->schema->txn_do( sub{
       $game = $c->model('DB::Game')->create({
          ruleset => $ruleset_id,
-         captures => '0 0',
-        # phase => 0,
+        # captures => '0 0', #caps in move table now
+        # phase => 0, #as default.
       });
       $c->model('DB::Player_to_game')->create({
          gid => $game->id,

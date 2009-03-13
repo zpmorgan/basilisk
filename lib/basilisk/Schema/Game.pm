@@ -15,12 +15,10 @@ __PACKAGE__->add_columns(
     'ruleset'        => { data_type => 'INTEGER', is_nullable => 0 },
     'status'        => { data_type => 'INTEGER', default_value => 1 },
     'result'        => { data_type => 'TEXT', is_nullable => 1 },
-    'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
+    #'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
     'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
     #phase-- rule description is in ruleset
     'phase' => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
-    #captures--space separated string, has sum of all captures per phase
-    'captures' => { data_type => 'TEXT', is_nullable => 0} #'0 0'
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -32,13 +30,18 @@ __PACKAGE__->belongs_to (initial_pos => 'basilisk::Schema::Position', 'initial_p
 
 sub sqlt_deploy_hook { #indices
     my($self, $table) = @_;
-    $table->add_index(name => idx_game => fields => [qw/num_moves/]);
+    $table->add_index(name => idx_status => fields => [qw/status/]);
 }
+sub num_moves{
+   my $self = shift;
+   return $self->count_related('moves');
+}
+
 #unused:
 sub player_to_move_next{
    my $self = shift;
    my ($entity, $side) = $self->turn;
-   my $player = $self->players->find ({entity => $entity});
+   my $player = $self->find_related ('players', {entity => $entity});
    return $player if $player;
    die "no player as entity $entity in game ".$self->id;
 }
@@ -46,7 +49,7 @@ sub shift_phase{
    my $self = shift;
    my $np = $self->ruleset->num_phases;
    $self->set_column('phase', ($self->phase + 1) % $np);
-   $self->set_column('num_moves', $self->num_moves + 1);
+ #  $self->set_column('num_moves', $self->num_moves + 1);
    $self->update;
 }
 sub turn{ #return 'who' and 'what'
@@ -132,6 +135,13 @@ sub side_of_entity{ #return undef if zen,etc
    return undef if (scalar $pd =~ /($ent)/g) > 1;
    $pd =~ /$ent([bwr])/;
    return $1;
+}
+
+sub captures{
+   my ($self, $move) = @_;
+   my $last_move = $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
+   return $last_move->captures if $last_move;
+   return join ' ', map {'0'} (1..$self->num_phases); '0 0';
 }
 
 1;
