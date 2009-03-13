@@ -255,10 +255,10 @@ sub captures_of_entity{
    my @caps = split ' ', $captures;
    for my $phase (split ' ', $self->phase_description) {
       if ($phase =~ m/$entity/){
-         shift @caps
+         return shift @caps
       }
       else {
-         return shift @caps
+         shift @caps
       }
    }
 }
