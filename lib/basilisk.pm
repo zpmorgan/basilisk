@@ -44,31 +44,5 @@ __PACKAGE__->config( name => 'basilisk' );
 __PACKAGE__->setup();
 
 
-=head1 NAME
-
-basilisk - Catalyst based application
-
-=head1 SYNOPSIS
-
-    script/basilisk_server.pl
-
-=head1 DESCRIPTION
-
-[enter your description here]
-
-=head1 SEE ALSO
-
-L<basilisk::Controller::Root>, L<Catalyst>
-
-=head1 AUTHOR
-
-Zach Morgan,,,
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;

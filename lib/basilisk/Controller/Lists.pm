@@ -185,7 +185,7 @@ sub entity_to_move{
    my %d = @_;
    my $p = (split ' ', $d{pd})[$d{phase}];
    $p =~ /(\d)/;
-   return $1 == $d{phase};
+   return $1 == $d{entity};
 }
 
 

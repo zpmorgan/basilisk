@@ -21,8 +21,8 @@
    }
    
    function draw() {
-      if (!bg.complete){return;}
       if (!require_draw){return;}
+      if (!bg.complete){return;}
       require_draw = 0;
       var canvas = document.getElementById("board");
       var ctx = canvas.getContext("2d");
