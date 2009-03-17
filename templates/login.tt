@@ -14,6 +14,6 @@ And here's a login form:
    <input name="passwd" tabindex="2" size="16" maxlength="16" type="password"><br>
    <input name="login" value="Log in" tabindex="3" type="submit">
 </form>
-Or, go <a href="[%url_base%]register">here</a> to register a new account.<br><br>
+Or, go <a href="[%url_base%]/register">here</a> to register a new account.<br><br>
 
 [% INCLUDE footer %]
