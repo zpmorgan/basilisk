@@ -67,7 +67,9 @@ sub compute_rating{
    return ($new_r, $new_rd, $new_rv)
 }
 
-
 sub default_rating{
    return (0, 2, 0.06); #r,rd,rv
 }
+
+
+
