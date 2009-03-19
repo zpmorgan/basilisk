@@ -2,11 +2,14 @@
 
 [% size = board_data.size %]
 [% MACRO coordinate_letter_row BLOCK %]
+ [% reverse = base AND twist_ns %]
   <tr>
    <td><img src="[%img_base%]/blank.gif" width="31" height="25"> </td>
    [% c=0; WHILE c < w -%]
-    <td> <img src="[%img_base%]/c[% c_letter(c) %].gif"> </td>
-   [% c=c+1;END -%]
+     [% IF reverse; letter = c_letter(w-c- 1); ELSE; letter = c_letter(c); END -%]
+     <td> <img src="[%img_base%]/c[% letter %].gif"> </td>
+    [% c=c+1; -%]
+   [% END -%]
    <td><img src="[%img_base%]/blank.gif" width="31" height="25"> </td>
   </tr>
 [% END %]
@@ -18,7 +21,7 @@
 
 
 <table class="Goban" style="background-image: url([%img_base%]/wood.gif);">
- [% coordinate_letter_row %]
+ [% coordinate_letter_row(base=0) %]
  [% FOREACH row = board_data -%]
   <tr>
   [% row_number_cell(loop.count) %]
@@ -32,5 +35,5 @@
   [% row_number_cell(loop.count) %]
   </tr>
  [% END %]
- [% coordinate_letter_row %]
+ [% coordinate_letter_row(base=1) %]
 </table>
