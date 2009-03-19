@@ -9,8 +9,8 @@ __PACKAGE__->add_columns(
     'priority'   => { data_type => 'INTEGER', is_nullable => 0},
 );
     #boolean rules: 
-    #'wrap_ns'
-    #'wrap_ew'
+    #'wrap_ns' OR 'twist_ns'
+    #'wrap_ew' OR 'twist_ew'
     #'dark'
     #  -- visibility & collisions are related parameters
 

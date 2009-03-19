@@ -13,6 +13,8 @@ sub RUNNING {1}
 sub FINISHED {2}
 sub PAUSED {3}
 
+our @acceptable_topo = qw/plane cylinder torus mobius klein/;
+
 #rect-only stuff--mv to rulemap::rect.
 
 sub empty_pos{ #create a long string of unset bits

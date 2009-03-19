@@ -22,6 +22,16 @@ has wrap_ew => (
    isa => 'Bool',
    default => 0,
 );
+has twist_ns => ( #twisting is for mobius/klein
+   is => 'ro',
+   isa => 'Bool',
+   default => 0,
+);
+has twist_ew => (
+   is => 'ro',
+   isa => 'Bool',
+   default => 0,
+);
 
 sub evaluate_move{
    my ($self, $board, $node, $side) = @_;
@@ -86,23 +96,31 @@ sub node_liberties{
    my ($self, $node) = @_;
    my ($row, $col) = @$node;
    my @nodes;
-   if ($self->{wrap_ns}){
+   if ($self->wrap_ns){
       push @nodes, [($row-1)% $self->h, $col];
       push @nodes, [($row+1)% $self->h, $col];
    }
    else{
       push @nodes, [$row-1, $col] unless $row == 0;
       push @nodes, [$row+1, $col] unless $row == $self->h-1;
+      if ($self->twist_ns){ #klein, etc.
+         push @nodes, [($row-1)% $self->h, ($self->w-1)- $col] if $row == 0;
+         push @nodes, [($row+1)% $self->h, ($self->w-1)- $col] if $row == $self->h-1;
+      }
    }
    
-   if ($self->{wrap_ew}){
+   if ($self->wrap_ew){
       push @nodes, [$row, ($col-1)% $self->w];
       push @nodes, [$row, ($col+1)% $self->w];
    }
    else{
       push @nodes, [$row, $col-1] unless $col == 0;
       push @nodes, [$row, $col+1] unless $col == $self->w-1;
-   }
+      if ($self->twist_ew){
+         push @nodes, [($self->h-1)- $row, ($col-1)% $self->w] if $col == 0;
+         push @nodes, [($self->h-1)- $row, ($col+1)% $self->w] if $col == $self->w-1;
+      }
+   }# die map {$self->node_to_string($_)} @nodes;
    return @nodes;
 }
 
@@ -110,7 +128,7 @@ sub node_liberties{
 sub node_is_on_edge{
    my ($self, $row, $col) = @_;
    my $string;
-   if ($self->{wrap_ns}){
+   if ($self->wrap_ns or $self->twist_ns){
       $string = 'e'
    }
    else {
@@ -118,7 +136,7 @@ sub node_is_on_edge{
       elsif ($row==$self->h-1) {$string = 'd'}
       else {$string = 'e'}
    }
-   unless ($self->{wrap_ew}){
+   unless ($self->wrap_ew or $self->twist_ew){
       if ($col==0) {$string .= 'l'}
       elsif ($col==$self->w-1) {$string .= 'r'}
    }

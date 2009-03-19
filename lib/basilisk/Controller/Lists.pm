@@ -194,6 +194,8 @@ sub add_wgame{
    my $c = shift;
    return 'log in first' unless $c->session->{logged_in};
    my $topo = $c->req->param('topology');
+   return "$topo topology is unsupported" 
+      unless grep{$_ eq $topo} @Util::acceptable_topo;
    my $h = $c->req->param('h');
    my $w = $c->req->param('w');
    my $desc = $w .'x'. $h; # description of interesting rules

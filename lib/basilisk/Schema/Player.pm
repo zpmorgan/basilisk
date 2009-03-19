@@ -28,11 +28,11 @@ sub sqlt_deploy_hook {
 }
 
 sub grant_rating{ #initially, before any games, player must have rating
-   my ($self, $rating) = shift;
+   my ($self, $value) = @_;
    my $rating = $self->rating->resultsource->resultset->create(
       pid => $self->id,
       time => time,
-      rating => $rating,
+      rating => $value,
       rating_deviation => 1.85,
       rating_volatility => 0.06,
    );

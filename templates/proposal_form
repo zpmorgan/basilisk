@@ -32,6 +32,8 @@
       <OPTION value="plane">Plane</OPTION>
       <OPTION value="cylinder">Cylinder</OPTION>
       <OPTION value="torus">Torus</OPTION>
+      <OPTION value="mobius">Möbius strip</OPTION>
+      <OPTION value="klein">Klein bottle</OPTION>
       <OPTION value="poly">Polyhedron</OPTION>
      </SELECT></td>
   </tr>

@@ -354,15 +354,17 @@ sub build_rulemap{
    my @extra_rules = $ruleset->extra_rules;
    for my $rulerow (@extra_rules){
       my $rule = $rulerow->rule;
-      if ($rule eq 'torus' or $rule eq 'cylinder' or $rule eq 'C20'){
+      if (grep {$rule eq $_} @Util::acceptable_topo){
          $topo = $rule;
       }
    }
    my $rulemap = new basilisk::Rulemap::Rect(
       h => $game->h,
       w => $game->w,
-      wrap_ew => ($topo eq 'torus' or $topo eq 'cylinder'),
-      wrap_ns => ($topo eq 'torus'),
+      wrap_ew => ($topo eq 'torus' or $topo eq 'cylinder' or $topo eq 'klein') ?1:0,
+      wrap_ns => ($topo eq 'torus') ?1:0,
+      twist_ew => 0,
+      twist_ns => ($topo eq 'klein' or $topo eq 'mobius') ?1:0,
       topology => $topo,
       phase_description => $pd,
    );

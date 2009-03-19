@@ -6,7 +6,6 @@ use Mouse;
 use basilisk::Rulemap::Rect;
 use basilisk::Util;
 
-
 # This class evaluates moves and determines new board positions.
 # This class stores no board/position data.
 # Also, will must be used to determine visible portions of the board if there's fog of war.
