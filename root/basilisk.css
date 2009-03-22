@@ -16,7 +16,7 @@ table.pagehead {
    border:1px solid #000;
    background: #0C7311;
    color: #FFFC70;
-   width: 100%;"
+   width: 100%;
 }
 table.pagehead td {
    border:0px;
@@ -27,7 +27,7 @@ table.pagefoot {
    border:1px solid #000;
    background: #bbbbc4;
    color: #111111;
-   width: 100%;"
+   width: 100%;
 }
 table.pagefoot a {
    color: #225;

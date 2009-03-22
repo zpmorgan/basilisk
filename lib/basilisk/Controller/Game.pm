@@ -562,6 +562,7 @@ sub render_board_table{
             }
          }
          $table[$row][$col]->{g} = $image;
+         $table[$row][$col]->{node} = "$row-$col";
          #url if applicable:
          if ($c->stash->{board_clickable}) {
             unless ($stone){ #empty intersection

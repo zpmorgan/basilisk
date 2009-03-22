@@ -1,4 +1,15 @@
 
+<script language="javascript">
+   //set a few globals
+   w = [% w %];
+   h = [% h %];
+   img_base = '[% img_base %]';
+   url_base = '[% url_base %]';
+   gameid = [% gameid %];
+   side = '[% side %]';
+</script>
+
+
 
 [% size = board_data.size %]
 [% MACRO coordinate_letter_row BLOCK %]
@@ -39,11 +50,13 @@
   <tr id="row [% loop.count - 1 %]">
   [% row_number_cell(loop.count) %]
     [%- FOREACH cell = row -%]
-      [% IF cell.ref -%]
-        <td> <a href="[%url_base%]/[% cell.ref %]">  <img src="[%img_base%]/[% cell.g %]">  </a> </td>
-      [% ELSE -%]
-        <td> <img src="[%img_base%]/[% cell.g %]"> </td>
-      [% END -%]
+      
+      [%- IF cell.ref -%]
+        <td id="[% cell.node %]" onClick="select('[% cell.node %]')"> 
+      [%- ELSE -%]
+        <td> 
+      [%- END -%]
+          <img src="[%img_base%]/[% cell.g %]"> </td>
     [% END -%]
   [% row_number_cell(loop.count) %]
   </tr>
@@ -63,3 +76,11 @@
   [%END%]
  </tr>
 </table>
+
+
+[%# submission controls %]
+<form id="move_submit_form" action="">
+   <input value="Submit move" tabindex="3" type="submit">
+</form>
+
+

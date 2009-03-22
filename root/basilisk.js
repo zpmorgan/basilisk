@@ -4,9 +4,46 @@
 //globals:
 //var offset_ew = 0;
 //var offset_ns = 0;
+var img_base;
+var url_base;
+var gameid;
+var side;
 var w;
 var h;
+var selectedNode;
+var selectedNode_original_cell;
+var Caleb; //var selectedNode_replacement_cell = too long. so Caleb.
 
+var cell_swap_set_up = 0;
+function setup_cell_swap_if_need_be(){
+   if (cell_swap_set_up==1){return;} //only do this once
+   cell_swap_set_up==1;
+   
+   var my_stone_img = document.createElement("img");
+   my_stone_img.setAttribute('src', img_base + '/' + side + ".gif");
+   
+   Caleb = document.createElement('td');
+      Caleb.setAttribute('id', 'caleb_the_ripper');
+      Caleb.appendChild(my_stone_img);
+}
+
+function select(node){ //selectnode
+   setup_cell_swap_if_need_be();
+   if (selectedNode_original_cell){
+      var caleb_clone = document.getElementById ('caleb_clone');
+      caleb_clone.parentNode.replaceChild (selectedNode_original_cell, caleb_clone);
+   }
+   var cell = document.getElementById (node);
+   selectedNode_original_cell = cell.cloneNode(true);
+   var caleb_clone = Caleb.cloneNode(true);
+   caleb_clone.setAttribute('id', 'caleb_clone');
+   cell.parentNode.replaceChild (caleb_clone, cell);
+   
+   //set form element for submission
+   selectedNode = node; //string, such as '4-2'
+   var submit_form = document.getElementById ('move_submit_form');
+   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/move/'+ selectedNode);
+}
 
 function scroll (direction){
    var board = document.getElementById('board');
