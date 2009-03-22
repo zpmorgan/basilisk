@@ -20,7 +20,7 @@ function setup_cell_swap_if_need_be(){
    cell_swap_set_up==1;
    
    var my_stone_img = document.createElement("img");
-   my_stone_img.setAttribute('src', img_base + '/' + side + ".gif");
+   my_stone_img.setAttribute('src', img_base + '/' + side + "m.gif");
    
    Caleb = document.createElement('td');
       Caleb.setAttribute('id', 'caleb_the_ripper');
@@ -43,6 +43,7 @@ function select(node){ //selectnode
    selectedNode = node; //string, such as '4-2'
    var submit_form = document.getElementById ('move_submit_form');
    submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/move/'+ selectedNode);
+   document.getElementById ('mv_subm_but').style.display='';
 }
 
 function scroll (direction){

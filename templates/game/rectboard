@@ -80,7 +80,7 @@
 
 [%# submission controls %]
 <form id="move_submit_form" action="">
-   <input value="Submit move" tabindex="3" type="submit">
+   <input id="mv_subm_but" value="Submit move" tabindex="3" type="submit" style="display:none;">
 </form>
 
 
