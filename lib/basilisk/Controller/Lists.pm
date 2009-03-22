@@ -199,7 +199,7 @@ sub add_wgame{
    my $h = $c->req->param('h');
    my $w = $c->req->param('w');
    my $desc = $w .'x'. $h; # description of interesting rules
-   $desc .= $topo unless $topo eq 'plane';  #planes are not interesting
+   $desc .= ", $topo" unless $topo eq 'plane';  #planes are not interesting
    
    $c->model('DB')->schema->txn_do(  sub{
       my $new_ruleset = $c->model('DB::Ruleset')->create ({ 

@@ -76,6 +76,16 @@ td.brdx{ width:25px; height:25px;}
 td.brdl{ width:25px; height:25px;}
 td.brdn{ width:31px; height:25px;}
 
+table.scrolled_board_view {
+   
+}
+table.scrolled_board_view td {
+   border:0px;
+   text-align:center;
+	/*padding:.3em;*/
+   
+}
+
 table.Goban {
    border: 0px solid red;
    background-repeat: repeat;

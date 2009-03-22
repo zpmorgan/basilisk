@@ -6,6 +6,8 @@
 <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset/reset-min.css"> 
 <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/base/base-min.css"> 
 <link rel='stylesheet' media='all' href='[%url_base%]/basilisk.css' type='text/css'>
+<script type="text/javascript" src="[%url_base%]/basilisk.js"></script>
+
 [% IF logged_in %]
    <link rel="alternate" type="application/atom+xml" title="Your waiting games" href="[%url_base%]/games_rss/[%username%]">
 [% END %]

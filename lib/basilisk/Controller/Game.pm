@@ -98,6 +98,8 @@ sub render: Private{
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{template} = 'game.tt';
+   $c->stash->{wrap_ns} = $rulemap->wrap_ns;
+   $c->stash->{wrap_ew} = $rulemap->wrap_ew;
    $c->stash->{twist_ns} = $rulemap->twist_ns; #TODO: let game.tt draw html board
 }# now goes to template
 

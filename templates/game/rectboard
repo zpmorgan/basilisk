@@ -20,6 +20,19 @@
 
 
 
+<table class="scrolled_board_view">
+ <tr> <td>
+  [%IF wrap_ns %]
+   <td> <img src="[%img_base%]/scroll-up.png" onClick="scroll('up')">
+  [%END%]
+ </tr>
+ 
+ <tr>
+  [%IF wrap_ew %]
+   <td> <img src="[%img_base%]/scroll-left.png" onClick="scroll('left')"> </td>
+  [%END%]
+  
+  <td>
 <table class="Goban" style="background-image: url([%img_base%]/wood.gif);">
  [% coordinate_letter_row(base=0) %]
  [% FOREACH row = board_data -%]
@@ -36,4 +49,17 @@
   </tr>
  [% END %]
  [% coordinate_letter_row(base=1) %]
+</table>
+  </td>
+
+[%# resuming controls %]
+  [%IF wrap_ew %]
+   <td> <img src="[%img_base%]/scroll-right.png" onClick="scroll('right')"> </td>
+  [%END%]
+ </tr>
+ <tr> <td>
+  [%IF wrap_ns %]
+   <td> <img src="[%img_base%]/scroll-down.png" onClick="scroll('down')">
+  [%END%]
+ </tr>
 </table>
