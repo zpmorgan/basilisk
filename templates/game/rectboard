@@ -33,10 +33,10 @@
   [%END%]
   
   <td>
-<table class="Goban" style="background-image: url([%img_base%]/wood.gif);">
- [% coordinate_letter_row(base=0) %]
+<table id="board" class="Goban" style="background-image: url([%img_base%]/wood.gif);">
+ [% coordinate_letter_row(base=0); %]
  [% FOREACH row = board_data -%]
-  <tr>
+  <tr id="row [% loop.count - 1 %]">
   [% row_number_cell(loop.count) %]
     [%- FOREACH cell = row -%]
       [% IF cell.ref -%]
