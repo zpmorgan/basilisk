@@ -23,13 +23,13 @@
 <table class="scrolled_board_view">
  <tr> <td>
   [%IF wrap_ns %]
-   <td> <img src="[%img_base%]/scroll-up.png" onClick="scroll('up')">
+   <td> <img src="[%img_base%]/scroll-up.png" width="40%" onClick="scroll('up')">
   [%END%]
  </tr>
  
  <tr>
   [%IF wrap_ew %]
-   <td> <img src="[%img_base%]/scroll-left.png" onClick="scroll('left')"> </td>
+   <td> <img src="[%img_base%]/scroll-left.png"  width="40%" onClick="scroll('left')"> </td>
   [%END%]
   
   <td>
@@ -54,12 +54,12 @@
 
 [%# resuming controls %]
   [%IF wrap_ew %]
-   <td> <img src="[%img_base%]/scroll-right.png" onClick="scroll('right')"> </td>
+   <td> <img src="[%img_base%]/scroll-right.png" width="40%" onClick="scroll('right')"> </td>
   [%END%]
  </tr>
  <tr> <td>
   [%IF wrap_ns %]
-   <td> <img src="[%img_base%]/scroll-down.png" onClick="scroll('down')">
+   <td> <img src="[%img_base%]/scroll-down.png" width="40%" onClick="scroll('down')">
   [%END%]
  </tr>
 </table>
