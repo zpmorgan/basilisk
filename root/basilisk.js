@@ -23,12 +23,12 @@ function scroll (direction){
 	   for(var i = 0; i < h+2; i++){
 	      var row = board.rows[i];
 	      if (direction=='left'){
-	         var cell = row.cells[1];
-	         cell.parentNode.insertBefore(cell, row.cells[w+1]);
-         }
-         else{ //right
             var cell = row.cells[w];
             cell.parentNode.insertBefore (cell, row.cells[1]);
+         }
+         else{ //right
+	         var cell = row.cells[1];
+	         cell.parentNode.insertBefore(cell, row.cells[w+1]);
          }
       }
 	}
