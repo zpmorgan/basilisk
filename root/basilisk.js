@@ -76,4 +76,54 @@ function scroll (direction){
 
 function drawPlease (){} //for canvas?
 
+// populate comments
+function render_comment_table(data){
+   var c_table = document.getElementById("comments_table");
+   var comment_tbody = document.createElement("tbody");
+   if (data.length == 0) {
+      comment_tbody.innerHTML = "<tr><td> No comments. </td></tr>";
+   }
+   else{
+      var head_row = document.createElement("tr");
+      var cell = document.createElement("td");
+      //head_row.innerHTML = "<td>#</td><td>comment</td>";
+      cell.innerHTML = '#';
+      head_row.appendChild(cell);cell = document.createElement("td");
+      cell.innerHTML = 'comment';
+      head_row.appendChild(cell);
+      head_row.setAttribute('class', 'headrow');
+      comment_tbody.appendChild (head_row);
+      for (i in data){
+         var c_row = document.createElement("tr");
+         cell = document.createElement("td");
+         cell.innerHTML = data[i].movenum;
+         c_row.appendChild(cell);
+         cell = document.createElement("td");
+         cell.innerHTML = "<b>"+ data[i].commentator +'</b>: ' + data[i].comment;
+         c_row.appendChild(cell);
+         comment_tbody.appendChild (c_row);
+      }
+   }
+   c_table.replaceChild (comment_tbody, c_table.tBodies[0])
+   //alert(data);
+}
 
+//set up comment submission form
+$(document).ready(function() { 
+   // bind 'new_comment' form and provide a simple callback function 
+   if (!gameid) {return}
+   $('#new_comment').ajaxForm(function(json, success, object) { 
+      var comments_data = eval('('+json+')');
+      render_comment_table (comments_data);
+      //alert("Thank you for your comment!" + json);
+   }); 
+});
+
+//dl & display comments
+$(document).ready(function() {
+   if (!gameid) {return}
+   var comments = $.getJSON (
+         url_base +"/comments/"+ gameid,
+         function (data) {render_comment_table(data)}
+   );
+}); 

@@ -10,7 +10,7 @@ Here's a number:
 And here's every running game on this server:
 <br>
 <table class="gameslist">
-   <tr id="headrow">
+   <tr class="headrow">
       <td>ID</td>
       <td>Black</td>
       <td>White</td>

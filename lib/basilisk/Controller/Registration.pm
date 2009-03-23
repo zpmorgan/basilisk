@@ -11,7 +11,7 @@ sub login :Global{
    my ( $self, $c ) = @_;
    if ($c->session->{logged_in}){
       $c->stash->{message} = "You are already logged in, <b>".$c->session->{name} .
-        '</b>.<br><a href="/logout">Log out.</a>';
+        '</b>.<br><a href="[%url_base%]/logout">Log out.</a>';
       $c->stash->{template} = 'message.tt';
       return;
    }
@@ -36,10 +36,9 @@ sub login :Global{
       $c->stash->{message} = 'login successful';
       $c->stash->{template} = 'message.tt';
       $c->session->{name} = $username;
-      $c->session->{player} = $c->model('DB::Player')->find ({name=>$username});
-      $c->session->{userid} = $c->session->{player}->id;
+      my $player = $c->model('DB::Player')->find ({name=>$username});
+      $c->session->{userid} = $player->id;
       $c->session->{logged_in} = 1;
-      return;
    }
    
    else {
@@ -87,8 +86,8 @@ sub register :Global {
    $c->stash->{message} = "Registration successful!";
    $c->stash->{template} = 'message.tt';
    $c->session->{name} = $username;
-   $c->session->{player} = $c->model('DB::Player')->find (name=>$username);
-   $c->session->{userid} = $c->session->{player}->id;
+   my $player = $c->model('DB::Player')->find (name=>$username);
+   $c->session->{userid} = $player->id;
    $c->session->{logged_in} = 1;
 }
 1;

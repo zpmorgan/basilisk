@@ -27,6 +27,7 @@ __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid
 __PACKAGE__->many_to_many( players => 'player_to_game', 'player');
 __PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
 __PACKAGE__->belongs_to (initial_pos => 'basilisk::Schema::Position', 'initial_position');
+__PACKAGE__->has_many(comments => 'basilisk::Schema::Comment', 'gid');
 
 sub sqlt_deploy_hook { #indices
     my($self, $table) = @_;

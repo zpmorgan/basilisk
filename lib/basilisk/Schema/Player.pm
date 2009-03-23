@@ -9,11 +9,6 @@ __PACKAGE__->add_columns(
     'name'      => { data_type => 'TEXT', is_nullable => 0 },
     'pass'      => { data_type => 'TEXT', is_nullable => 0 },
     'current_rating' => { data_type => 'INTEGER', is_nullable => 1 },
-  #  'glicko2_rating' => { data_type => 'INTEGER', is_nullable => 1 },
-  #TODO: make new table with these
-#    'rating'    => { data_type => 'INTEGER', is_nullable => 1 }, #Glicko-2
-#    'rating_deviation'=> { data_type => 'INTEGER', is_nullable => 1 },
-#    'rating_volatility'=> { data_type => 'INTEGER', is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'pid');
@@ -21,6 +16,7 @@ __PACKAGE__->many_to_many( games => 'player_to_game', 'game');
 __PACKAGE__->has_many(proposed_games => 'basilisk::Schema::Game_proposal', 'proposer');
 __PACKAGE__->might_have (rating => 'basilisk::Schema::Rating', {'foreign.id' => 'self.current_rating'});
 __PACKAGE__->has_many(all_ratings => 'basilisk::Schema::Rating', 'pid');
+__PACKAGE__->has_many (comments => 'basilisk::Schema::Comment', 'sayeth');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;

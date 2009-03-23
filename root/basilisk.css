@@ -52,19 +52,21 @@ table.gameslist {
    border-collapse: collapse;
 }
 
-table.gameslist tr#headrow {
+tr.headrow {
 }
-table.gameslist tr#headrow td {
+tr.headrow td {
    background: #000000;
    color: #ffffff;
    font-weight: bold;
    font-size: 110%;
+   padding: 1px;
+   border: 2px solid grey;
 }
 
 table.gameslist td{
    border-width: 1px;
    padding: 1px;
-   color: black;
+  # color: black;
    text-align: center;
 }
 
@@ -121,3 +123,5 @@ a:active    {color:#0000FF}
 a:hover     {color:#000000}
 
  /*</STYLE>*/
+ 
+
