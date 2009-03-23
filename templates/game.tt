@@ -1,5 +1,31 @@
 [%  INCLUDE header %]
+
 <br>
+<div>
+
+<div style="float:right; align:center;">
+  <table class="comments">
+   <tr>
+       <td> Move </td>
+       <td> Comment </td>
+   </tr>
+   [% FOREACH c = comments -%]
+     <tr>
+       <td> [% c.movenum %] </td>
+       <td> <b>[% c.commentator %]</b>: [% c.comment %] </td>
+     </tr>
+   [% END -%]
+  </table>
+  
+  [%# comment box: %]
+  <form name="new_comment">
+    <textarea name="content" rows="4" cols="15" wrap="soft"> </textarea> <br>
+    <input type="submit" value="Submit comment">
+  </form>
+</div>
+
+[%# board should be in the center of the page as much as possible %]
+<div style="float:center;">
 
 [% UNLESS result %]
   <span style="border: 1px solid #777;background-color:lightgray;"> 
@@ -11,16 +37,17 @@
   </div>
 [%END%]
 
-<br>
-
-
 [% IF topo == 'graph'; 
       INCLUDE game/graphboard; 
    ELSE; 
-      INCLUDE game/rectboard;  END
+      INCLUDE game/rectboard;  
+   END
 %]
+</div>
 
 
+
+<div style="clear:both;">
 
 [% IF board_clickable %]
    [% IF marking_dead_stones %]
@@ -52,6 +79,7 @@
    </tr>
   [% END %]
 </table>
-
+</div>
+</div>
     
 [% INCLUDE footer %]
