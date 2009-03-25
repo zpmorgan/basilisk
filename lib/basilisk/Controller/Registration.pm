@@ -40,12 +40,10 @@ sub login :Global{
       $c->session->{userid} = $player->id;
       $c->session->{logged_in} = 1;
    }
-   
    else {
       #just display login form
       $c->stash->{'template'} = 'login.tt';
    }
-   $c->stash->{'template'} = 'login.tt';
 }
 
 sub logout :Global {
