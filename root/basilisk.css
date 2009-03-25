@@ -8,6 +8,12 @@ a:visited {
 	}
 
 
+div.wraps_comments{
+   width:200px;
+   height:300px;
+   overflow:scroll;
+}
+
 table.pagehead a
 {
    color: yellow;
