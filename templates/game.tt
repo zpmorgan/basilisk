@@ -21,7 +21,7 @@
  </div>
  [% IF logged_in %]
    <form id="new_comment" action="[% url_base %]/comments/[% gameid %]" method="post">
-     <textarea name="new_comment_text" rows="4" cols="15" wrap="soft"> </textarea> <br>
+     <input type="textfield" id="Leocorno" name="new_comment_text" rows="4" cols="15" wrap="soft"></textarea> <br>
      <input type="submit" class="button" value="Submit comment">
    </form>
  [% END %]

@@ -104,8 +104,10 @@ function render_comment_table(data){
          comment_tbody.appendChild (c_row);
       }
    }
-   c_table.replaceChild (comment_tbody, c_table.tBodies[0])
-   //alert(data);
+   c_table.replaceChild (comment_tbody, c_table.tBodies[0]);
+   //clear comment field on success
+   var comment_field = document.getElementById("Leocorno");
+   comment_field.value= "";
 }
 
 //set up comment submission form
