@@ -17,26 +17,31 @@ sub comments : Global{
    
    my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
    unless ($game){
-      die 'invalid_request: no game with that id' }
+      $c->detach('fail_comment_nicely', ['invalid_request: no game with that id']);
+   }
    if ($new_comment){
-      if (length($new_comment) > 300){   #fail nicely
-         $c->response->content_type ('text/json');
-         $c->response->body (to_json(['comment too long']));
-         return;
+      unless ($c->forward('allowed_to_comment')){  #fail nicely
+         $c->detach('fail_comment_nicely', [$c->stash->{whynot}]);
       }
+      if (length($new_comment) > 300){   #fail nicely
+         $c->detach('fail_comment_nicely', ['comment too long']);
+      }
+      
       $game->create_related ('comments', 
            {comment => $new_comment,
             sayeth  => $c->session->{userid},
             time    => time,
       });
    }
+   
    my @comments;
    my $comments_rs = $game->search_related ('comments', {},
          {join => ['speaker'],
           select => ['comment', 'time', 'speaker.name'],
           as     => ['comment', 'time', 'pname'],
    });
-   #sanitize and prepare comments movenumbers
+   
+   #sanitize and prepare comments with movenums
    my $scrubber = HTML::Scrubber->new( allow => [ qw[ p b i u hr br ] ] );
    for my $row ($comments_rs->all){
       my $scrubbed_comment = $scrubber->scrub ($row->comment);
@@ -47,8 +52,6 @@ sub comments : Global{
          movenum => int rand(8),
       };
    }
-   #push @comments, {commentator => 'Dr. 8',     comment => 'b sucks',    movenum => 3};
-   #push @comments, {commentator => 'Lixin Foo', comment => 'No u sucks', movenum => 4};
    $c->response->content_type ('text/json');
    $c->response->body (to_json(['success', \@comments]));
 }
@@ -64,6 +67,14 @@ sub allowed_to_comment : Private{
       $c->stash->{whynot} = 'not registered';
       return 0; }
    return 1;
+}
+
+sub fail_comment_nicely : Private{
+   my ($self, $c, $err) = @_;
+   $c->response->content_type ('text/json');
+   $c->response->body (to_json([$err]));
+   return;
+   
 }
 
 1
