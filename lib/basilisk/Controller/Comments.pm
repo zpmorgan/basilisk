@@ -39,7 +39,8 @@ sub comments : Global{
    #sanitize and prepare comments movenumbers
    my $scrubber = HTML::Scrubber->new( allow => [ qw[ p b i u hr br ] ] );
    for my $row ($comments_rs->all){
-      my $scrubbed_comment = $scrubber->scrub ($row->comment); 
+      my $scrubbed_comment = $scrubber->scrub ($row->comment);
+      $scrubbed_comment =~ s/([^\s]{13})/\1- /g; #break up long words
       push @comments, {
          commentator => $row->get_column('pname'),
          comment => $scrubbed_comment,
