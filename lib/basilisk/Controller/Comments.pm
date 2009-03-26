@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 use JSON;
+use HTML::Scrubber;
 
 #__PACKAGE__->config->{namespace} = '';
 
@@ -35,10 +36,13 @@ sub comments : Global{
           select => ['comment', 'time', 'speaker.name'],
           as     => ['comment', 'time', 'pname'],
    });
+   #sanitize and prepare comments movenumbers
+   my $scrubber = HTML::Scrubber->new( allow => [ qw[ p b i u hr br ] ] );
    for my $row ($comments_rs->all){
+      my $scrubbed_comment = $scrubber->scrub ($row->comment); 
       push @comments, {
          commentator => $row->get_column('pname'),
-         comment => $row->comment, 
+         comment => $scrubbed_comment,
          movenum => int rand(8),
       };
    }
