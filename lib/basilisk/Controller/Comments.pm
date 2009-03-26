@@ -12,15 +12,22 @@ sub comments : Global{
    #set content: some json list of comments?
    my $req = $c->request;
    my $new_comment = $req->param('new_comment_text');
+   #assert that comment is okay.
+   
    my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
    unless ($game){
       die 'invalid_request: no game with that id' }
    if ($new_comment){
+      if (length($new_comment) > 300){   #fail nicely
+         $c->response->content_type ('text/json');
+         $c->response->body (to_json(['comment too long']));
+         return;
+      }
       $game->create_related ('comments', 
            {comment => $new_comment,
             sayeth  => $c->session->{userid},
             time    => time,
-      });  
+      });
    }
    my @comments;
    my $comments_rs = $game->search_related ('comments', {},
@@ -38,7 +45,7 @@ sub comments : Global{
    #push @comments, {commentator => 'Dr. 8',     comment => 'b sucks',    movenum => 3};
    #push @comments, {commentator => 'Lixin Foo', comment => 'No u sucks', movenum => 4};
    $c->response->content_type ('text/json');
-   $c->response->body (to_json(\@comments));
+   $c->response->body (to_json(['success', \@comments]));
 }
 
 #TODO: something more elaborate, with kibitzing and privacy options

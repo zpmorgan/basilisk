@@ -72,6 +72,7 @@ sub end : ActionClass('RenderView') {
       $c->stash->{msg} =~ s/\[\%\s?img_base\s?\%\]/$img_base/;
    }
    $c->stash->{logged_in} = $c->session->{logged_in} ? 1 : 0;
+   $c->stash->{userid} = $c->session->{userid};
    #$c->stash->{name} seems to be basilisk, and unchangeable.
    $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';
    $c->session->{num}++;

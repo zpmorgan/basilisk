@@ -15,6 +15,11 @@
    <link rel="alternate" type="application/atom+xml" title="Your waiting games" href="[%url_base%]/games_rss/[%username%]">
 [% END %]
 
+<script language="javascript">
+   //pass some global globals
+   var logged_in = [% logged_in ? 1 : 0 %];
+   var userid = [% userid ? userid : 0 %];
+</script>
 
 <body onload="drawPlease();">
 

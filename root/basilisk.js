@@ -105,9 +105,13 @@ function render_comment_table(data){
       }
    }
    c_table.replaceChild (comment_tbody, c_table.tBodies[0]);
-   //clear comment field on success
-   var comment_field = document.getElementById("Leocorno");
-   comment_field.value= "";
+   if (logged_in){
+      //clear comment textfield, msg on successful comment
+      var comment_field = document.getElementById("Leocorno");
+      comment_field.value= "";
+      var comment_badness = document.getElementById("cBadness");
+      comment_badness.innerHTML = "";
+   }
 }
 
 //set up comment submission form
@@ -115,9 +119,16 @@ $(document).ready(function() {
    // bind 'new_comment' form and provide a simple callback function 
    if (!gameid) {return}
    $('#new_comment').ajaxForm(function(json, success, object) { 
-      var comments_data = eval('('+json+')');
-      render_comment_table (comments_data);
-      //alert("Thank you for your comment!" + json);
+      var msg_plus_data = eval('('+json+')');
+      var msg = msg_plus_data[0];
+      if (msg == 'success'){
+         var comments_data = msg_plus_data[1];
+         render_comment_table (comments_data);
+         return;
+      }
+      //failure
+      var comment_badness = document.getElementById("cBadness");
+      comment_badness.innerHTML = msg;
    }); 
 });
 
@@ -126,6 +137,7 @@ $(document).ready(function() {
    if (!gameid) {return}
    var comments = $.getJSON (
          url_base +"/comments/"+ gameid,
-         function (data) {render_comment_table(data)}
+         function (data) {render_comment_table(data[1])}
+         //date is ['success', game_comments]
    );
 }); 
