@@ -39,17 +39,29 @@ sub comments : Global{
          {join => ['speaker'],
           select => ['comment', 'time', 'speaker.name'],
           as     => ['comment', 'time', 'pname'],
+          order_by=>'time ASC',
+
    });
+   my @moves = $game->search_related ('moves', {},
+      { select => ['movenum', 'time'],
+        order_by=>'time ASC',
+      });
    
    #sanitize and prepare comments with movenums
    my $scrubber = HTML::Scrubber->new( allow => [ qw[ p b i u hr br ] ] );
+   my $movenum = 0;
    for my $row ($comments_rs->all){
       my $scrubbed_comment = $scrubber->scrub ($row->comment);
       $scrubbed_comment =~ s/([^\s]{13})/\1- /g; #break up long words
+      
+      while ($moves[$movenum+1]  and  $row->time > $moves[$movenum+1]){
+         $movenum++
+      }
+      $movenum++ while $moves[$movenum]  and  ($row->time > $moves[$movenum]->time);
       push @comments, {
          commentator => $row->get_column('pname'),
          comment => $scrubbed_comment,
-         movenum => int rand(8),
+         movenum => $movenum,
       };
    }
    $c->response->content_type ('text/json');
