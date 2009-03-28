@@ -141,7 +141,7 @@ sub captures{
    my ($self, $move) = @_;
    my $last_move = $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
    return $last_move->captures if $last_move;
-   return join ' ', map {'0'} (1..$self->num_phases); '0 0';
+   return join ' ', map {'0'} (1..$self->num_phases); # normally '0 0';
 }
 
 1;

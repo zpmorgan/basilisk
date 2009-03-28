@@ -134,9 +134,21 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
       $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
       $c->detach('render');
    }
-   do_move ($c, 'pass');
-   #$c->stash->{board} = $board; #ALREADY_IN_STASH
-   $c->stash->{msg} = 'pass is success';
+   my $game = $c->stash->{game};
+   my ($entity, $side) = $game->turn;
+   my $posid = $game->current_position_id;
+   #transaction!
+   $c->model('DB')->schema->txn_do(  sub{
+      $game->create_related( 'moves',
+         {
+            position_id => $game->current_position_id,
+            movestring => "$side pass",
+            movenum => $game->num_moves+1,
+            time => time,
+            captures => $game->captures,
+         });
+      $game->shift_phase;
+   });
    $c->forward('render');
 }
 
@@ -201,11 +213,11 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
         }
    }
    else {
-      $c->stash->{msg} = $prev_2_moves[0]->movestring . '<br>' .
-                        $prev_2_moves[0]->dead_groups . '<br>' .
-                        $prev_2_moves[1]->movestring . '<br>' .
-                        $prev_2_moves[1]->dead_groups ;
-                     }
+      $c->stash->{msg} = $prev_2_moves[0]->movestring . '<br>'
+                       . $prev_2_moves[0]->dead_groups . '<br>'
+                       . $prev_2_moves[1]->movestring . '<br>'
+                       . $prev_2_moves[1]->dead_groups ;
+   }
    $c->forward('render');
 }
 #to place a stone instead of scoring after 2+ passes:
@@ -216,6 +228,41 @@ sub wants_to_stop_scoring : PathPart('continue') Chained('game'){
       $c->detach('render');
    }
    $c->stash->{board_clickable} = 1;
+   $c->forward('render');
+}
+
+#Player wants to finish game by losing immediately
+sub resign : PathPart('resign') Chained('game'){ 
+   my ($self, $c) = @_;
+   unless ($c->forward ('permission_to_move')){
+      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
+   }
+   my $rulemap = $c->stash->{rulemap};
+   unless ($rulemap->all_entities == 2){
+      $c->stash->{msg} =  "Sorry, can't can't handle resigns for these special games";
+      $c->detach('render');
+   }
+   my $game = $c->stash->{game};
+   my ($entity, $side) = $game->turn;
+   my @sides = $rulemap->all_sides;
+   my $winning_side = $sides[0] eq $side ? $sides[1] : $sides[0];
+   my $result = $winning_side . " + resign";
+   
+   #transaction!
+   $c->model('DB')->schema->txn_do(  sub{
+      $game->create_related( 'moves',
+         {
+            position_id => $game->current_position_id,
+            movestring => "$side resign",
+            movenum => $game->num_moves+1,
+            time => time,
+            captures => $game->captures,
+         });
+      $game->set_column ('status', Util::FINISHED());
+      $game->set_column ('result', $result);
+      $game->update();
+   });
    $c->forward('render');
 }
 
@@ -286,10 +333,10 @@ sub prev_p_moves_were_passes : Private { #p=2players
    unless ($nummoves >= 2){
       $c->stash->{whynot} = 'You hound! You just started!';
       return 0}
-   unless ($game->moves->find ({movenum => $nummoves})->movestring eq 'pass'){
+   unless ($game->moves->find ({movenum => $nummoves})->movestring =~ /pass$/){
       $c->stash->{whynot} = 'lastmove not pass';
       return 0}
-   unless ($game->moves->find ({movenum => $nummoves-1})->movestring eq 'pass'){
+   unless ($game->moves->find ({movenum => $nummoves-1})->movestring =~ /pass$/){
       $c->stash->{whynot} = '2nd-to-lastmove not pass';
       return 0}
    return 1;
@@ -427,21 +474,16 @@ sub do_move{#todo:mv to game class?
    my $posid; #maybe we reuse last one
    
    #determine move string and new position
-   if ($movestring eq 'pass'){
-      $new_pos_data = $c->stash->{old_pos_data};
-      Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
-   }
-   elsif ($movestring eq 'submit_dead_selection'){ #we reuse last position
+   if ($movestring eq 'submit_dead_selection'){ #we reuse last position
       $posid = $game->current_position_id;
    }
-   else { # it eq ''
+   else { # it eq '', meaning normal move. This isn't generic at all.
       my ($row, $col) = @{$c->stash->{move_node}};
       $movestring = "$side row$row, col$col";
       $new_pos_data = Util::pack_board($newboard, $h, $w);
       Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
    }
    my $captures = $game->captures;
-   my $new_captures =
    
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{

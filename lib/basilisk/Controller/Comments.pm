@@ -52,7 +52,7 @@ sub comments : Global{
    my $movenum = 0;
    for my $row ($comments_rs->all){
       my $scrubbed_comment = $scrubber->scrub ($row->comment);
-      $scrubbed_comment =~ s/([^\s]{13})/\1- /g; #break up long words
+      $scrubbed_comment =~ s/([^\s]{13})/$1- /g; #break up long words
       
       while ($moves[$movenum+1]  and  $row->time > $moves[$movenum+1]){
          $movenum++

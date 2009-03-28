@@ -56,8 +56,9 @@
 <div style="clear:both;">
 
 [% IF board_clickable %]
+   <h2> <a href="[%url_base%]/game/[%gameid%]/resign">Resign</a> </h2> 
    [% IF marking_dead_stones %]
-      <h2> <a href="[%url_base%]/game/[%gameid%]/continue">Continue playing</a> </h2> <br>
+      <h2> <a href="[%url_base%]/game/[%gameid%]/continue">Continue playing</a> </h2>
       <h2> <a href="[%url_base%]/game/[%gameid%]/submit/[% new_also_dead %]"> Submit </a> </h2> 
    [% ELSE %]
       <h2> <a href="[%url_base%]/game/[%gameid%]/pass">Pass</a> </h2>
