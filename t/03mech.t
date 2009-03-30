@@ -26,3 +26,4 @@ $mech->submit_form_ok(
 
 $mech->get_ok("/waiting_room");
 $mech->content_contains("Logged in as: cannon", "Logged in as: cannon");
+

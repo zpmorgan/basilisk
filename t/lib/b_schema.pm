@@ -14,6 +14,7 @@ sub _sqlite_dbfilename {
 
 sub init_schema {
    my $self = shift;
+   my $populate = shift;
    
    my $dbfile = "t/var/mojomojo.db";
    unlink $dbfile if -e $dbfile ;
@@ -25,7 +26,28 @@ sub init_schema {
    $schema = basilisk::Schema->connect( $dsn, $dbuser, $dbpass),
        or die "can't connect to database";
    $schema->deploy;
-   return 1;
+   
+   if ($populate){
+      #create 8 players
+      $schema->resultset('Player')->create(
+        {name=> $_,
+         pass=> Util::pass_hash ""}
+      ) for qw/foo bar baz a b c d e/;
+      
+      my $new_ruleset = $schema->resultset('Ruleset')->create({h=>6,w=>6}); #default everything
+      my $new_game = $new_ruleset->create_related( 'games', {});
+      $new_game->create_related ('player_to_game', {
+         pid  => 1, #foo
+         entity => 0,
+      });
+      $new_game->create_related ('player_to_game', {
+         pid  => 2, #bar
+         entity => 1,
+      });
+      
+   }
+   
+   return $schema;
 }
    
 1
