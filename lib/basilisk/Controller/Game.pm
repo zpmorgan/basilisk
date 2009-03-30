@@ -275,10 +275,13 @@ sub invalid_request : Private{
 #returns error string if error. #TODO: these could return true, or set some stash error var
 sub permission_to_move : Private{
    my ($self, $c) = @_;
+   
    $c->stash->{whynot} = '';
    $c->stash->{whynot} = 'not logged in' unless $c->session->{logged_in};
+   return 0 if $c->stash->{whynot};
    $c->stash->{whynot} = 'not registered' if $c->session->{userid} == 1;
    return 0 if $c->stash->{whynot};
+   
    my $game = $c->stash->{game};
    unless ($game->status == Util::RUNNING()){
       $c->stash->{whynot} = 'Game is already finished!';

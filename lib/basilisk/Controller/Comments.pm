@@ -27,8 +27,8 @@ sub comments : Global{
          $c->detach('fail_comment_nicely', ['comment too long']);
       }
       
-      $game->create_related ('comments', 
-           {comment => $new_comment,
+      $game->create_related ('comments', {
+            comment => $new_comment,
             sayeth  => $c->session->{userid},
             time    => time,
       });
@@ -44,7 +44,7 @@ sub comments : Global{
    });
    my @moves = $game->search_related ('moves', {},
       { select => ['movenum', 'time'],
-        order_by=>'time ASC',
+        order_by => 'time ASC',
       });
    
    #sanitize and prepare comments with movenums
@@ -54,10 +54,10 @@ sub comments : Global{
       my $scrubbed_comment = $scrubber->scrub ($row->comment);
       $scrubbed_comment =~ s/([^\s]{13})/$1- /g; #break up long words
       
-      while ($moves[$movenum+1]  and  $row->time > $moves[$movenum+1]){
+      #moves[i-1] has movenum i
+      while ($moves[$movenum]  and  $row->time > $moves[$movenum]->time){
          $movenum++
       }
-      $movenum++ while $moves[$movenum]  and  ($row->time > $moves[$movenum]->time);
       push @comments, {
          commentator => $row->get_column('pname'),
          comment => $scrubbed_comment,

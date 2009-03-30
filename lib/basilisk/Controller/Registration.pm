@@ -24,7 +24,7 @@ sub login :Global{
       $passwd = Util::pass_hash $passwd;
       my $rs = $c->model('DB::Player');
       unless ($rs->count(name => $username)){
-         $c->stash->{message} = 'no such username';
+         $c->stash->{message} = "no such username $username";
          $c->stash->{template} = 'message.tt';
          return;
       }
@@ -48,7 +48,11 @@ sub login :Global{
 
 sub logout :Global {
    my ( $self, $c ) = @_;
-   $c->stash->{message} = "You have logged out. Bye, ".$c->session->{name}.".";
+   if ($c->session->{logged_in}){
+      $c->stash->{message} = "You have logged out. Bye, ".$c->session->{name}.".";
+   } else {
+      $c->stash->{message} = "You needn't've done that"
+   }
    $c->stash->{template} = 'message.tt';
    $c->delete_session('on logout');
 }

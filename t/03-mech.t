@@ -8,9 +8,6 @@ use_ok( 'b_schema' );
 my $schema;
 ok($schema = b_schema->init_schema(1), 'create&populate a test db' );
 
-
-$ENV{CATALYST_DEBUG}=0; 
-$ENV{BASILISK_DSN}= 'dbi:SQLite:t/var/basilisk.db'; 
 use_ok 'Test::WWW::Mechanize::Catalyst' => 'basilisk';
 
 my $mech = Test::WWW::Mechanize::Catalyst->new;

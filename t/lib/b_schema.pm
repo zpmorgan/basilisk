@@ -7,6 +7,10 @@ use strict;
 use warnings;
 use basilisk::Schema;
 
+#So cat doesn't print out all it's junk:
+$ENV{CATALYST_DEBUG}=0;
+#specify test db path:
+$ENV{BASILISK_DSN}= 'dbi:SQLite:t/var/basilisk.db'; 
 
 sub _sqlite_dbfilename {
     return "t/var/basilisk.db";
@@ -14,10 +18,12 @@ sub _sqlite_dbfilename {
 
 sub init_schema {
    my $self = shift;
-   my $populate = shift;
+   my $action = shift;
    
-   my $dbfile = _sqlite_dbfilename();
-   unlink $dbfile if -e $dbfile ;
+   my $dbfile = _sqlite_dbfilename(); 
+   unless ($action eq 'use existing'){
+      unlink $dbfile if -e $dbfile
+   }
    
    my $dsn = "dbi:SQLite:$dbfile";
    my $dbuser = '';
@@ -25,9 +31,11 @@ sub init_schema {
    my $schema;
    $schema = basilisk::Schema->connect( $dsn, $dbuser, $dbpass),
        or die "can't connect to database";
-   $schema->deploy;
    
-   if ($populate){
+   unless ($action eq 'use existing'){
+      $schema->deploy
+   }
+   if ($action eq 'populate'){
       #create 8 players
       $schema->resultset('Player')->create(
         {name=> $_,
