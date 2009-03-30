@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More tests => 11;
+use lib qw/lib/;
 use basilisk::Rulemap;
 
 

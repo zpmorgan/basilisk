@@ -28,7 +28,7 @@ sub login :Global{
          $c->stash->{template} = 'message.tt';
          return;
       }
-      unless ($rs->find(name => $username)->pass eq $passwd){
+      unless ($rs->find ({name => $username})->pass eq $passwd){
          $c->stash->{message} = 'wrong password';
          $c->stash->{template} = 'message.tt';
          return;

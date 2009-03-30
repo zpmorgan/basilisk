@@ -1,8 +1,10 @@
 use strict;
 use warnings;
 use Test::More tests => 3;
-use Glicko2;
 use Number::Tolerant;
+
+use lib qw/lib/;
+use Glicko2;
 
 #tests are from http://math.bu.edu/people/mg/glicko/glicko2.doc/example.html
 my ($r, $rd, $rv) = (0, 1.1513, .06);

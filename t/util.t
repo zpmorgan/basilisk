@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More tests => 5;
+use lib qw/lib/;
 use basilisk::Util;
 
 my $board1 = Util::board_from_text (

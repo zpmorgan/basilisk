@@ -1,10 +1,8 @@
 use strict;
 use warnings;
 use Test::More tests => 2;
-use Util;
 
-
-use lib qw(t/lib);
+use lib qw(t/lib lib);
 use_ok( 'b_schema' );
 
 my $schema;

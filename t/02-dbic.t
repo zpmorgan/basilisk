@@ -4,7 +4,7 @@ use Test::More tests => 5;
 #use basilisk::Util;
 
 
-use lib qw(t/lib);
+use lib qw(t/lib lib);
 use_ok( 'b_schema' );
 
 
