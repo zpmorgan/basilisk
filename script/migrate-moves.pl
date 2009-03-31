@@ -43,7 +43,7 @@ CREATE TEMPORARY TABLE t_mv (
   captures TEXT NOT NULL, move TEXT, phase INTEGER,
   PRIMARY KEY (gid, movenum)
 );
-INSERT INTO t1_backup SELECT gid,movenum,position_id,dead_groups,time,captures FROM Move;
+INSERT INTO t_mv SELECT gid,movenum,position_id,dead_groups,time,captures,move,phase FROM Move;
 DROP TABLE Move;
 CREATE TABLE Move(
   gid INTEGER NOT NULL,

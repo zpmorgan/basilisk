@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
       # (atm, it only does 1.)
     captures => { data_type => 'TEXT', is_nullable => 0}, #'0 0'
     
-    movestring  => { data_type => 'TEXT', default_value => 'blah'}, #replacing with both 'phase' and 'move'
+  #  movestring  => { data_type => 'TEXT', default_value => 'blah'}, #replacing with both 'phase' and 'move'
     phase  => { data_type => 'INTEGER', is_nullable => 0}, #0, 1, etc
     move   => { data_type => 'TEXT', is_nullable => 0}, #pass, submit(?), {node}, etc
 );
