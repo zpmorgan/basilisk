@@ -1,33 +1,20 @@
 use strict;
 use warnings;
-use Test::More tests => 22;
+use Test::More tests => 23;
 use JSON;
 
 use lib qw(t/lib lib);
 use_ok( 'b_schema' );
+use_ok( 'b_mech' );
+
 my $schema;
 ok($schema = b_schema->init_schema('populate'), 'create, populate a test db' );
 
 use_ok 'Test::WWW::Mechanize::Catalyst' => 'basilisk';
-
 my $mech = Test::WWW::Mechanize::Catalyst->new;
 
 $mech->get_ok("/"); # no hostname needed
 is($mech->ct, "text/html", 'correct content type');
-
-
-sub login_as{ #this sub doesn't test
-   my $name=shift;
-   $mech->get ("/logout");
-   $mech->get ("/login");
-   $mech->form_with_fields( qw/username passwd/ );
-   $mech->submit_form(
-        fields => {
-            username => $name,
-            passwd => $name,
-        });
-   #diag $mech->content;
-}
 
 
 #modify db
@@ -50,15 +37,15 @@ $game->create_related ('player_to_game', {
 });
 
 
-login_as ('oscar');
+login_as ($mech, 'oscar');
 $mech->get_ok("/game/$game->id");
 $mech->content_contains("Logged in as: oscar", "login as oscar");
-login_as ('Rat_King');
+login_as ($mech, 'Rat_King');
 $mech->get_ok("/game/$game->id");
 $mech->content_contains("Logged in as: Rat_King", "change login");
 
-# now put comments in db.
-# This will test the move numbers, so their time field must all be different.
+# now insert a few intertwined moves and comments
+# their time fields must all be different.
 {
    #0 | Rat_King:Mark Hand Hector
    $game->create_related ('comments', {
@@ -71,7 +58,8 @@ $mech->content_contains("Logged in as: Rat_King", "change login");
       movenum => 1,
       time => 1234567892,
       position_id => 1444,
-      movestring => 'b doesn"t surrender',
+      move => 'doesn"t surrender',
+      phase => '0',
       captures => '0 0',
    });
 
@@ -86,14 +74,16 @@ $mech->content_contains("Logged in as: Rat_King", "change login");
       movenum => 2,
       time => 1234567896,
       position_id => 66,
-      movestring => 'w doesn"t surrender',
+      move => 'doesn"t surrender',
+      phase => '1',
       captures => '0 0',
    });
    $game->create_related ('moves', {
       movenum => 3,
       time => 1234567898,
       position_id => 8888,
-      movestring => 'b doesn"t surrender',
+      moves => 'doesn"t surrender',
+      phase => '0',
       captures => '0 0',
    });
    
@@ -112,8 +102,6 @@ isa_ok ($res, 'ARRAY');
 is ($res->[0], 'success', '/comments/id returned success');
 
 my @comments = @{$res->[1]};
-
-diag %{$comments[1]};
 
 is ($comments[0]{movenum}, 0, '1st comment movenum 0');
 is ($comments[0]{comment}, 'Mark Hand Hector', '1st comment msg');

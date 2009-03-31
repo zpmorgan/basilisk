@@ -14,9 +14,9 @@ __PACKAGE__->add_columns(
     'id'             => { data_type => 'INTEGER', is_auto_increment => 1 },
     'ruleset'        => { data_type => 'INTEGER', is_nullable => 0 },
     'status'        => { data_type => 'INTEGER', default_value => 1 },
-    'result'        => { data_type => 'TEXT', is_nullable => 1 },
+    'result'        => { data_type => 'TEXT' },
     #'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
-    'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
+    'initial_position' => { data_type => 'INTEGER' },
     #phase-- rule description is in ruleset
     'phase' => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
 );
@@ -76,8 +76,8 @@ sub last_move{ #'pass' or 'b t4' etc
 }
 sub last_move_string{ #'pass' or 'b t4' etc
    my $c = shift;
-   my $mvnum = $c->stash->{game}->num_moves;
-   return $c->stash->{game}->moves->find ({movenum => $mvnum})->movestring;
+   #my $mvnum = $c->stash->{game}->num_moves;
+   return $c->stash->{game}->find_related ('moves', {}, {order_by => 'movenum DESC'})->get_columns ('phase', 'move');
 }
 
 sub current_position{

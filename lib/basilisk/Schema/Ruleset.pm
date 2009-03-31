@@ -24,7 +24,7 @@ __PACKAGE__->add_columns(
     'initial_time'   => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
     'byo'            => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
     'byo_periods'    => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
-    'rules_description' => { data_type => 'TEXT', is_nullable => 1}, #for humans to read
+    'rules_description' => { data_type => 'TEXT' }, #just for humans to read
     #for machines to read & shift phase: #like '0b 1w 2r'
     'phase_description' => { data_type => 'TEXT', is_nullable => 0, default_value => '0b 1w'},
 );

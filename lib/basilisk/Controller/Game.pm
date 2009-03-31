@@ -5,6 +5,7 @@ use warnings;
 use parent 'Catalyst::Controller';
 use basilisk::Util;
 use basilisk::Rulemap;
+use JSON;
 
 #__PACKAGE__->config->{namespace} = '';
 
@@ -40,7 +41,7 @@ sub game : Chained('/') CaptureArgs(1){
       $c->go ('invalid_request', ['no game with that id']);
    }
    $c->stash->{ruleset} = $game->ruleset;
-   build_rulemap($c);
+   $c->forward('build_rulemap');
    
    my $pos_data = $game->current_position;
    my $h = $game->h;
@@ -101,6 +102,7 @@ sub render: Private{
    $c->stash->{wrap_ns} = $rulemap->wrap_ns;
    $c->stash->{wrap_ew} = $rulemap->wrap_ew;
    $c->stash->{twist_ns} = $rulemap->twist_ns; #TODO: let game.tt draw html board
+   #$c->stash->{last_move} = $c->forward->('most_recent_move');
 }# now goes to template
 
 #view this game
@@ -115,19 +117,57 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
       $c->stash->{msg} = "permission fail: ".$c->stash->{whynot};
       $c->detach('render');
    }
+   my ($game, $rulemap, $oldboard) = @{$c->stash}{ qw/game rulemap board/ };
    #extract coordinates from url:
-   $c->stash->{move_node} = $c->stash->{rulemap}->node_from_string ($nodestring);
-   my ($newboard, $caps) = evaluate_move($c);
-   unless ($newboard){
-      $c->stash->{msg} = "move is failure: ".$c->stash->{whynot};
+   my $node = $rulemap->node_from_string ($nodestring);
+   
+   $c->forward('evaluate_move', [$node, $oldboard]);
+   my ($newboard, $caps) = @{$c->stash}{ qw/newboard newcaps/ };
+   
+   if ($c->stash->{eval_move_fail}){
+      $c->stash->{msg} = "move is failure: ".$c->stash->{eval_move_fail};
       $c->detach('render');
    }
+   my $h = $c->stash->{game}->h;
+   my $w = $c->stash->{game}->w;
+   my $new_pos_data = Util::pack_board ($newboard, $h, $w);
+   Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
+   
    #alter db
-   do_move ($c, '', $newboard, $caps);
+   #wrong. I think capture count can get messed up.
+   $c->model('DB')->schema->txn_do(  sub{
+      #update capture count:
+      my $captures = $game->captures;
+      unless (defined $captures) {$captures = $rulemap->default_captures}
+      my $new_captures = $captures;
+      if ($caps and @$caps){ #update capture count
+         my @phase_caps = split ' ', $game->captures;
+         $phase_caps[$game->phase] += @$caps;
+         $new_captures = join ' ', @phase_caps;
+      }
+      
+      my $posrow = $c->model('DB::Position')->create( {
+         ruleset => $c->stash->{ruleset}->id,
+         position => $new_pos_data,
+      });
+      
+      my $mv = '{' . $rulemap->node_to_string($node) . '}';
+      $game->create_related( 'moves', {
+         position_id => $posrow->id,
+         move => $mv,
+         phase => $game->phase,
+         movenum => $game->num_moves+1,
+         time => time,
+         captures => $new_captures,
+      });
+      $game->shift_phase; #b to w, etc num_moves++
+   });
+ #  do_move ($c, '', $newboard, $caps);
    $c->stash->{board} = $newboard;
    $c->stash->{msg} = 'move is success';
    $c->forward('render');
 }
+
 sub pass : Chained('game') { #evaluate & do pass: Args(0)
    my ($self, $c) = @_;
    unless ($c->forward ('permission_to_move')){
@@ -141,8 +181,9 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
    $c->model('DB')->schema->txn_do(  sub{
       $game->create_related( 'moves',
          {
+            phase => $game->phase,
+            move => 'pass',
             position_id => $game->current_position_id,
-            movestring => "$side pass",
             movenum => $game->num_moves+1,
             time => time,
             captures => $game->captures,
@@ -203,8 +244,8 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
       order_by=>'movenum DESC',
       rows => 2});
    #this is very much not generic!
-   if (($prev_2_moves[0]->movestring eq 'submit_dead_selection')
-     and ($prev_2_moves[1]->movestring eq 'submit_dead_selection')){
+   if (($prev_2_moves[0]->move eq 'submit_dead_selection')
+     and ($prev_2_moves[1]->move eq 'submit_dead_selection')){
         if ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups){
            finish_game($c);
         }
@@ -213,10 +254,7 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
         }
    }
    else {
-      $c->stash->{msg} = $prev_2_moves[0]->movestring . '<br>'
-                       . $prev_2_moves[0]->dead_groups . '<br>'
-                       . $prev_2_moves[1]->movestring . '<br>'
-                       . $prev_2_moves[1]->dead_groups ;
+      $c->stash->{msg} = 'No no, i think not.'
    }
    $c->forward('render');
 }
@@ -254,7 +292,8 @@ sub resign : PathPart('resign') Chained('game'){
       $game->create_related( 'moves',
          {
             position_id => $game->current_position_id,
-            movestring => "$side resign",
+            phase => $game->phase,
+            move  => 'resign',
             movenum => $game->num_moves+1,
             time => time,
             captures => $game->captures,
@@ -293,9 +332,15 @@ sub permission_to_move : Private{
        gid => $gid,
        entity => $entity,
    }); 
-   $c->stash->{whynot} = "entity $entity not found for game $gid" unless $p;
-   $c->stash->{whynot} = 'not your turn.' unless $c->session->{userid} == $p->pid;
-   return 0 if $c->stash->{whynot};
+   
+   unless ($p){
+      $c->stash->{whynot} = "entity $entity not found for game $gid";
+      return 0 
+   }
+   unless ($c->session->{userid} == $p->pid){
+      $c->stash->{whynot} = 'not your turn.' unless $c->session->{userid} == $p->pid;
+      return 0 
+   }
    
    #success
    #return 'strange' unless $entity == $p->entity;
@@ -321,8 +366,8 @@ sub last_move_was_score : Private{
       $c->stash->{whynot} = 'You hound! You just started!';
       return 0;
    }
-   my $prevmovestring = $game->moves->find ({movenum => $nummoves})->movestring;
-   unless ($prevmovestring eq 'submit_dead_selection'){
+   my $prevmove = $game->moves->find ({movenum => $nummoves})->move;
+   unless ($prevmove eq 'submit_dead_selection'){
       $c->stash->{whynot} = 'lastmove not score';
       return 0;
    }
@@ -336,10 +381,10 @@ sub prev_p_moves_were_passes : Private { #p=2players
    unless ($nummoves >= 2){
       $c->stash->{whynot} = 'You hound! You just started!';
       return 0}
-   unless ($game->moves->find ({movenum => $nummoves})->movestring =~ /pass$/){
+   unless ($game->moves->find ({movenum => $nummoves})->move eq 'pass'){
       $c->stash->{whynot} = 'lastmove not pass';
       return 0}
-   unless ($game->moves->find ({movenum => $nummoves-1})->movestring =~ /pass$/){
+   unless ($game->moves->find ({movenum => $nummoves-1})->move eq 'pass'){
       $c->stash->{whynot} = '2nd-to-lastmove not pass';
       return 0}
    return 1;
@@ -398,8 +443,8 @@ sub largest{my ($i,$g,$v)=(-1,-1,-1);for$i(0..$#_){next if!defined$_[$i];next if
 #key of largest in hash
 sub hashlargest{my%h=@_;my ($i,$g,$v)=(-1,-1,-1);for$i(keys%h){next if!defined$h{$i};next if$h{$i}<$v;$v=$h{$i};$g=$i}return$i}
 
-sub build_rulemap{
-   my $c = shift;
+sub build_rulemap : Private{
+   my ($self, $c) = @_;
    my $game = $c->stash->{game};
    my $ruleset = $game->ruleset;
    my $pd = $ruleset->phase_description;
@@ -445,26 +490,26 @@ sub detect_duplicate_position{
    return 1 if $oldmove;
 }
 
-sub evaluate_move{
-   my $c = shift;
-   my ($node, $board) = @{$c->stash}{qw/move_node board/};
+sub evaluate_move : Private{
+   my ($self, $c, $node, $board) = @_;
    my $side = $c->stash->{side};
    die $side unless $side =~ /^[bwr]$/;
+   $c->stash->{eval_move_fail} = '';
    #find next board position:
    my ($newboard, $err, $caps) = $c->stash->{rulemap}->evaluate_move
          ($board,$node,$side);
    unless ($newboard){
-      $c->stash->{whynot} = $err;
+      $c->stash->{eval_move_fail} = $err;
       return
    }
    if (detect_duplicate_position($c, $newboard)){
-      $c->stash->{whynot} = 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum;
+      $c->stash->{eval_move_fail} = 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum;
       return;
    }
-   return ($newboard, $caps);#no err
+   @{$c->stash}{ qw/newboard newcaps/ } = ($newboard, $caps);#no err
 }
-#die join';',map{@$_}@$libs; #err list of coordinates
 
+#TODO: getridof
 #insert into db
 sub do_move{#todo:mv to game class?
    my ($c, $movestring, $newboard, $caps, $deadgroups) = @_;
@@ -480,13 +525,6 @@ sub do_move{#todo:mv to game class?
    if ($movestring eq 'submit_dead_selection'){ #we reuse last position
       $posid = $game->current_position_id;
    }
-   else { # it eq '', meaning normal move. This isn't generic at all.
-      my ($row, $col) = @{$c->stash->{move_node}};
-      $movestring = "$side row$row, col$col";
-      $new_pos_data = Util::pack_board($newboard, $h, $w);
-      Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
-   }
-   my $captures = $game->captures;
    
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
@@ -511,7 +549,8 @@ sub do_move{#todo:mv to game class?
       my $moverow = $game->create_related( 'moves',
       {
          position_id => $posid,
-         movestring => $movestring,
+         move => $movestring,
+         phase => $game->phase,
          movenum => $game->num_moves+1,
          time => time,
          dead_groups => $deadgroups,
@@ -646,4 +685,39 @@ sub column_letter{
    return $cletters[$c]
 }
 
+sub most_recent_move : Private{
+   my ($self, $c) = @_;
+   my $game = $c->stash->{game};
+   my $mv = $game->find_related ('moves',
+      {}, {order_by => 'movenum DESC'} );
+   return $mv;
+}
+
+sub allmoves : Chained('game') {
+   my ( $self, $c) = @_;
+   my $game = $c->stash->{game};
+   my $pd = $c->stash->{ruleset}->phase_description;
+   my @phases = map {[split /\b/, $_]} split ' ', $pd;
+   
+   my @move_rows = $game->search_related ('moves',
+      {},
+      {
+         select => ['movenum', 'phase', 'move'],
+         order_by => 'movenum ASC' 
+      }
+   );
+   my @moves;
+   for my $mv_row (@move_rows){
+      my $phase = $mv_row->phase;
+      my $side = $phases[$phase][1];
+      push @moves, {
+         movenum => $mv_row->movenum,
+         side => $side,
+         move => $mv_row->move,
+      }
+   }
+   
+   $c->response->content_type ('text/json');
+   $c->response->body (to_json(\@moves));
+}
 1;
