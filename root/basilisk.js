@@ -46,15 +46,41 @@ function select(node){ //selectnode
    document.getElementById ('mv_subm_but').style.display='';
 }
 
+function reverse_stone_row(row){
+   //alert(row.childNodes.length);
+   var nodes = row.childNodes;
+   
+   //let's remove text elements
+   var j = 0;
+   while (j < nodes.length) {
+      if (nodes[j].nodeType != 1)
+         row.removeChild(nodes[j]);
+      j++;
+   }
+   
+   var cells = new Array;
+   while (row.hasChildNodes()){
+      cells.push(row.firstChild)
+      row.removeChild(row.firstChild)
+   }
+   cells.reverse();
+   for (i in cells){
+      row.appendChild (cells[i]);
+   }
+}
 function scroll (direction){
    var board = document.getElementById('board');
    if (direction=='up'){
       //send top row to bottom
       var row = board.rows[h];
+      if (twist_ns)
+         reverse_stone_row(row);
       row.parentNode.insertBefore (row, board.rows[1]);
    }
    else if (direction=='down'){
       var row = board.rows[1];
+      if (twist_ns)
+         reverse_stone_row(row);
       row.parentNode.insertBefore (row, board.rows[h+1]);
    }
    else{
