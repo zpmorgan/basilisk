@@ -67,6 +67,8 @@ function reverse_stone_row(row){
    for (i in cells){
       row.appendChild (cells[i]);
    }
+   cells[1].innerHTML = cells[1].innerHTML.replace (/er.gif/, "el.gif");
+   cells[cells.length-2].innerHTML = cells[cells.length-2].innerHTML.replace (/el.gif/, "er.gif");
 }
 function scroll (direction){
    var board = document.getElementById('board');
