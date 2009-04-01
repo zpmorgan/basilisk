@@ -14,10 +14,10 @@ __PACKAGE__->add_columns(
     id     => { data_type => 'INTEGER', is_auto_increment => 1 },
     pid    => { data_type => 'INTEGER', is_auto_increment => 0},
     game   => { data_type => 'INTEGER', is_nullable => 1},
-    time   => { data_type => 'INTEGER', is_nullable => 0},
-    rating           => { data_type => 'INTEGER', is_nullable => 0}, #Glicko-2
-    rating_deviation => { data_type => 'INTEGER', is_nullable => 0},
-    rating_volatility=> { data_type => 'INTEGER', is_nullable => 0},
+    time   => { data_type => 'INTEGER'},
+    rating           => { data_type => 'INTEGER'}, #Glicko-2
+    rating_deviation => { data_type => 'INTEGER'},
+    rating_volatility=> { data_type => 'INTEGER'},
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to (player => 'basilisk::Schema::Player', 'pid');

@@ -12,13 +12,13 @@ __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
     'id'             => { data_type => 'INTEGER', is_auto_increment => 1 },
-    'ruleset'        => { data_type => 'INTEGER', is_nullable => 0 },
-    'status'        => { data_type => 'INTEGER', default_value => 1 },
-    'result'        => { data_type => 'TEXT' },
-    #'num_moves'      => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
-    'initial_position' => { data_type => 'INTEGER' },
+    'ruleset'        => { data_type => 'INTEGER'},
+    'status'        => { data_type => 'INTEGER', default_value => 1 }, #1=util::running
+    'result'        => { data_type => 'TEXT', is_nullable => 1},
+    #'num_moves'      => { data_type => 'INTEGER', default_value => 0 },
+    'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
     #phase-- rule description is in ruleset
-    'phase' => { data_type => 'INTEGER', is_nullable => 0, default_value => 0 },
+    'phase' => { data_type => 'INTEGER', default_value => 0 },
 );
 
 __PACKAGE__->set_primary_key('id');

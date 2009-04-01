@@ -18,15 +18,15 @@ __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Ruleset');
 __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
-    'h'          => { data_type => 'INTEGER', is_nullable => 0, default_value => '19'},
-    'w'          => { data_type => 'INTEGER', is_nullable => 0, default_value => '19'},
-    'handicap'       => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
-    'initial_time'   => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
-    'byo'            => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
-    'byo_periods'    => { data_type => 'INTEGER', is_nullable => 0, default_value => '0'},
-    'rules_description' => { data_type => 'TEXT' }, #just for humans to read
+    'h'          => { data_type => 'INTEGER', default_value => '19'},
+    'w'          => { data_type => 'INTEGER', default_value => '19'},
+    'handicap'       => { data_type => 'INTEGER', default_value => '0'},
+    'initial_time'   => { data_type => 'INTEGER', default_value => '0'},
+    'byo'            => { data_type => 'INTEGER', default_value => '0'},
+    'byo_periods'    => { data_type => 'INTEGER', default_value => '0'},
+    'rules_description' => { data_type => 'TEXT', is_nullable => 1 }, #just for humans to read
     #for machines to read & shift phase: #like '0b 1w 2r'
-    'phase_description' => { data_type => 'TEXT', is_nullable => 0, default_value => '0b 1w'},
+    'phase_description' => { data_type => 'TEXT', default_value => '0b 1w'},
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (positions => 'basilisk::Schema::Position', 'ruleset');

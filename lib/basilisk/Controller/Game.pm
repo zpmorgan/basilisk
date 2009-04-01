@@ -134,7 +134,7 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
    Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
    
    #alter db
-   #wrong. I think capture count can get messed up.
+   #perhaps wrong somehow. I think capture count can get messed up.
    $c->model('DB')->schema->txn_do(  sub{
       #update capture count:
       my $captures = $game->captures;
@@ -162,7 +162,6 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
       });
       $game->shift_phase; #b to w, etc num_moves++
    });
- #  do_move ($c, '', $newboard, $caps);
    $c->stash->{board} = $newboard;
    $c->stash->{msg} = 'move is success';
    $c->forward('render');
@@ -231,15 +230,30 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
 #and a string of dead groups is stored as the move text
 #OR, if it's the same as the prev. score submission, the game is over.
 sub action_submit_dead_selection: PathPart('submit') Chained('game'){ 
-   my ($self, $c, $deadstring) = @_;
-   $deadstring ||= '';
+   my ($self, $c, $deadgroups) = @_;
+   $deadgroups ||= '';
    unless ($c->forward('permission_to_mark_dead')){
       $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
       $c->detach('render');
    }
    my $game = $c->stash->{game};
-   do_move ($c, 'submit_dead_selection', undef, undef, $deadstring);
-   #Should game end?
+   
+   #transaction!
+   $c->model('DB')->schema->txn_do(  sub{
+      my $moverow = $game->create_related( 'moves',
+      {
+         position_id => $game->current_position_id,
+         move => 'submit_dead_selection',
+         phase => $game->phase,
+         movenum => $game->num_moves+1,
+         time => time,
+         dead_groups => $deadgroups,
+         captures => $game->captures,
+      });
+      $game->shift_phase; #b to w, etc num_moves++
+   });
+   
+   #Should game end now?
    my @prev_2_moves = $game->search_related ('moves', {}, {
       order_by=>'movenum DESC',
       rows => 2});
@@ -252,9 +266,6 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
         unless ($prev_2_moves[0]->dead_groups or $prev_2_moves[1]->dead_groups){
            finish_game($c);
         }
-   }
-   else {
-      $c->stash->{msg} = 'No no, i think not.'
    }
    $c->forward('render');
 }
@@ -507,58 +518,6 @@ sub evaluate_move : Private{
       return;
    }
    @{$c->stash}{ qw/newboard newcaps/ } = ($newboard, $caps);#no err
-}
-
-#TODO: getridof
-#insert into db
-sub do_move{#todo:mv to game class?
-   my ($c, $movestring, $newboard, $caps, $deadgroups) = @_;
-   my $new_pos_data;
-   my $game = $c->stash->{game}; #die $game->num_moves;
-   my $side = $c->stash->{side}; #1 if B,2 if W
-   my $h = $c->stash->{game}->h;
-   my $w = $c->stash->{game}->w;
-   my $rulemap = $c->stash->{rulemap};
-   my $posid; #maybe we reuse last one
-   
-   #determine move string and new position
-   if ($movestring eq 'submit_dead_selection'){ #we reuse last position
-      $posid = $game->current_position_id;
-   }
-   
-   #transaction!
-   $c->model('DB')->schema->txn_do(  sub{
-      die 'Check whether game is finished before do_move!' unless $game->status == Util::RUNNING();
-      
-      my $captures = $game->captures;
-      unless (defined $captures) {$captures = $rulemap->default_captures}
-      my $new_captures = $captures;
-      if ($caps and @$caps){ #update capture count
-         my @phase_caps = split ' ', $game->captures;
-         $phase_caps[$game->phase] += @$caps;
-         $new_captures = join ' ', @phase_caps;
-      }
-      
-      unless ($posid){
-         my $posrow = $c->model('DB::Position')->create( {
-            ruleset => $c->stash->{ruleset}->id,
-            position => $new_pos_data,
-         });
-         $posid = $posrow->id;
-      }
-      my $moverow = $game->create_related( 'moves',
-      {
-         position_id => $posid,
-         move => $movestring,
-         phase => $game->phase,
-         movenum => $game->num_moves+1,
-         time => time,
-         dead_groups => $deadgroups,
-         captures => $new_captures,
-      });
-      $game->shift_phase; #b to w, etc num_moves++
-   });
-   return;
 }
 
 sub get_game_player_data{ #for game.tt

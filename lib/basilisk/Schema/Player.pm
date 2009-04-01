@@ -5,9 +5,9 @@ use Glicko2;
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Player');
 __PACKAGE__->add_columns(
-    'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
-    'name'      => { data_type => 'TEXT', is_nullable => 0 },
-    'pass'      => { data_type => 'TEXT', is_nullable => 0 },
+    'id'        => { data_type => 'INTEGER', is_auto_increment => 1 },
+    'name'      => { data_type => 'TEXT'},
+    'pass'      => { data_type => 'BLOB' }, #hashed
     'current_rating' => { data_type => 'INTEGER', is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key('id');

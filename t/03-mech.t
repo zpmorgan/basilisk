@@ -6,7 +6,7 @@ use Test::More tests => 19;
 use lib qw(t/lib lib);
 use_ok( 'b_schema' );
 my $schema;
-ok($schema = b_schema->init_schema(1), 'create&populate a test db' );
+ok($schema = b_schema->init_schema('populate'), 'create&populate a test db' );
 
 use_ok 'Test::WWW::Mechanize::Catalyst' => 'basilisk';
 
@@ -28,7 +28,8 @@ $mech->submit_form_ok(
             passwd => 'foo',
         }}, 'login form submission');
 
-#diag $mech->content;
+#diag $mech->content if $mech->title =~ /message/;
+
 #$mech->get_ok("/waiting_room");
 $mech->content_contains("Logged in as: foo", "Logged in as: foo");
 

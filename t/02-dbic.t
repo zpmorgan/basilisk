@@ -9,7 +9,7 @@ use_ok( 'b_schema' );
 
 
 my $schema;
-ok($schema = b_schema->init_schema(1), 'create&populate a test db' );
+ok($schema = b_schema->init_schema('populate'), 'create&populate a test db' );
 
 is ($schema->resultset('Player')->count(), 8, 'players inserted');
 

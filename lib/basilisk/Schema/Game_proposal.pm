@@ -11,8 +11,8 @@ __PACKAGE__->table('Game_proposal');
 __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
     'quantity'      => { data_type => 'INTEGER', default_value => 1},
-    'ruleset'      => { data_type => 'INTEGER', is_nullable => 0 },
-    'proposer'        => { data_type => 'INTEGER', is_nullable => 0 },
+    'ruleset'      => { data_type => 'INTEGER'},
+    'proposer'        => { data_type => 'INTEGER'},
     #'to'        => { data_type => 'INTEGER', default => 0 }, #to all for now
 );
 

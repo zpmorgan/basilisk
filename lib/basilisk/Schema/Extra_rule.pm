@@ -4,9 +4,9 @@ use base qw/DBIx::Class/;
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Extra_rule');
 __PACKAGE__->add_columns(
-    'ruleset'    => { data_type => 'INTEGER', is_nullable => 0},
-    'rule'       => { data_type => 'TEXT', is_nullable => 0},
-    'priority'   => { data_type => 'INTEGER', is_nullable => 0},
+    'ruleset'    => { data_type => 'INTEGER'},
+    'rule'       => { data_type => 'TEXT'},
+    'priority'   => { data_type => 'INTEGER', is_nullable => 1}, #unused!
 );
     #boolean rules: 
     #'wrap_ns' OR 'twist_ns'
