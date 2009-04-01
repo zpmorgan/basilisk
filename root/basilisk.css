@@ -67,6 +67,7 @@ tr.headrow td {
    font-size: 110%;
    padding: 1px;
    border: 2px solid grey;
+   text-align:center;
 }
 
 table.gameslist td{

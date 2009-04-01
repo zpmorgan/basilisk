@@ -656,7 +656,7 @@ sub allmoves : Chained('game') {
    my ( $self, $c) = @_;
    my $game = $c->stash->{game};
    my $pd = $c->stash->{ruleset}->phase_description;
-   my @phases = map {[split /\b/, $_]} split ' ', $pd;
+   my @phases = map {[split '', $_]} split ' ', $pd;
    
    my @move_rows = $game->search_related ('moves',
       {},
@@ -677,6 +677,6 @@ sub allmoves : Chained('game') {
    }
    
    $c->response->content_type ('text/json');
-   $c->response->body (to_json(\@moves));
+   $c->response->body (to_json (['success', \@moves]));
 }
 1;

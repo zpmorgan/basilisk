@@ -21,7 +21,7 @@
    var userid = [% userid ? userid : 0 %];
 </script>
 
-<body onload="drawPlease();">
+<body>
 
 <table id="pagehead" class="pagehead" >
  <tr>

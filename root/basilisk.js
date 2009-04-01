@@ -33,7 +33,7 @@ function select(node){ //selectnode
       var caleb_clone = document.getElementById ('caleb_clone');
       caleb_clone.parentNode.replaceChild (selectedNode_original_cell, caleb_clone);
    }
-   var cell = document.getElementById (node);
+   var cell = document.getElementById ('cell ' + node);
    selectedNode_original_cell = cell.cloneNode(true);
    var caleb_clone = Caleb.cloneNode(true);
    caleb_clone.setAttribute('id', 'caleb_clone');
@@ -70,11 +70,8 @@ function scroll (direction){
          }
       }
 	}
-   //msgbox = document.getElementById("msg");
-   //msgbox.innerHTML = "blep";
 }
 
-function drawPlease (){} //for canvas?
 
 // populate comments
 function render_comment_table(data){
@@ -114,13 +111,63 @@ function render_comment_table(data){
    }
 }
 
-//set up comment submission form
-$(document).ready(function() { 
-   // bind 'new_comment' form and provide a simple callback function 
+//appends moves to empty <select>, and highlights latest move.
+function render_moves_list (moves){
+   var moves_select = document.getElementById('moves_select');
+   for (i in moves){
+      var move    = moves[i].move;
+      var side    = moves[i].side;
+      var movenum = moves[i].movenum;
+      var option = new Option (movenum +": "+ side +' '+ move, movenum);
+      moves_select.add (option, null);
+   }
+}
+
+function highlight_node (move){
+   var node_pattern = /^\{([^{}]+)\}$/;
+   var match_node = node_pattern.exec(move.move);
+   if (!match_node) return; //something like 'pass' or 'resign', i guess
+   
+   var img = document.getElementById ('img ' + match_node[1]);
+   var special_src = img_base +'/'+ move.side + 'm.gif';
+   img.setAttribute('src', special_src);
+}
+
+//do stuff for /game/id
+$(document).ready(function() {
    if (!gameid) {return}
+   //dl & display comments
+   $.getJSON (
+      url_base +"/comments/"+ gameid,
+      function (data) {render_comment_table(data[1])}
+      //data is ['success', game_comments]
+   );
+   
+   //dl & display move list
+   $.getJSON ( url_base +"/game/"+ gameid +"/allmoves",
+      function (data) {
+         if (data[0] == 'success'){
+            var moves = data[1];
+            if (moves.length){
+               render_moves_list (moves);
+               highlight_node (moves[moves.length-1]);
+               document.getElementById('moves_pecan').style.display= '';
+            }
+            else{
+               document.getElementById('moves_pecan').style.display= 'none';
+            }
+         }
+         else
+            alert (data[0]);
+      }
+      //data is ['success', game_moves]
+   );
+   
+   //set up comment submission form
+   //by binding 'new_comment' form and provide a simple callback function 
    $('#new_comment').ajaxForm(function(json, success, object) { 
-      var msg_plus_data = eval('('+json+')');
-      var msg = msg_plus_data[0];
+      var msg_plus_data = eval ('('+json+')');
+      var msg = msg_plus_data [0];
       if (msg == 'success'){
          var comments_data = msg_plus_data[1];
          render_comment_table (comments_data);
@@ -130,14 +177,4 @@ $(document).ready(function() {
       var comment_badness = document.getElementById("cBadness");
       comment_badness.innerHTML = msg;
    }); 
-});
-
-//dl & display comments
-$(document).ready(function() {
-   if (!gameid) {return}
-   var comments = $.getJSON (
-         url_base +"/comments/"+ gameid,
-         function (data) {render_comment_table(data[1])}
-         //date is ['success', game_comments]
-   );
 }); 

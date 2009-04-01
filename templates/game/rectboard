@@ -52,11 +52,11 @@
     [%- FOREACH cell = row -%]
       
       [%- IF cell.ref -%]
-        <td id="[% cell.node %]" onClick="select('[% cell.node %]')"> 
+        <td id="cell [% cell.node %]" onClick="select('[% cell.node %]')"> 
       [%- ELSE -%]
-        <td> 
+        <td id="cell [% cell.node %]"> 
       [%- END -%]
-          <img src="[%img_base%]/[% cell.g %]"> </td>
+          <img id="img [% cell.node %]" src="[%img_base%]/[% cell.g %]"> </td>
     [% END -%]
   [% row_number_cell(loop.count) %]
   </tr>
