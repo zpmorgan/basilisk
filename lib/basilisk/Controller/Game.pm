@@ -92,8 +92,8 @@ sub render: Private{
    }
    else{ #grid
       $c->forward ('render_board_table');
-      $c->stash->{h} = $h;
-      $c->stash->{w} = $w;
+      $c->stash->{h} = $rulemap->h;
+      $c->stash->{w} = $rulemap->w;
    }
    $c->forward ('get_game_player_data');
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
@@ -484,7 +484,8 @@ sub build_rulemap : Private{
 
 
 sub detect_duplicate_position{
-   my ($game, $newboard) = @_;
+   my ($c, $newboard) = @_;
+   my $game = $c->stash->{game};
    my $h = $game->h;
    my $w = $game->w;
    my $newpos = Util::pack_board($newboard, $h, $w);
@@ -514,7 +515,7 @@ sub evaluate_move : Private{
       $c->stash->{eval_move_fail} = $err;
       return
    }
-   if (detect_duplicate_position($c->stash->{game}, $newboard)){
+   if (detect_duplicate_position($c, $newboard)){
       $c->stash->{eval_move_fail} = 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum;
       return;
    }
@@ -560,7 +561,7 @@ sub get_game_player_data : Private{ #for game.tt
 
 #todo: move url param stuff into tt
 #really client should do this drawing stuff
-sub render_board_table{
+sub render_board_table : Private{
    my ($self, $c) = @_;
    my $h = $c->stash->{game}->h;
    my $w = $c->stash->{game}->w;
