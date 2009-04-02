@@ -19,6 +19,8 @@
    //pass some global globals
    var logged_in = [% logged_in ? 1 : 0 %];
    var userid = [% userid ? userid : 0 %];
+   var img_base = '[% img_base %]';
+   var url_base = '[% url_base %]';
 </script>
 
 <body>

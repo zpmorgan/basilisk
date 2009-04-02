@@ -1,15 +1,5 @@
+//It's called basilisk.js, but this is all for /game
 
-//Scrolling:
-
-//globals:
-//var offset_ew = 0;
-//var offset_ns = 0;
-var img_base;
-var url_base;
-var gameid;
-var side;
-var w;
-var h;
 var selectedNode;
 var selectedNode_original_cell;
 var Caleb; //var selectedNode_replacement_cell = too long. so Caleb.

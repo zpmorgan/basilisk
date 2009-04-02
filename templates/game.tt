@@ -1,5 +1,14 @@
 [%  INCLUDE header %]
 
+
+<script language="javascript">
+   //set a few game globals
+   gameid = [% gameid %];
+   side = '[% side %]';
+</script>
+
+
+
 <br>
 <div>
 

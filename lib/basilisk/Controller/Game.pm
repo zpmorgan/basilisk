@@ -83,6 +83,7 @@ sub render: Private{
       my ($dg,$dm) = get_marked_dead_from_last_move ($c);
       $c->stash->{death_mask} = $dm;
    }
+   
    if ($rulemap->topology eq 'C20'){
       $c->stash->{topo} = 'graph';
       $c->stash->{nodes} = $rulemap->all_node_coordinates;
@@ -90,10 +91,12 @@ sub render: Private{
       $c->stash->{stones} = $board;
    }
    else{ #grid
-      render_board_table($c);
+      $c->forward ('render_board_table');
+      $c->stash->{h} = $h;
+      $c->stash->{w} = $w;
    }
+   $c->forward ('get_game_player_data');
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
-   $c->stash->{players_data} = get_game_player_data($c);
    $c->stash->{to_move_img} = ($c->stash->{side} eq 'b') ? 'b.gif' : 'w.gif';
    $c->stash->{result} = $game->result;
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
@@ -261,10 +264,10 @@ sub action_submit_dead_selection: PathPart('submit') Chained('game'){
    if (($prev_2_moves[0]->move eq 'submit_dead_selection')
      and ($prev_2_moves[1]->move eq 'submit_dead_selection')){
         if ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups){
-           finish_game($c);
+           $c->forward ('finish_game');
         }
         unless ($prev_2_moves[0]->dead_groups or $prev_2_moves[1]->dead_groups){
-           finish_game($c);
+           $c->forward ('finish_game');
         }
    }
    $c->forward('render');
@@ -415,8 +418,8 @@ sub get_marked_dead_from_last_move{ #returns mask,stringofgroups
    return ($dead_groups, $death_mask);
 }
 #TODO: make score calc generic
-sub finish_game{ #This does not check permissions. it just wraps things up
-   my $c = shift;
+sub finish_game : Private{ #This does not check permissions. it just wraps things up
+   my ($self, $c) = @_;
    my $rulemap = $c->stash->{rulemap};
    my $game = $c->stash->{game};
    my $board = $c->stash->{board};
@@ -443,7 +446,6 @@ sub finish_game{ #This does not check permissions. it just wraps things up
    else{
       die 'scoremode neq ffa';
    }
-   #my %entity_score_data = get_entity_score_data($c);
    $game->set_column ('status', Util::FINISHED());
    $game->set_column ('result', $result);
    $game->update();
@@ -482,11 +484,10 @@ sub build_rulemap : Private{
 
 
 sub detect_duplicate_position{
-   my ($c, $newboard) = @_;
-   my $h = $c->stash->{game}->h;
-   my $w = $c->stash->{game}->w;
+   my ($game, $newboard) = @_;
+   my $h = $game->h;
+   my $w = $game->w;
    my $newpos = Util::pack_board($newboard, $h, $w);
-   my $game = $c->stash->{game};
    
    #search position table for the same board state from the same game
    my $oldmove = $game->find_related ( 'moves',
@@ -513,15 +514,15 @@ sub evaluate_move : Private{
       $c->stash->{eval_move_fail} = $err;
       return
    }
-   if (detect_duplicate_position($c, $newboard)){
+   if (detect_duplicate_position($c->stash->{game}, $newboard)){
       $c->stash->{eval_move_fail} = 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum;
       return;
    }
    @{$c->stash}{ qw/newboard newcaps/ } = ($newboard, $caps);#no err
 }
 
-sub get_game_player_data{ #for game.tt
-   my ($c) = @_;
+sub get_game_player_data : Private{ #for game.tt
+   my ($self, $c) = @_;
    my $game = $c->stash->{game};
    my $rulemap = $c->stash->{rulemap};
    #get player-game data
@@ -554,27 +555,13 @@ sub get_game_player_data{ #for game.tt
                                     $caps);
       }
    }
-   return \@playerdata;
-}
-
-sub get_score_data{
-   my ($c) = @_;
-   my @score_data;
-   my $terr_points = $c->stash->{terr_points};
-   if ($terr_points){ #set territory point display
-      #kills are negative.
-      my $rulemap = $c->stash->{rulemap};
-      my $deads = $rulemap->count_deads($c->stash->{board}, $c->stash->{death_mask});
-      for my $i (1..@$terr_points-1){ #terr_points starts at 1.
-         $score_data[$i-1]{captures} .= ' (+'. $terr_points->[$i].') (- '.$deads->[$i].')'; #+marked caps
-      }
-   }
-   
+   $c->stash->{players_data} = \@playerdata;
 }
 
 #todo: move url param stuff into tt
+#really client should do this drawing stuff
 sub render_board_table{
-   my ($c) = @_;
+   my ($self, $c) = @_;
    my $h = $c->stash->{game}->h;
    my $w = $c->stash->{game}->w;
    my $board = $c->stash->{board};
@@ -624,10 +611,9 @@ sub render_board_table{
       }
    }
    $c->stash->{board_data} = \@table;
-   $c->stash->{h} = $h;
-   $c->stash->{w} = $w;
 }
 
+#really client should do this drawing stuff
 sub select_g_file{ #only for rect board
    my ($rulemap, $board, $row, $col) = @_;
    my $stone = $board->[$row][$col];

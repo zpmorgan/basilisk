@@ -1,20 +1,15 @@
 
 <script language="javascript">
-   //set a few globals
-   img_base = '[% img_base %]';
-   url_base = '[% url_base %]';
+   //set a few rectangular game globals
    w = [% w %];
    h = [% h %];
    wrap_ns = [% wrap_ns %];
    wrap_ew = [% wrap_ew %];
    twist_ns = [% twist_ns %];
-   gameid = [% gameid %];
-   side = '[% side %]';
 </script>
 
 
 
-[% size = board_data.size %]
 [% MACRO coordinate_letter_row BLOCK %]
  [% reverse = base AND twist_ns %]
   <tr>
@@ -37,14 +32,14 @@
 <table class="scrolled_board_view">
  <tr> <td>
   [%IF wrap_ns or twist_ns %]
-   <td> <img src="[%img_base%]/scroll-up.png" width="40%" onClick="scroll('up')">
+   <td> <img src="[%img_base%]/scroll-up.png" width="72px" onClick="scroll('up')">
   [%END%]
  </tr>
  
  <tr>
    <td>
      [% IF wrap_ew -%]
-       <img src="[%img_base%]/scroll-left.png"  width="40%" onClick="scroll('left')">
+       <img src="[%img_base%]/scroll-left.png"  width="24px" onClick="scroll('left')">
      [% END -%]
    </td>
   
@@ -71,12 +66,12 @@
 
 [%# resuming controls %]
   [%IF wrap_ew %]
-   <td> <img src="[%img_base%]/scroll-right.png" width="40%" onClick="scroll('right')"> </td>
+   <td> <img src="[%img_base%]/scroll-right.png" width="24px" onClick="scroll('right')"> </td>
   [%END%]
  </tr>
  <tr> <td>
   [%IF wrap_ns or twist_ns %]
-   <td> <img src="[%img_base%]/scroll-down.png" width="40%" onClick="scroll('down')">
+   <td> <img src="[%img_base%]/scroll-down.png" width="72px" onClick="scroll('down')">
   [%END%]
  </tr>
 </table>
