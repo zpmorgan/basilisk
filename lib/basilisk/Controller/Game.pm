@@ -38,7 +38,7 @@ sub game : Chained('/') CaptureArgs(1){
    my $game = $c->model('DB::Game')->find ({'id' => $gameid}, {cache => 1});
    $c->stash->{game} = $game;
    unless ($game){
-      $c->go ('invalid_request', ['no game with that id']);
+      $c->go ('invalid_request', ["no game with id $gameid"]);
    }
    $c->stash->{ruleset} = $game->ruleset;
    $c->forward('build_rulemap');

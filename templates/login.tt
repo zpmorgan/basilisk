@@ -9,7 +9,7 @@ Here's a number:
     
 And here's a login form:
 <br>
-<form action="login" method="POST">
+<form action="[%url_base%]/login" method="POST">
    <input name="username" value="" tabindex="1" size="16" maxlength="16" type="text"><br>
    <input name="passwd" tabindex="2" size="16" maxlength="16" type="password"><br>
    <input name="login" value="Log in" tabindex="3" type="submit">
