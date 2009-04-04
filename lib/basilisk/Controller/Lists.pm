@@ -35,8 +35,11 @@ sub players :Global{
 }
 
 #todo: prefetch?
-sub get_list_of_games{
-   my ($c, $page, $playername) = @_;
+sub games : Global{
+   my ($self, $c, $playername) = @_;
+   $c->stash->{title} = 'All games';
+   $c->stash->{title} .= " of $playername" if $playername;
+   my $page = 0;
    my $pagesize = 300;
    my ($num_games, $num_pages);
    my %gameplayers; #to show who plays which game
@@ -107,18 +110,10 @@ sub get_list_of_games{
          rulestring => $rulestrings{$gid}, #$game->size,
       }
    }
-   return \@games_data;
+   $c->stash->{games_data} = \@games_data;
+   $c->stash->{template} = 'all_games.tt';
 }
 
-#list of all games on server
-sub games :Global{
-   my ( $self, $c, $player) = @_;
-   $c->stash->{title} = 'All games';
-   $c->stash->{title} .= " of $player" if $player;
-   $c->stash->{template} = 'all_games.tt';
-   my $games_data = get_list_of_games ($c,0, $player); 
-   $c->stash->{games_data} = $games_data #this is for template
-}
 
 #All waiting games
 sub games_rss : Global{
@@ -198,6 +193,8 @@ sub add_wgame{
       unless grep{$_ eq $topo} @Util::acceptable_topo;
    my $h = $c->req->param('h');
    my $w = $c->req->param('w');
+   die 'I will not allow boards of that size!' if $w>25 or $h>25;
+   die 'no sire' unless $h and $w;
    my $desc = $w .'x'. $h; # description of interesting rules
    $desc .= ", $topo" unless $topo eq 'plane';  #planes are not interesting
    
@@ -332,10 +329,68 @@ sub waiting_room :Global{
 
 
 
-
+#show list of games where it's the player's turn
 sub status :Global{
    my ( $self, $c ) = @_;
-   $c->stash->{title} = $c->session->{name} . '\'s status';
+   my @games;
+   my $pname = $c->session->{name};
+   $c->stash->{title} = $pname . '\'s status';
+   
+   my $player = $c->model('DB::Player')->find({name => $pname});
+   my $pid = $player->id;
+   #$c->model('DB')->storage->debug(1);
+   
+   #find games that player is involved with
+   my $p2g_rs = $player->search_related ('player_to_game',
+      {},
+      {
+         select => ['entity'],
+         as => ['ENTITY'], #this player's entity
+      }
+   );
+   my $games_rs = $p2g_rs->search_related ('game',
+      {status => Util::RUNNING()},
+      {
+         join => 'ruleset',
+         select => ['ENTITY', 'game.phase','game.id', 'ruleset.phase_description'],
+         as =>     ['ENTITY', 'phase',     'gid',     'pd'],
+      });
+   my $all_players_rs = $games_rs->search_related( 'player_to_game',
+      {},
+      {
+         join => 'player',
+         select => ['me.entity', 'player.name', 'player.id', 'me.gid'],
+         as     => ['entity', 'pname',       'pid',       'gid'],
+      });
+   
+   my %opponent_of_game;
+   for my $p ($all_players_rs->all){
+      #next if $pid == $p->pid;
+      push @{$opponent_of_game{$p->gid}}, $p->get_column('pname');
+   }
+   #die %opponent_of_game;
+   my %seen;
+   for my $game ($games_rs->all()){
+      my %cols = $game->get_columns();
+      next if $seen{$cols{gid}}++; #no repeating
+      
+      #is it this player's turn to move?
+      my @phases = map {[split '', $_]} split ' ', $cols{pd};
+      my $entity_to_move = $phases [$cols{phase}][0];
+      next unless $entity_to_move == $cols{ENTITY};
+      
+      #now find players other than self, if any:
+      my $opponents = join ',', grep {$_ ne $pname} @{$opponent_of_game {$cols{gid}}};
+      $opponents ||= $pname; #fighting oneself?
+      
+      push @games, {
+         phase => $cols{phase},
+         id => $cols{gid},
+         pd => $cols{pd},
+         opponent => $opponents,
+      };
+   }
+   $c->stash->{waiting_games} = \@games;
    $c->stash->{'template'} = 'status.tt';
 }
 

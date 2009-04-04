@@ -33,12 +33,12 @@ sub login :Global{
          $c->stash->{template} = 'message.tt';
          return;
       }
-      $c->stash->{message} = 'login successful';
-      $c->stash->{template} = 'message.tt';
+      $c->stash->{msg} = 'login successful';
       $c->session->{name} = $username;
       my $player = $c->model('DB::Player')->find ({name=>$username});
       $c->session->{userid} = $player->id;
       $c->session->{logged_in} = 1;
+      $c->detach ('status');
    }
    else {
       #just display login form

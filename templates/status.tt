@@ -15,10 +15,14 @@ And here's your status:<br>
 </table>
 <br>
 
-[% IF message %]
-  And here's a message from server: <br>
-  <b><span style="color: #0006">[% message %]</span></b>
+Here are your waiting games:
+<table>
+[% FOR game IN waiting_games %]
+   <tr>
+      <td> <a href="[%url_base%]/game/[% game.id %]"> [% game.id %] </a> </td>
+      <td> [% game.opponent %] </td>
+   </tr>
 [% END %]
-
+</table>
 
 [% INCLUDE footer %]
