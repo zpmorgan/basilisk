@@ -37,7 +37,7 @@ sub players :Global{
 #todo: prefetch?
 sub get_list_of_games{
    my ($c, $page, $playername) = @_;
-   my $pagesize = 25;
+   my $pagesize = 300;
    my ($num_games, $num_pages);
    my %gameplayers; #to show who plays which game
    my %rulestrings; #to summarize game rulesets
