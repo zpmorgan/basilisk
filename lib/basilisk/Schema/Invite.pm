@@ -8,10 +8,12 @@ __PACKAGE__->add_columns(
    id      => { data_type => 'INTEGER', is_auto_increment => 1},
    ruleset => { data_type => 'INTEGER'},
    
-   msg     => { data_type => 'TEXT'},
+   #msg     => { data_type => 'TEXT', is_nullable => 1},
    inviter => { data_type => 'INTEGER'},
    time    => { data_type => 'INTEGER'},
-   status  => { data_type => 'INTEGER'}, #open, accepted, rejected ?,expired?
+   
+    #open, accepted, rejected ?,expired?
+   status  => { data_type => 'INTEGER', default_value => Util::INVITEE_OPEN() },
 );
 
 __PACKAGE__->set_primary_key('id');

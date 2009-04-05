@@ -1,4 +1,5 @@
 package basilisk::Schema::Invitee;
+use basilisk::Util;
 use base qw/DBIx::Class/;
 
     
@@ -7,7 +8,9 @@ __PACKAGE__->table('Invitee');
 __PACKAGE__->add_columns(
    invite => { data_type => 'INTEGER'},
    entity => { data_type => 'INTEGER'},
-   status => { data_type => 'INTEGER'}, #open, accepted, rejected
+   
+    #open, accepted, rejected ?,expired?
+   status => { data_type => 'INTEGER', default_value => Util::INVITEE_OPEN() },
 );
 
 __PACKAGE__->set_primary_key ('invite', 'entity');

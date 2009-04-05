@@ -6,14 +6,6 @@ use parent 'Catalyst::Controller';
 use XML::Atom::SimpleFeed;
 __PACKAGE__->config->{namespace} = '';
 
-#inbox, etc
-sub messages :Global{
-   my ( $self, $c ) = @_;
-   
-   $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
-      '<img src="[% img_base %]/wood.gif" />';
-   $c->stash->{template} = 'message.tt';
-}
 
 #list of all registered players
 sub players :Global{

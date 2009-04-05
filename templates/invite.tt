@@ -1,5 +1,6 @@
+[%  INCLUDE header %]
 
-<form id="inviteform" action="[%url_base%]/invite/send" method="POST">
+<form id="inviteform" action="[%url_base%]/invite" method="POST">
 
 [%# INCLUDE proposal_form %]
 <table> <tr>
@@ -10,5 +11,13 @@
     [% INCLUDE propose_entity_controls %]
   </td>
 </tr>
+<tr>
+  <td colspan="2" align="center">
+    <INPUT type="submit" name="invitate" value="Submit invitation" >
+  </td>
+</tr>
 </table>
 
+</form>
+
+[% INCLUDE footer %]

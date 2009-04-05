@@ -13,6 +13,14 @@ sub RUNNING {1}
 sub FINISHED {2}
 sub PAUSED {3}
 
+sub INVITEE_OPEN {1}
+sub INVITEE_ACCEPTED {2}
+sub INVITEE_REJECTED {3}
+# not the same as: 
+sub INVITE_OPEN {1}
+sub INVITE_ACCEPTED {2}
+sub INVITE_REJECTED {3}
+
 our @acceptable_topo = qw/plane cylinder torus mobius klein/;
 
 #rect-only stuff--mv to rulemap::rect.

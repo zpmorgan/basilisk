@@ -20,8 +20,8 @@ And here's a register form:
   <form action="register" method="POST">
    <tr> <td>username:</td> <td><input name="username" value="" tabindex="1" size="16" maxlength="16" type="text"></td> </tr> 
    <tr> <td>password:</td> <td><input name="passwd" tabindex="2" size="16" maxlength="16" type="password"></td> </tr> 
-   <tr> <td>retype password:</td> <td><input name="passwd2" tabindex="2" size="16" maxlength="16" type="password"></td> </tr> 
-   <tr> <td colspan="2" align="center"><input value="Register" tabindex="3" type="submit"> </td><tr>
+   <tr> <td>retype password:</td> <td><input name="passwd2" tabindex="3" size="16" maxlength="16" type="password"></td> </tr> 
+   <tr> <td colspan="2" align="center"><input value="Register" tabindex="4" type="submit"> </td><tr>
   </form>
 </table>
 <small>Please make up a new password for this site.</small>

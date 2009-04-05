@@ -10,6 +10,22 @@
    else {
       form.custom_cycle.style.display = 'none';
    }
+   
+   //adjust visible entities involved:
+   var e2control = document.getElementById('e2row');
+   var e3control = document.getElementById('e3row');
+   e2control.style.display = "none";
+   e3control.style.display = "none";
+   if (type == "0b 1w 2r"){
+      e2control.style.display = '';
+   }
+   if (type == "0b 1w 2b 0w 1b 2w"){ //zen
+      e2control.style.display = '';
+   }
+   if (type == "0b 1w 2b 3w"){ //4player
+      e2control.style.display = '';
+      e3control.style.display = '';
+   }
  }
 </script>
 
@@ -19,8 +35,9 @@
       <td>
          <SELECT name="cycle_type" size="1" onChange="changeCycleSettings(this.form)">
             <OPTION value="0b 1w">             2-player     </OPTION>
-            <OPTION value="0b 1w 2r">          2-player FFA </OPTION>
-            <OPTION value="0b 1w 2b 0w 1b 0w"> 3-player zen </OPTION>
+            <OPTION value="0b 1w 2r">          3-player FFA </OPTION>
+            <OPTION value="0b 1w 2b 0w 1b 2w"> 3-player zen </OPTION>
+            <OPTION value="0b 1w 2b 3w">       4-player rengo </OPTION>
             <OPTION value="other">             Other        </OPTION>
          </SELECT>
       </td>
@@ -28,5 +45,21 @@
       <td>
          <INPUT TYPE="text" name="custom_cycle" style="display:none" />
       </td>
+   </tr>
+   <tr>
+      <td> Entity 0: </td>
+      <td>  <input name="entity0" type="text" size="16" maxlength="16" /> </td>
+   </tr>
+   <tr>
+      <td> Entity 1: </td>
+      <td>  <input name="entity1" type="text" size="16" maxlength="16" /> </td>
+   </tr>
+   <tr id="e2row" style="display:none">
+      <td> Entity 2: </td>
+      <td>  <input name="entity2" type="text" size="16" maxlength="16" /> </td>
+   </tr>
+   <tr id="e3row" style="display:none">
+      <td> Entity 3: </td>
+      <td>  <input name="entity3" type="text" size="16" maxlength="16" /> </td>
    </tr>
 </table>

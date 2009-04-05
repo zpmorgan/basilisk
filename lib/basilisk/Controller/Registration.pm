@@ -74,6 +74,7 @@ sub register :Global {
    $err .= "Require password.  " unless ($passwd);
    $err .= "Passwords must match.  " unless ($passwd eq $passwd2);
    $err .= "All digits?  " if ($username =~ /^\d*$/);
+   $err .= 'username too long.  ' unless length($username) <= 16;
    
    #my $rs = $c->model('DB::Player');
    if ($username){

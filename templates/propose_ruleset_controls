@@ -40,7 +40,7 @@
       <OPTION value="7">7</OPTION>
 
       <OPTION value="8">8</OPTION>
-      <OPTION value="9">9</OPTION>
+      <OPTION value="9" selected>9</OPTION>
       <OPTION value="10">10</OPTION>
       <OPTION value="11">11</OPTION>
       <OPTION value="12">12</OPTION>
@@ -51,7 +51,7 @@
 
       <OPTION value="17">17</OPTION>
       <OPTION value="18">18</OPTION>
-      <OPTION value="19" selected>19</OPTION>
+      <OPTION value="19">19</OPTION>
       <OPTION value="20">20</OPTION>
       <OPTION value="21">21</OPTION>
       <OPTION value="22">22</OPTION>
@@ -68,7 +68,7 @@
       <OPTION value="7">7</OPTION>
 
       <OPTION value="8">8</OPTION>
-      <OPTION value="9">9</OPTION>
+      <OPTION value="9" selected>9</OPTION>
       <OPTION value="10">10</OPTION>
       <OPTION value="11">11</OPTION>
       <OPTION value="12">12</OPTION>
@@ -79,7 +79,7 @@
 
       <OPTION value="17">17</OPTION>
       <OPTION value="18">18</OPTION>
-      <OPTION value="19" selected>19</OPTION>
+      <OPTION value="19">19</OPTION>
       <OPTION value="20">20</OPTION>
       <OPTION value="21">21</OPTION>
       <OPTION value="22">22</OPTION>

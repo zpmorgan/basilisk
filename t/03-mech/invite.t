@@ -12,7 +12,7 @@ use Test::WWW::Mechanize::Catalyst  qw/basilisk/;
 my $mech = Test::WWW::Mechanize::Catalyst->new;
 
 $mech->get_ok("/invite");
-$mech->content_contains("passwd", "not logged in: go to passwd");
+$mech->content_contains("passwd", "not logged in: go to login");
 
 
 my @players = map {
@@ -25,6 +25,9 @@ my @players = map {
 
 login_as ($mech, 'stinky_pete');
 $mech->get_ok("/invite");
-$mech->content_like (qr/game type/i, "/invite has controls");
+$mech->content_like (qr/form.*cycle.*text.*form/i, "/invite probably has movecycle controls");
 
+login_as ($mech, 'exactly_man');
+$mech->get_ok("/messages");
+$mech->content_like('stinky_pete', "exactly_man has invite message from stinky_pete");
 
