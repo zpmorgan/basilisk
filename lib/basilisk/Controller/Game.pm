@@ -654,10 +654,18 @@ sub allmoves : Chained('game') {
    for my $mv_row (@move_rows){
       my $phase = $mv_row->phase;
       my $side = $phases[$phase][1];
+      my $pretty_node; #a19, t1, etc. or whatever is visible in moves list
+      if ($mv_row->move =~ /^\{(.*)\}$/){
+         $pretty_node = $c->stash->{rulemap}->pretty_coordinates ($1);
+      }
+      else {
+         $pretty_node = $mv_row->move;
+      }
       push @moves, {
          movenum => $mv_row->movenum,
          side => $side,
          move => $mv_row->move,
+         pretty_node => $pretty_node,
       }
    }
    

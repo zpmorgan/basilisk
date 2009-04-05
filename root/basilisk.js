@@ -133,10 +133,11 @@ function render_comment_table(data){
 function render_moves_list (moves){
    var moves_select = document.getElementById('moves_select');
    for (i in moves){
-      var move    = moves[i].move;
+      //var move    = moves[i].move;
+      var move    = moves[i].pretty_node;
       var side    = moves[i].side;
       var movenum = moves[i].movenum;
-      var option = new Option (movenum +": "+ side +' '+ move, movenum);
+      var option = new Option (movenum +": "+ side +', '+ move, movenum);
       moves_select.add (option, null);
    }
 }

@@ -82,7 +82,7 @@ $mech->content_contains("Logged in as: Rat_King", "change login");
       movenum => 3,
       time => 1234567898,
       position_id => 8888,
-      moves => 'doesn"t surrender',
+      move => 'doesn"t surrender',
       phase => '0',
       captures => '0 0',
    });

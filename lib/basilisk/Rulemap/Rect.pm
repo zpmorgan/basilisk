@@ -143,4 +143,15 @@ sub node_is_on_edge{
    return $string;
 }
 
+my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;
+
+sub pretty_coordinates{ #convert 1-1 to b18, etc
+   my ($self, $node) = @_;
+   my ($row,$col) = $node =~ /^(\d+)-(\d+)$/;
+   $col = $cletters[$col];
+   $row = $self->h - $row;
+   
+   return "'$col$row'" if $self->twist_ns; #non-orientable, so "
+   return "$col$row";
+}
 1;

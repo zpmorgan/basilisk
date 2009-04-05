@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 17;
+use Test::More tests => 18;
 use JSON;
 
 use lib qw(t/lib lib);
@@ -50,4 +50,6 @@ is ($move->move, '{3-5}', '1st move\'s points to correct node');
 $mech->get_ok('/game/' . $game->id . '/allmoves');
 is($mech->ct, 'text/json', 'correct content type');
 my $res = from_json ($mech->content);
-is (@$res, 1, 'correct number of moves');
+
+is ($res->[0], 'success', 'success response from /game/\d/allmoves');
+is (@{$res->[1]}, 1, 'correct number of moves');
