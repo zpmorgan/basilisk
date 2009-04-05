@@ -97,15 +97,18 @@ sub render: Private{
    }
    $c->forward ('get_game_player_data');
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
+   
    $c->stash->{to_move_img} = $c->stash->{side} . '.gif';
+   $c->stash->{to_move_player} = $c->stash->{game}->player_name_to_move_next;
    $c->stash->{result} = $game->result;
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
+   
    $c->stash->{c_letter} = \&column_letter;
-   $c->stash->{template} = 'game.tt';
    $c->stash->{wrap_ns} = $rulemap->wrap_ns;
    $c->stash->{wrap_ew} = $rulemap->wrap_ew;
-   $c->stash->{twist_ns} = $rulemap->twist_ns; #TODO: let game.tt draw html board
-   #$c->stash->{last_move} = $c->forward->('most_recent_move');
+   $c->stash->{twist_ns} = $rulemap->twist_ns;
+   #TODO: let game.tt draw html board
+   $c->stash->{template} = 'game.tt';
 }# now goes to template
 
 #view this game

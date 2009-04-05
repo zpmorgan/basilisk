@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 use lib qw(lib);
 use strict;
 use warnings;
@@ -10,7 +11,7 @@ my @players = map {
    $schema->resultset('Player')->find(
       {name => $_}
    )
-} qw/zpmorgan Phelan/;
+} qw/zpmorgan zpmorgan/;
 
 my $new_ruleset = $schema->resultset('Ruleset')->create({
    h=>13,w=>13,

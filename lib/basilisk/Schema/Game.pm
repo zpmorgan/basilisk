@@ -38,12 +38,11 @@ sub num_moves{
    return $self->count_related('moves');
 }
 
-#unused:
-sub player_to_move_next{
+sub player_name_to_move_next{
    my $self = shift;
    my ($entity, $side) = $self->turn;
-   my $player = $self->find_related ('players', {entity => $entity});
-   return $player if $player;
+   my $p = $self->find_related ('player_to_game', {entity => $entity});
+   return $p->player->name if $p;
    die "no player as entity $entity in game ".$self->id;
 }
 sub shift_phase{
