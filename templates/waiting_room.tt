@@ -45,8 +45,26 @@ Info on proposal [%proposal_info.id%]:<br>
   </tr> 
  </table>
 
-[% ELSE %]
- [% INCLUDE proposal_form %]
+
+[% ELSE #proposal form: %]
+   <FORM id="addgameForm" name="addgame" class="FormClass" action="[%url_base%]/waiting_room" method="POST">
+   <table>
+    <tr>
+      <td align="right">Number of games to add:</td>
+      <td align="left"><INPUT type="text" name="quantity" value="1" size="1" maxlength="1"></td>
+    </tr>
+    
+    <tr>
+      [% INCLUDE propose_ruleset_controls %]
+    </tr>
+     
+     <tr>
+      <td colspan="2" align="center">  <INPUT type="submit" name="add_game" value="Add Game">  </td>
+     </tr>
+     <input type="hidden" name="action" value="add_wgame">
+   </table>
+   </form>
 [% END %]
+
 
 [% INCLUDE footer %]

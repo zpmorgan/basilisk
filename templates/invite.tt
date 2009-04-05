@@ -1,0 +1,14 @@
+
+<form id="inviteform" action="[%url_base%]/invite/send" method="POST">
+
+[%# INCLUDE proposal_form %]
+<table> <tr>
+  <td>
+    [% INCLUDE propose_ruleset_controls %]
+  </td>
+  <td>
+    [% INCLUDE propose_entity_controls %]
+  </td>
+</tr>
+</table>
+

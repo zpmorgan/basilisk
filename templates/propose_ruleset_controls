@@ -1,11 +1,4 @@
-<FORM id="addgameForm" name="addgame" class="FormClass" action="[%url_base%]/waiting_room" method="POST">
-<table>
- <tr>
-   <td align="right">Number of games to add:</td>
-   <td align="left"><INPUT type="text" name="quantity" value="1" size="1" maxlength="1"></td>
- </tr>
- 
- 
+
  <script language="javascript" type="text/javascript">
    function changeBoardSettings (form){
       var type = form.topology.value;
@@ -24,7 +17,8 @@
       }
    }
  </script>
- 
+
+<table>
   <tr>
    <td align="right">Topology:</td>
    <td align="left">
@@ -102,12 +96,4 @@
       C20
    </td>
   </tr>
-  
-  
-  
-  <tr>
-   <td colspan="2" align="center">  <INPUT type="submit" name="add_game" value="Add Game">  </td>
-  </tr>
-  <input type="hidden" name="action" value="add_wgame">
-  </form>
 </table>

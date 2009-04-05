@@ -17,6 +17,7 @@ __PACKAGE__->has_many(proposed_games => 'basilisk::Schema::Game_proposal', 'prop
 __PACKAGE__->might_have (rating => 'basilisk::Schema::Rating', {'foreign.id' => 'self.current_rating'});
 __PACKAGE__->has_many(all_ratings => 'basilisk::Schema::Rating', 'pid');
 __PACKAGE__->has_many (comments => 'basilisk::Schema::Comment', 'sayeth');
+__PACKAGE__->has_many (invites => 'basilisk::Schema::Invite', 'inviter');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;
