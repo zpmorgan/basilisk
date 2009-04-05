@@ -103,13 +103,8 @@
   [% END %]
   
    <tr>
-      <td colspan="4"> Rules: basic </td>
+      <td colspan="4"> rules: <b>[% rules_description %]</b> </td>
    </tr>
-  [% IF extra_rules_desc %]
-   <tr>
-      <td colspan="4"> Extra rules: <b>[% extra_rules_desc %]</b> </td>
-   </tr>
-  [% END %]
 </table>
 </div>
 </div>

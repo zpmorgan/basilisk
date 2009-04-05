@@ -101,7 +101,7 @@ sub render: Private{
    $c->stash->{to_move_img} = $c->stash->{side} . '.gif';
    $c->stash->{to_move_player} = $c->stash->{game}->player_name_to_move_next;
    $c->stash->{result} = $game->result;
-   $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
+   $c->stash->{rules_description} = $c->stash->{ruleset}->rules_description;
    
    $c->stash->{c_letter} = \&column_letter;
    $c->stash->{wrap_ns} = $rulemap->wrap_ns;
