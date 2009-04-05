@@ -69,12 +69,12 @@ sub num_phases{
    return $self->ruleset->num_phases;
 }
 
-sub last_move{ #'pass' or 'b t4' etc
+sub last_move{
    my $self = shift;
    my $mvnum = $self->num_moves;
-   return $self->find_related ('moves', {movenum => $mvnum});
+   return $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
 }
-sub last_move_string{ #'pass' or 'b t4' etc
+sub last_move_string{ 
    my $c = shift;
    #my $mvnum = $c->stash->{game}->num_moves;
    return $c->stash->{game}->find_related ('moves', {}, {order_by => 'movenum DESC'})->get_columns ('phase', 'move');
@@ -95,7 +95,7 @@ sub current_position{
       gid => $self->id,
       movenum => $self->num_moves,
    });
-   return $move->position->position;#blob
+   return $move->position->position;
 }
 sub current_position_id{
    my $self = shift;
@@ -129,10 +129,10 @@ sub phase_description{
 }
 
 
-sub side_of_entity{ #return undef if zen,etc
+sub side_of_entity{ 
    my ($self, $ent) = @_;
    my $pd = $self->phase_description;
-   return undef if (scalar $pd =~ /($ent)/g) > 1;
+   return undef if (scalar $pd =~ /($ent)/g) > 1; #return undef if zen,etc
    $pd =~ /$ent([bwr])/;
    return $1;
 }

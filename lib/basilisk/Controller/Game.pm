@@ -97,7 +97,7 @@ sub render: Private{
    }
    $c->forward ('get_game_player_data');
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
-   $c->stash->{to_move_img} = ($c->stash->{side} eq 'b') ? 'b.gif' : 'w.gif';
+   $c->stash->{to_move_img} = $c->stash->{side} . '.gif';
    $c->stash->{result} = $game->result;
    $c->stash->{extra_rules_desc} = $c->stash->{ruleset}->rules_description;
    $c->stash->{c_letter} = \&column_letter;
@@ -539,10 +539,9 @@ sub get_game_player_data : Private{ #for game.tt
    for my $p (@players){
       #todo: calc time remaining, render human readable
       my $side = $game->side_of_entity($p->entity);
-      my $img = $side . '.gif';
       push @playerdata, {
          entity => $p->entity,
-         stone_img => $img,
+         side => $game->side_of_entity($p->entity),
          name => $p->get_column('name'),
          id => $p->pid,
          time_remaining => $p->expiration,
@@ -618,8 +617,7 @@ sub render_board_table : Private{
 sub select_g_file{ #only for rect board
    my ($rulemap, $board, $row, $col) = @_;
    my $stone = $board->[$row][$col];
-   return 'b.gif' if $stone eq 'b';
-   return 'w.gif' if $stone eq 'w';
+   return "$stone.gif" if $stone =~ /^[bwr]$/;
    #so it's an empty intersection
    return $rulemap->node_is_on_edge($row, $col) . '.gif';
 }

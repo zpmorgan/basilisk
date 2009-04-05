@@ -35,7 +35,7 @@ has twist_ew => (
 
 sub evaluate_move{
    my ($self, $board, $node, $side) = @_;
-   die "bad side $side" unless $side =~ /^[bw]$/;
+   die "bad side $side" unless $side =~ /^[bwr]$/;
    #die (ref $node . $node) unless ref $node eq 'ARRAY';
    #die 'badboard' unless ref $board eq 'ARRAY';
    
