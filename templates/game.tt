@@ -3,8 +3,8 @@
 
 <script language="javascript">
    //set a few game globals
-   gameid = [% gameid %];
-   side = '[% side %]';
+   var gameid = [% gameid %];
+   var side = '[% side %]';
 </script>
 
 
@@ -61,6 +61,11 @@
 </div>
 
 
+[%# submission controls %]
+<form id="move_submit_form" action="">
+   <input id="mv_subm_but" value="Submit move" tabindex="3" type="submit" style="display:none;">
+</form>
+
 
 <div style="clear:both;">
 
@@ -69,12 +74,12 @@
  
    <div id="commands" style="float:left;">
      [% IF board_clickable %]
-      <h2> <a href="[%url_base%]/game/[%gameid%]/resign">Resign</a> </h2> 
+      <h2> <a id="resign_button" href="[%url_base%]/game/[%gameid%]/resign" onclick="select_resign(); return false"> Resign </a> </h2> 
       [% IF marking_dead_stones %]
          <h2> <a href="[%url_base%]/game/[%gameid%]/continue">Continue playing</a> </h2>
          <h2> <a href="[%url_base%]/game/[%gameid%]/submit/[% new_also_dead %]"> Submit </a> </h2> 
       [% ELSE %]
-         <h2> <a href="[%url_base%]/game/[%gameid%]/pass">Pass</a> </h2>
+         <h2> <a id="pass_button" href="[%url_base%]/game/[%gameid%]/pass" onclick="select_pass(); return false"> Pass </a> </h2>
       [% END %]
      [% END %]
    </div>

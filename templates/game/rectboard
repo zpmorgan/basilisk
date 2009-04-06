@@ -1,11 +1,11 @@
 
 <script language="javascript">
    //set a few rectangular game globals
-   w = [% w %];
-   h = [% h %];
-   wrap_ns = [% wrap_ns %];
-   wrap_ew = [% wrap_ew %];
-   twist_ns = [% twist_ns %];
+   var w = [% w %];
+   var h = [% h %];
+   var wrap_ns = [% wrap_ns %];
+   var wrap_ew = [% wrap_ew %];
+   var twist_ns = [% twist_ns %];
 </script>
 
 
@@ -77,9 +77,5 @@
 </table>
 
 
-[%# submission controls %]
-<form id="move_submit_form" action="">
-   <input id="mv_subm_but" value="Submit move" tabindex="3" type="submit" style="display:none;">
-</form>
 
 

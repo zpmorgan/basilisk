@@ -16,13 +16,18 @@ function setup_cell_swap_if_need_be(){
       Caleb.setAttribute('id', 'caleb_the_ripper');
       Caleb.appendChild(my_stone_img);
 }
-
-function select(node){ //selectnode
-   setup_cell_swap_if_need_be();
+function retire_caleb_clone(){
    if (selectedNode_original_cell){
       var caleb_clone = document.getElementById ('caleb_clone');
       caleb_clone.parentNode.replaceChild (selectedNode_original_cell, caleb_clone);
+      selectedNode_original_cell = null;
    }
+}
+
+function select(node){ 
+   setup_cell_swap_if_need_be();
+   retire_caleb_clone();
+   
    var cell = document.getElementById ('cell ' + node);
    selectedNode_original_cell = cell.cloneNode(true);
    var caleb_clone = Caleb.cloneNode(true);
@@ -34,6 +39,28 @@ function select(node){ //selectnode
    var submit_form = document.getElementById ('move_submit_form');
    submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/move/'+ selectedNode);
    document.getElementById ('mv_subm_but').style.display='';
+   document.getElementById ('mv_subm_but').value= 'Submit move';
+}
+
+$(document).ready(function() {
+   if (!gameid) {return;}
+   //TODO: make these work.
+   //document.getElementById ('resign_button').onClick = "select_resign();return false;";
+   //document.getElementById ('pass_button').onClick = "select_pass();return false;";
+});
+function select_resign(){ //prepares same submit button as submit()
+   retire_caleb_clone();
+   var submit_form = document.getElementById ('move_submit_form');
+   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/move/resign');
+   document.getElementById ('mv_subm_but').style.display= '';
+   document.getElementById ('mv_subm_but').value= 'Submit resignation';
+}
+function select_pass(){ //prepares same submit button as submit()
+   retire_caleb_clone();
+   var submit_form = document.getElementById ('move_submit_form');
+   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/move/pass');
+   document.getElementById ('mv_subm_but').style.display= '';
+   document.getElementById ('mv_subm_but').value= 'Submit pass';
 }
 
 function reverse_stone_row(row){
