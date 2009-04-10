@@ -54,7 +54,10 @@ sub game : Chained('/') CaptureArgs(1){
 
 sub render: Private{
    my ($self, $c) = @_;
-   my ($rulemap, $board, $game) = @{$c->stash}{qw/rulemap board game/};
+   my ($rulemap, $board, $gameid) = @{$c->stash}{qw/rulemap board gameid/};
+   #game's state may be altered:
+   my $game = $c->stash->{game} = $c->model('DB::Game')->find ({'id' => $gameid});
+   die 'wat' unless $game;
    
    unless ($c->stash->{board_clickable}){ #default: determine level of interaction with game
       if ($c->forward ('permission_to_move')){ #your turn
