@@ -1,1 +1,36 @@
-Run script/basilisk_server.pl to test the application.
+
+Name:
+Basilisk Go Server
+
+Requirements:
+The list of prerequisites is in Makefile.pl. To resolve them, either 
+use perl's MakeMaker system (perl Makefile.PL) or by using the 'cpan'
+interface to the CPAN.
+
+Running:
+1. Run script/basilisk_spawn_db.pl to generate an initial sqlite database.
+2. Afterwards, run script/basilisk_server.pl to test the application.
+3. Add a waiting game using the 'waiting room' interface. Click on the
+   waiting game and join it. Now 
+
+Description:
+A correspondence Go server for variant rulesets. A number of rule 
+variations are supported:
+* Non-square boards: anywhere from 5 to 25 intersecctions in any dimension.
+* Edge wrapping: What amounts to cylindrical, toroidal, moebius, & klein
+   bottle topologies. Real projective plane may be forthcoming.
+* Go with more than 2 players or sides. Pretty much any cyclic pattern 
+   of moves may be described.  This feature is incomplete, and to initiate
+   a game, for now the database must be modified using a script such as
+	insert-antizen.pl. This will improve with the invitation system.
+
+The source is arranged with a model-view-controller paradigm. The model
+loads a DBIx::Class schema, which is in lib/basilisk/Schema. The view uses
+Template::Toolkit and uses templates in the template directory.  
+The controller comprises actions, which are grouped into relevant files
+in lib/basilisk/Controller. Actions may be chained based on the url path.
+Static files are in the 'root' directory.
+
+Known issues:
+* The scoring system has several issues. 
+* The invitation system and the rating system are inoperative.

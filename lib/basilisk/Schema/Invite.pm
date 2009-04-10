@@ -1,4 +1,5 @@
 package basilisk::Schema::Invite;
+use basilisk::Util;
 use base qw/DBIx::Class/;
 
     
