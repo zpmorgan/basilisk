@@ -541,10 +541,10 @@ sub get_game_player_data : Private{ #for game.tt
    #put data in hashes in @playerdata for template
    for my $p (@players){
       #todo: calc time remaining, render human readable
-      my $side = $game->side_of_entity($p->entity);
+      my @sides = $game->sides_of_entity($p->entity);
       push @playerdata, {
          entity => $p->entity,
-         side => $game->side_of_entity($p->entity),
+         sides => \@sides,
          name => $p->get_column('name'),
          id => $p->pid,
          time_remaining => $p->expiration,

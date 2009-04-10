@@ -99,8 +99,12 @@
 <table id="players">
 
   [% FOREACH p = players_data %]
-   <tr> 
-      <td> <img src="[%img_base%]/[% p.side %].gif"> </td>
+   <tr>
+      <td> 
+      [% FOREACH side = p.sides %]
+         <img src="[%img_base%]/[% side %].gif">
+      [% END %]
+      </td>
       <td> <a href="[%url_base%]/userinfo/[% p.id %]"> <b>[% p.name %]</b> </a>  </td>
       <td> Captures: [% p.captures %]</td>
 [%#   <td> Time remaining: [% p.time_remaining </td> %]

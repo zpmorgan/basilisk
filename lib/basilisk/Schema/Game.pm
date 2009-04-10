@@ -1,7 +1,8 @@
 package basilisk::Schema::Game;
 
-use basilisk::Util;
 use base qw/DBIx::Class/;
+use basilisk::Util;
+use List::MoreUtils qw(uniq);
 
 #values for status column
 sub RUNNING {1}
@@ -81,20 +82,20 @@ sub last_move_string{
 
 sub current_position{
    my $self = shift;
-   if ($self->num_moves == 0){ #no moves have taken place yet.
-      my $initial_pos = $self->initial_pos;
-      if ($initial_pos){
-         return $initial_pos->position;
-      }
-      else{
-         return Util::empty_pos($self->h, $self->w); #blob
-      }
-   }
    my $move = $self->moves->find({
       gid => $self->id,
       movenum => $self->num_moves,
    });
-   return $move->position->position;
+   if ($move and $move->position){ 
+      return $move->position->position;
+   }
+   #either no moves have taken place yet,
+   #or the only moves have been passes
+   my $initial_pos = $self->initial_pos;
+   if ($initial_pos){
+      return $initial_pos->position;
+   }
+   return Util::empty_pos($self->h, $self->w);
 }
 sub current_position_id{
    my $self = shift;
@@ -127,13 +128,27 @@ sub phase_description{
    return $self->ruleset->phase_description
 }
 
-
+#TODO: getridof? not generic
 sub side_of_entity{ 
    my ($self, $ent) = @_;
    my $pd = $self->phase_description;
-   return undef if (scalar $pd =~ /($ent)/g) > 1; #return undef if zen,etc
+   my @matches =  scalar $pd =~ /($ent)/g;
+   return undef if @matches > 1; #return undef if zen,etc
    $pd =~ /$ent([bwr])/;
    return $1;
+}
+
+sub sides_of_entity{ 
+   my ($self, $ent) = @_;
+   my $pd = $self->phase_description;
+   my @sides =  $pd =~ /$ent([bwr])/g; 
+   return uniq @sides;
+}
+sub entities_of_side{ 
+   my ($self, $side) = @_;
+   my $pd = $self->phase_description;
+   my @ents =  $pd =~ /(\d)$side/g;
+   return uniq @ents
 }
 
 sub captures{

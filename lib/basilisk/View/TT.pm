@@ -12,27 +12,5 @@ __PACKAGE__->config({
 
 });
 
-=head1 NAME
-
-basilisk::View::TT - TT View for basilisk
-
-=head1 DESCRIPTION
-
-TT View for basilisk. 
-
-=head1 AUTHOR
-
-=head1 SEE ALSO
-
-L<basilisk>
-
-Zach Morgan,,,
-
-=head1 LICENSE
-
-This library is free software, you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 1;
