@@ -69,9 +69,12 @@ sub node_to_string{
    my ($self, $node) = @_;
    return join '-', @$node;
 }
-sub node_from_string{ 
+sub node_from_string{ #return undef if invalid
    my ($self, $string) = @_;
-   return [split '-', $string];
+   return unless $string =~ /^(\d+)-(\d+)$/;
+   return unless $1 < $self->h;
+   return unless $2 < $self->w;
+   return [$1,$2];
 }
 sub stone_at_node{ #0 if empty, b black, w white, r red, etc
    my ($self, $board, $node) = @_;

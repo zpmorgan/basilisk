@@ -29,5 +29,5 @@ $mech->content_like (qr/form.*cycle.*text.*form/i, "/invite probably has movecyc
 
 login_as ($mech, 'exactly_man');
 $mech->get_ok("/messages");
-$mech->content_like('stinky_pete', "exactly_man has invite message from stinky_pete");
+$mech->content_like (qr'stinky_pete', "exactly_man has invite message from stinky_pete");
 

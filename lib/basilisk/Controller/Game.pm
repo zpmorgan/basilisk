@@ -129,6 +129,10 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
    my ($game, $rulemap, $oldboard) = @{$c->stash}{ qw/game rulemap board/ };
    #extract coordinates from url:
    my $node = $rulemap->node_from_string ($nodestring);
+   unless ($node){
+      $c->stash->{msg} = "move is failure: $nodestring not a valid node.";
+      $c->detach('render');
+   }
    
    $c->forward('evaluate_move', [$node, $oldboard]);
    my ($newboard, $caps) = @{$c->stash}{ qw/newboard newcaps/ };
