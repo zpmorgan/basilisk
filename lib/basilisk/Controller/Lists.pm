@@ -365,7 +365,7 @@ sub status :Global{
    my %seen;
    for my $game ($games_rs->all()){
       my %cols = $game->get_columns();
-      next if $seen{$cols{gid}}++; #no repeating
+      next if $seen{$cols{gid}}; #no repeating
       
       #is it this player's turn to move?
       my @phases = map {[split '', $_]} split ' ', $cols{pd};
@@ -382,6 +382,7 @@ sub status :Global{
          pd => $cols{pd},
          opponent => $opponents,
       };
+      $seen{$cols{gid}}++;
    }
    $c->stash->{waiting_games} = \@games;
    $c->stash->{'template'} = 'status.tt';
