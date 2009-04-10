@@ -51,14 +51,14 @@ $(document).ready(function() {
 function select_resign(){ //prepares same submit button as submit()
    retire_caleb_clone();
    var submit_form = document.getElementById ('move_submit_form');
-   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/move/resign');
+   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/resign');
    document.getElementById ('mv_subm_but').style.display= '';
    document.getElementById ('mv_subm_but').value= 'Submit resignation';
 }
 function select_pass(){ //prepares same submit button as submit()
    retire_caleb_clone();
    var submit_form = document.getElementById ('move_submit_form');
-   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/move/pass');
+   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/pass');
    document.getElementById ('mv_subm_but').style.display= '';
    document.getElementById ('mv_subm_but').value= 'Submit pass';
 }

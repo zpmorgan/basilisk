@@ -181,7 +181,6 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
    }
    my $game = $c->stash->{game};
    my ($entity, $side) = $game->turn;
-   my $posid = $game->current_position_id;
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
       $game->create_related( 'moves',

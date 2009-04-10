@@ -99,11 +99,11 @@ sub current_position{
 }
 sub current_position_id{
    my $self = shift;
-   return 0 if $self->num_moves == 0;
    my $move = $self->find_related ('moves', {
       movenum => $self->num_moves,
    });
-   return $move->position->id;
+   return 0 unless $move;
+   return $move->position_id;
 }
 
 sub current_board{
