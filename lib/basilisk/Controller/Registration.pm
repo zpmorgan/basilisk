@@ -18,7 +18,7 @@ sub login :Global FormConfig{
    #die $form->render;
    unless ($form->submitted_and_valid){
       if ($form->submitted and $form->has_errors){
-         die $form->get_errors;
+         #die $form->get_errors;
          #$c->stash->{msg} = "errors:<br>". join '<br>', map {%$_} @{$form->get_errors};
       }
       $c->detach;

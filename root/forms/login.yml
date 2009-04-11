@@ -1,7 +1,7 @@
 ---
 action:
 id: login
-indicator: submit
+indicator: username
 auto_fieldset: 1
 
 auto_id: '%f_%n'

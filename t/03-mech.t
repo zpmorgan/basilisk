@@ -21,14 +21,12 @@ $mech->content_contains("Save the basilisks", 'page contains foot');
 
 $mech->get_ok("/login");
 $mech->content_contains("Log in", "make sure we are not logged in");
-$mech->form_with_fields( qw/username passwd/ );
+$mech->form_with_fields( qw/username passwd submit/ );
 $mech->submit_form_ok(
         {fields => {
             username => 'foo',
             passwd => 'foo',
-            submit=> 'Login',
         }}, 'login form submission');
-#diag $mech->content;
 #diag $mech->content if $mech->title =~ /message/;
 
 #$mech->get_ok("/waiting_room");

@@ -12,9 +12,9 @@ elements:
     constraints:
       - Required
       - type: Length
-        min: 2
+        min: 1
         max: 16
-        message: username must be between 2 and 16 chars
+        message: username must be between 1 and 16 chars
   - type: Password
     name: passwd
     label: Password
