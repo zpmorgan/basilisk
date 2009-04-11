@@ -14,7 +14,11 @@ Here's a number:
   </div>
 [% END %]
 
-And here's a register form:
+And here's a register form:<br>
+[% form %]
+
+[%#
+Elder:
 <br>
 <table>
   <form action="register" method="POST">
@@ -24,6 +28,7 @@ And here's a register form:
    <tr> <td colspan="2" align="center"><input value="Register" tabindex="4" type="submit"> </td><tr>
   </form>
 </table>
+%]
 <small>Please make up a new password for this site.</small>
 
 

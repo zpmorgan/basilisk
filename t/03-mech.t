@@ -26,8 +26,9 @@ $mech->submit_form_ok(
         {fields => {
             username => 'foo',
             passwd => 'foo',
+            submit=> 'Login',
         }}, 'login form submission');
-
+#diag $mech->content;
 #diag $mech->content if $mech->title =~ /message/;
 
 #$mech->get_ok("/waiting_room");

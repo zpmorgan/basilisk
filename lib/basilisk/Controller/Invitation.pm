@@ -20,7 +20,10 @@ sub messages :Global{
    $c->stash->{template} = 'message.tt';
 }
 
-
+#FormFu:
+#indicator must be set
+#relevant config files loaded
+#build, then process, then render
 sub invite : Global {
    my ($self, $c) = @_;
    $c->detach('login') unless $c->session->{logged_in};
