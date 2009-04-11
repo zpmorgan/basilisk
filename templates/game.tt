@@ -44,7 +44,7 @@
 
 [% UNLESS result -%]
   <span style="border: 1px solid #777;background-color:lightgray;"> 
-    <img src="[%img_base%]/[% to_move_img %]" width="11px"> <b>[% to_move_player %]</b> to move.
+    <img src="[%img_base%]/[% to_move_side %].gif" width="11px"> <b>[% to_move_player %]</b> to move.
   </span>
 [% ELSE -%]
   <div style="border: 1px solid #777;background-color:lightgray;width:40%"> 

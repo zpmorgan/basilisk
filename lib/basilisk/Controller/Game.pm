@@ -58,6 +58,7 @@ sub render: Private{
    #game's state may be altered:
    my $game = $c->stash->{game} = $c->model('DB::Game')->find ({'id' => $gameid});
    die 'wat' unless $game;
+   my ($entity, $side) = $game->turn;
    
    unless ($c->stash->{board_clickable}){ #default: determine level of interaction with game
       if ($c->forward ('permission_to_move')){ #your turn
@@ -101,7 +102,7 @@ sub render: Private{
    $c->forward ('get_game_player_data');
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    
-   $c->stash->{to_move_img} = $c->stash->{side} . '.gif';
+   $c->stash->{to_move_side} = $side;
    $c->stash->{to_move_player} = $c->stash->{game}->player_name_to_move_next;
    $c->stash->{result} = $game->result;
    $c->stash->{rules_description} = $c->stash->{ruleset}->rules_description;
