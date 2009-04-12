@@ -179,6 +179,7 @@ sub entity_to_move{
 #show list of games where it's the player's turn
 sub status :Global{
    my ( $self, $c ) = @_;
+   $c->detach('login') unless $c->session->{logged_in};
    my @games;
    my $pname = $c->session->{name};
    $c->stash->{title} = $pname . '\'s status';

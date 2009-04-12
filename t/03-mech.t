@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 19;
+use Test::More tests => 18;
 
 use lib qw(t/lib lib);
 use_ok 'b_schema';

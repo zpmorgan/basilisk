@@ -8,6 +8,7 @@ __PACKAGE__->config->{namespace} = '';
 
 sub login :Global FormConfig{
    my ( $self, $c ) = @_;
+   $c->stash->{template} = 'login.tt';
    if ($c->session->{logged_in}){
       $c->stash->{message} = "You are already logged in, <b>".$c->session->{name} .
         '</b>.<br><a href="[%url_base%]/logout">Log out.</a>';
