@@ -1,0 +1,30 @@
+---
+elements:
+   - type: Fieldset
+     elements:
+      - type: Select
+        name: topology
+        label: Topology
+        options:
+          - [ 'plane', 'Plane' ]
+          - [ 'cylinder', 'Cylinder' ]
+          - [ 'torus', 'Torus' ]
+          - [ 'mobius', 'Möbius strip' ]
+          - [ 'klein', 'Klein bottle' ]
+      - type: Select
+        name: h
+        label: Height
+        value_range:
+          - ""
+          - 2
+          - 25
+        default: 13
+      - type: Select
+        name: w
+        label: Width
+        value_range:
+          - ""
+          - 2
+          - 25
+        default: 13
+       

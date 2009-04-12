@@ -5,12 +5,9 @@ use JSON;
 
 use lib qw(t/lib lib);
 use b_schema;
-use b_mech;
-
 my $schema = b_schema->init_schema('populate');
-
-use Test::WWW::Mechanize::Catalyst 'basilisk';
-my $mech = Test::WWW::Mechanize::Catalyst->new;
+use b_mech;
+my $mech = b_mech->new;
 
 #modify db
 my @players = map {
@@ -60,7 +57,7 @@ sub rx_side_on_board {
    return qr/td id="cell[^<]* <img [^<]*$side.gif/
 }
 
-login_as ($mech, 'king');
+$mech->login_as('king');
 $mech->get_ok("/game/".$game->id);
 #diag $mech->content;
 $mech->content_contains("king", "/game/$gid contains 1st player name, 'king'");
@@ -72,26 +69,26 @@ $mech->content_contains("w.gif", "/game/$gid player2 stone img, w.gif");
 $mech->content_contains("r.gif", "/game/$gid player3 stone img, r.gif");
 
 #w and r players not allowed to move
-login_as ($mech, 'bishop');
+$mech->login_as('bishop');
 $mech->get_ok("/game/".$game->id."/move/2-2");
 $mech->content_contains("not your turn", "w not allowed 1st move");
-login_as ($mech, 'pawn');
+$mech->login_as('pawn');
 $mech->get_ok("/game/".$game->id."/move/2-2");
 $mech->content_contains("not your turn", "r not allowed 1st move");
 
-login_as ($mech, 'king');
+$mech->login_as('king');
 $mech->get_ok("/game/".$game->id."/move/0-0");
 $mech->content_contains("success", "b allowed 1st move");
 $mech->content_like (rx_side_on_board('b'), "b img on board");
 like ($game->current_position, qr/b/, 'pos has b');
 
-login_as ($mech, 'bishop');
+$mech->login_as('bishop');
 $mech->get_ok("/game/".$game->id."/move/0-1");
 $mech->content_contains("success", "r allowed 1st move");
 $mech->content_like (rx_side_on_board('w'), "w img on board");
 like ($game->current_position, qr/w/, 'pos has w');
 
-login_as ($mech, 'pawn');
+$mech->login_as('pawn');
 $mech->get_ok("/game/".$game->id."/move/1-0");
 $mech->content_contains("success", "r allowed 1st move");
 $mech->content_like (rx_side_on_board('r'), "r img on board");
@@ -100,7 +97,7 @@ like ($game->current_position, qr/r/, 'pos has r');
 unlike ($game->current_position, qr/b/, 'b in corner was captured in db pos');
 $mech->content_unlike (rx_side_on_board('b'), "no b stone on board after cap");
 
-login_as ($mech, 'king');
+$mech->login_as('king');
 $mech->get_ok("/game/".$game->id."/move/0-0");
 $mech->content_contains("suicide", "b move with no libs is suicide");
 unlike ($game->current_position, qr/b/, 'b suicide didnt work');

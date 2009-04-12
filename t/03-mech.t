@@ -4,13 +4,11 @@ use warnings;
 use Test::More tests => 19;
 
 use lib qw(t/lib lib);
-use_ok( 'b_schema' );
-my $schema;
-ok($schema = b_schema->init_schema('populate'), 'create&populate a test db' );
+use_ok 'b_schema';
+my $schema = b_schema->init_schema('populate');
+use_ok 'b_mech';
+my $mech = b_mech->new;
 
-use_ok 'Test::WWW::Mechanize::Catalyst' => 'basilisk';
-
-my $mech = Test::WWW::Mechanize::Catalyst->new;
 $mech->get_ok("/"); # no hostname needed
 is($mech->ct, "text/html", 'correct content type');
 

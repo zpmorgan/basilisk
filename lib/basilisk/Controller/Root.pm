@@ -58,11 +58,9 @@ sub default :Path {
 sub end : ActionClass('RenderView') {
    my ( $self, $c ) = @_;
    #set some tt vars for header
-   my ($url_base) = $c->request->base =~ m|http://[^/]*(/.*)/$|;
-   $url_base = '' unless $url_base;
-   my $img_base = $url_base . '/g';
-   $c->stash->{url_base} = $url_base;
-   $c->stash->{img_base} = $img_base;
+   my $url_base = $c->stash->{url_base} = Util::URL_BASE();
+   my $img_base = $c->stash->{img_base} = Util::IMG_BASE();
+   
    if ($c->stash->{message}){ #TT can't do this at runtime?
       $c->stash->{message} =~ s/\[\%\s?url_base\s?\%\]/$url_base/;
       $c->stash->{message} =~ s/\[\%\s?img_base\s?\%\]/$img_base/;

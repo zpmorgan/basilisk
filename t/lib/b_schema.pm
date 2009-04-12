@@ -5,7 +5,7 @@ package # hide from PAUSE
 
 use strict;
 use warnings;
-use basilisk::Schema;
+use parent 'basilisk::Schema';
 
 #So cat doesn't print out all it's junk:
 $ENV{CATALYST_DEBUG}=0;
@@ -17,7 +17,7 @@ sub _sqlite_dbfilename {
 }
 
 sub init_schema {
-   my $self = shift;
+   my $class = shift;
    my $action = shift;
    
    my $dbfile = _sqlite_dbfilename(); 
@@ -59,8 +59,21 @@ sub init_schema {
       });
       
    }
-   
+   bless $schema, $class;
    return $schema;
 }
-   
+
+
+sub create_players{
+   my ($self, @names) = @_;
+   my @rows;
+   for (@names){
+      my $row = $self->resultset('Player')->create({
+         name=> $_,
+         pass=> Util::pass_hash ($_),
+      });
+      push @rows, $row;
+   }
+   return @rows;
+}
 1

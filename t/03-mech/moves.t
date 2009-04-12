@@ -1,21 +1,21 @@
 use strict;
 use warnings;
-use Test::More tests => 18;
+use Test::More tests => 17;
 use JSON;
 
 use lib qw(t/lib lib);
 use_ok( 'b_schema' );
-use_ok( 'b_mech' );
 my $schema;
 ok($schema = b_schema->init_schema('populate'), 'create, populate a test db' );
+
+use_ok( 'b_mech' );
+my $mech = b_mech->new;
 
 my $gid;
 sub thegame{
    $schema->resultset('Game')->find ({id => $gid})
 }
 
-use_ok 'Test::WWW::Mechanize::Catalyst' => 'basilisk';
-my $mech = Test::WWW::Mechanize::Catalyst->new;
 
 my $p = $schema->resultset('Player')->create( {
    name=> 'Vaurien',
@@ -31,7 +31,7 @@ $game->create_related ('player_to_game', {
 
 $mech->get_ok("/");
 
-login_as ($mech, 'Vaurien');
+$mech->login_as('Vaurien');
 $mech->content_contains("Logged in as: Vaurien", "login as Vaurien");
 
 is (thegame->phase, 0, 'starting phase of new game');

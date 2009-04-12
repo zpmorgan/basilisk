@@ -1,5 +1,8 @@
+package b_mech;
 use strict;
 use warnings;
+use parent 'Test::WWW::Mechanize::Catalyst';
+Test::WWW::Mechanize::Catalyst->import(  qw/basilisk/ );
 
 #assume same passwd as username
 sub login_as{ #this sub doesn't test
@@ -14,4 +17,5 @@ sub login_as{ #this sub doesn't test
         });
    #diag $mech->content;
 }
+
 1

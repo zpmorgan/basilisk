@@ -3,7 +3,13 @@ use strict;
 use warnings;
 use basilisk::Proverbs;
 
-# using 1 byte per intersection in storage.
+# These are different on the span server:
+sub IMG_BASE{'/g'}
+sub URL_BASE{''}
+#sub IMG_PATH{'/basilisk/g'}
+#sub URL_PATH{'/basilisk/go'}
+
+# using 1 byte per intersection in storage, hopefully in the most natural order
 sub EMPTY{0}
 sub BLACK{'b'}
 sub WHITE{'w'}

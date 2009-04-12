@@ -1,17 +1,13 @@
 use strict;
 use warnings;
-use Test::More tests => 23;
+use Test::More tests => 19;
 use JSON;
 
 use lib qw(t/lib lib);
-use_ok( 'b_schema' );
-use_ok( 'b_mech' );
-
-my $schema;
-ok($schema = b_schema->init_schema('populate'), 'create, populate a test db' );
-
-use_ok 'Test::WWW::Mechanize::Catalyst' => 'basilisk';
-my $mech = Test::WWW::Mechanize::Catalyst->new;
+use b_schema;
+my $schema = b_schema->init_schema('populate');
+use b_mech;
+my $mech = b_mech->new;
 
 $mech->get_ok("/"); # no hostname needed
 is($mech->ct, "text/html", 'correct content type');
@@ -37,10 +33,10 @@ $game->create_related ('player_to_game', {
 });
 
 
-login_as ($mech, 'oscar');
+$mech->login_as('oscar');
 $mech->get_ok("/game/$game->id");
 $mech->content_contains("Logged in as: oscar", "login as oscar");
-login_as ($mech, 'Rat_King');
+$mech->login_as('Rat_King');
 $mech->get_ok("/game/$game->id");
 $mech->content_contains("Logged in as: Rat_King", "change login");
 
