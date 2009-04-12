@@ -69,10 +69,6 @@ sub mail : Global Args(1){
 }
 
 
-#FormFu:
-#indicator must be set
-#relevant config files loaded
-#build, then process, then render
 sub invite : Global Form{
    my ($self, $c) = @_;
    $c->detach('login') unless $c->session->{logged_in};
@@ -80,10 +76,14 @@ sub invite : Global Form{
    my $form = $self->form;
    $form->load_config_file('ruleset_proposal.yml');
    $form->load_config_file('cycle_proposal.yml');
+   
+   my $ent0 = $form->get_field({name => 'entity0'});
+   $ent0->default ($c->session->{name});
+   
    $form->element({ 
       type => 'Submit', 
       name => 'submit',
-      value => 'Submit waiting game',
+      value => 'Submit invitation',
    });
    $form->process;
    $c->stash->{form} = $form;
@@ -93,10 +93,10 @@ sub invite : Global Form{
       my $w = $c->req->param('w');
       my $topo = $c->req->param('topology');
       my $pd = $req->param('pd');
-      my $msg = $req->param('msg');
-      
-      #return "$topo topology is unsupported" 
-      #   unless grep{$_ eq $topo} @Util::acceptable_topo;
+      if ($pd eq 'other'){
+         $pd = $req->param('other');
+      }
+      my $msg = $req->param('msg'); #todo: put in form
       
       my @digits = $pd =~ /(\d)/g;
       my $max_entity =  max(@digits);
