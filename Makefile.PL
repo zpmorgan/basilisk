@@ -22,6 +22,7 @@ requires 'Test::WWW::Mechanize::Catalyst';
 requires 'XML::Atom::SimpleFeed';
 requires 'Number::Tolerant';
 requires 'Catalyst::Controller::HTML::FormFu';
+requires 'Template::Plugin::DateTime';
 
 catalyst;
 
