@@ -50,7 +50,7 @@
    <a href="[%url_base%]/userinfo">User info</a>
  </tr></td>
  <tr><td>
-   <a href="[%url_base%]/messages">Messages</a>
+   <a href="[%url_base%]/messages">Messages ([% unseen_count %])</a>
  </tr></td>
 [% ELSE %]
  <tr><td>
@@ -66,6 +66,9 @@
  </tr></td>
  <tr><td>
    <a href="[%url_base%]/waiting_room">Waiting room</a>
+ </tr></td>
+ <tr><td>
+   <a href="[%url_base%]/invite">Invitations</a>
  </tr></td>
  <tr><td>
    <a href="[%url_base%]/players">Players</a>

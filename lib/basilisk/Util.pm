@@ -27,6 +27,9 @@ sub INVITE_OPEN {1}
 sub INVITE_ACCEPTED {2}
 sub INVITE_REJECTED {3}
 
+sub MESSAGE_NOT_SEEN {1}
+sub MESSAGE_SEEN {2}
+
 our @acceptable_topo = qw/plane cylinder torus mobius klein/;
 
 #rect-only stuff--mv to rulemap::rect.

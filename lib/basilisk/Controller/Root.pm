@@ -76,6 +76,16 @@ sub end : ActionClass('RenderView') {
    $c->session->{num}++;
    $c->stash->{num} = $c->session->{num};
    $c->stash->{rand_proverb} = \&Util::random_proverb;
+   $c->stash->{unseen_count} = $c->model('DB::Message')->count ({
+      heareth =>$c->session->{userid},
+      status => Util::MESSAGE_NOT_SEEN(),
+   });
+}
+
+sub message :Global Args(1) { #not mail msg. err msg.
+   my ( $self, $c, $msg ) = @_;
+   $c->stash->{message} = $msg;
+   $c->stash->{template} = 'message.tt';
 }
 
 1;

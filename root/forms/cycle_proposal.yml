@@ -1,0 +1,31 @@
+---
+elements:
+   - type: Fieldset
+     elements:
+      - type: Select
+        name: pd
+        label: Game cycle
+        options:
+          - [ "0b 1w",    '2-player' ]
+          - [ '0b 1w 2r', '3-player FFA' ]
+          - [ '0b 1w 2b 0w 1b 2w', '3-player zen' ]
+          - [ '0b 1w 2b 3w', '4-player rengo' ]
+          - [ 'other', 'Other' ]
+      - type: Text
+        name: entity0
+        label: Entity 0
+        constraints:
+          - Required
+      - type: Text
+        name: entity1
+        label: Entity 1
+        constraints:
+          - Required
+      - type: Text
+        name: entity2
+        label: Entity 2
+      - type: Text
+        name: entity3
+        label: Entity 3
+          
+       

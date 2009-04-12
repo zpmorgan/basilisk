@@ -105,13 +105,13 @@ sub join : PathPart Chained('waiting_room') Args(1) {
       $c->model('DB::Player_to_game')->create({
          gid => $game->id,
          pid => $b,
-         entity => 0, # 0b -- black
+         entity => 0, # 0 -- black
          expiration => 0,
       });
       $c->model('DB::Player_to_game')->create({
          gid => $game->id,
          pid => $w,
-         entity => 1, # 1w -- white
+         entity => 1, # 1 -- white
          expiration => 0,
       });
       $wgame->decrease_quantity;

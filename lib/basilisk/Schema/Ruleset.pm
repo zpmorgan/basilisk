@@ -66,5 +66,10 @@ sub sides { #returns ('w','r','b'), etc
    }
    return keys %sides;
 }
+sub default_captures_string { #returns '0 0', or '0 0 0 0 0 0' for zen, etc
+   my $self = shift;
+   my $s = join ' ', map {0} (1..$self->num_phases);
+   return $s;
+}
 
 1

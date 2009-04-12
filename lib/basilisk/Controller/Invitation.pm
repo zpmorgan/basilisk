@@ -1,57 +1,116 @@
 package basilisk::Controller::Invitation;
 
+use parent 'Catalyst::Controller::HTML::FormFu';
 use strict;
 use warnings;
-use parent 'Catalyst::Controller';
-#TODO: use parent 'Catalyst::Controller::HTML::FormFu';
+use basilisk::Util;
+use List::Util qw/max/;
+use List::MoreUtils qw/any/;
 
 
 __PACKAGE__->config->{namespace} = '';
 
 
+#   $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
+#      '<img src="[% img_base %]/wood.gif" />';
+#   $c->stash->{template} = 'message.tt';
+      
 #inbox, etc
 sub messages :Global{
    my ( $self, $c ) = @_;
+   $c->detach('login') unless $c->session->{logged_in};
    
+   my @messages = $c->model('DB::Message')->search(
+      {
+         heareth => $c->session->{userid},
+      },
+      {
+         join => 'sayeth',
+         select => ['me.id','subject','status','sayeth','sayeth.name', 'time'],
+         as     => ['id','subject','status','sayeth_id','sayeth_name', 'time'],
+      }
+   );
+   my @messages_info;
+   for my $m (@messages){
+      push @messages_info, {
+         id => $m->id,
+         subject => $m->subject || '(no subject)',
+         sayeth => $m->get_column('sayeth_name'),
+         sayeth_id => $m->get_column('sayeth_id'),
+         unseen => $m->status == Util::MESSAGE_NOT_SEEN(),
+      };
+   }
+   
+   $c->stash->{messages_info} = \@messages_info;
    $c->stash->{template} = 'mailbox.tt';
-   
-   $c->stash->{message} = 'Hello. Here\'s some wood:<br>' . 
-      '<img src="[% img_base %]/wood.gif" />';
-   $c->stash->{template} = 'message.tt';
 }
+
+sub mail : Global Args(1){
+   my ($self, $c, $id) = @_;
+   $c->detach('login') unless $c->session->{logged_in};
+   my $msg = $c->model('DB::Message')->find ({id=>$id});
+   
+   unless ($msg){
+      $c->stash->{msg} = "no such message $id";
+      $c->detach('messages');
+   }
+   unless ($msg->get_column('heareth') == $c->session->{userid}){
+      $c->stash->{msg} = "not your message $id";
+      $c->detach('messages');
+   }
+   $msg->set_column (status => Util::MESSAGE_SEEN());
+   $msg->update;
+   
+   $c->stash->{mail} = $msg;
+   $c->stash->{from} = $msg->sayeth;
+   
+  # $c->stash->{subject} = $msg->subject;
+  # $c->stash->{invite} = $msg->invite;
+}
+
 
 #FormFu:
 #indicator must be set
 #relevant config files loaded
 #build, then process, then render
-sub invite : Global {
+sub invite : Global Form{
    my ($self, $c) = @_;
    $c->detach('login') unless $c->session->{logged_in};
-   
    my $req = $c->request;
-   my $form=$c->stash->{form};
-   if ($req->param('invitate')){
-      #TODO: something more elegant for form validation!
-      my $topo = $c->req->param('topology');
-      return "$topo topology is unsupported" 
-         unless grep{$_ eq $topo} @Util::acceptable_topo;
+   my $form = $self->form;
+   $form->load_config_file('ruleset_proposal.yml');
+   $form->load_config_file('cycle_proposal.yml');
+   $form->element({ 
+      type => 'Submit', 
+      name => 'submit',
+      value => 'Submit waiting game',
+   });
+   $form->process;
+   $c->stash->{form} = $form;
+   
+   if ($form->submitted_and_valid){
       my $h = $c->req->param('h');
       my $w = $c->req->param('w');
-      die 'I will not allow boards of that size!' if $w>25 or $h>25;
-      die 'no sire' unless $h and $w;
+      my $topo = $c->req->param('topology');
+      my $pd = $req->param('pd');
+      my $msg = $req->param('msg');
+      
+      #return "$topo topology is unsupported" 
+      #   unless grep{$_ eq $topo} @Util::acceptable_topo;
+      
+      my @digits = $pd =~ /(\d)/g;
+      my $max_entity =  max(@digits);
+      
+      #seemingly valid pd
+      for my $i (0..$max_entity){
+         unless (any {$i == $_} @digits){
+            $c->stash->{msg} = "you must represent all entities: $i @digits";
+            $c->detach();
+         }
+      }
+      
       my $desc = $w .'x'. $h; # description of interesting rules
       $desc .= ", $topo" unless $topo eq 'plane';  #planes are not interesting
-      
-      my $pd = $req->param('cycle_type');
-      die unless $pd;
-      my %ok_pd = (
-         '0b 1w' => 2,
-         '0b 1w 2r' => 3,
-         '0b 1w 2b 3w' => 4, #rengo
-         '0b 1w 2b 0w 1b 0w' => 2, #zen
-      );
-      die 'sorry' unless $ok_pd{$pd}; #todo custom
-      my $num_entities = $ok_pd{$pd};
       
       unless ($pd eq '0b 1w'){ #irregular
          if ($pd eq '0b 1w 2r'){
@@ -65,19 +124,16 @@ sub invite : Global {
          }
       }
       
-      my @players;
-      for my $entnum (0..$num_entities-1){
+      my @players; #with dupes
+      for my $entnum (0..$max_entity){
          my $pname = $req->param("entity".$entnum);
          die "entity".$entnum."required" unless $pname;
          my $player = $c->model('DB::Player')->find ({name=>$pname});
          die "no such player $pname" unless $player;
          push @players, $player;
       }
-      for (@players){
-         
-      }
-      die "You should include yourself." 
-         unless grep {$_->id == $c->session->{userid}} @players;
+      die "You should include yourself."
+         unless any {$_->id == $c->session->{userid}} @players;
       
       $c->model('DB')->schema->txn_do(  sub{
          my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
@@ -96,22 +152,107 @@ sub invite : Global {
             ruleset => $new_ruleset->id,
             inviter => $c->session->{userid},
             time => time,
-            
          });
+         
+         my %already_invited = ($c->session->{userid} => 1);
+         for (0..$max_entity){ 
+            my $to_inviter = $c->session->{userid} == $players[$_]->id;
+            #one invitee for every entity, even if there are 2 of the same player
+            #one message sent to each player, minus the proposer
+            my $invitee = $c->model('DB::Invitee')->create({
+               invite => $invite->id,
+               player => $players[$_]->id,
+               entity => $_,
+               status => $to_inviter ? Util::INVITEE_ACCEPTED() : Util::INVITEE_OPEN(),
+            });
+            next if $already_invited{$players[$_]->id}++;
+            my $msg = $c->model('DB::Message')->create({
+               subject => "Game invitation from " . $c->session->{name},
+               invite => $invite->id,
+               sayeth => $c->session->{userid},
+               heareth=> $players[$_]->id,
+               time => time,
+               message => $msg,
+            });
+         }
       });
-      if ($@) {                                  # Transaction failed
+      if ($@) { # Transaction failed
          die "Failure: $@";
       }
       else{
          $c->stash->{msg} = 'invite submitted.';
       }
    }
+}
+
+sub accept_invite :Global Args(1){
+   my ($self, $c, $inv_id) = @_;
+   $c->detach('login') unless $c->session->{logged_in};
    
+   my $invite = $c->model('DB::Invite')->find ({id => $inv_id});
+   unless ($invite){
+      $c->detach ('message', ["no such invite $inv_id"]);
+   }
+   unless ($invite->status == Util::INVITE_OPEN()){
+      $c->detach ('message', ["invite $inv_id not open."]);
+   }
    
-   $c->stash->{template} = 'invite.tt';
+   #find & accept all entities of logged_in player
+   my @my_invitees = $invite->search_related ('invitees', {
+      player => $c->session->{userid},
+   });
+   for my $i (@my_invitees){
+      $i->set_column (status => Util::INVITEE_ACCEPTED());
+      $i->update;
+   }
+   
+   my $open_invitees = $invite->search_related ('invitees', {
+      status => Util::INVITEE_OPEN(),
+   });
+   if ($open_invitees->count({})){
+      $c->detach ('message', ["accepted invite $inv_id. invite is still open"]);
+   }
+   
+   #everyone's accepted. start game and close invite.
+   my $ruleset = $invite->ruleset;
+   my $gid;
+   $c->model('DB')->schema->txn_do( sub{
+      $invite->set_column (status => Util::INVITE_ACCEPTED());
+      $invite->update();
+      
+      my $game = $c->model('DB::Game')->create({
+         ruleset => $ruleset->id,
+        # phase => 0, #as default.
+      });
+      $gid = $game->id;
+      for ($invite->invitees){
+         $c->model('DB::Player_to_game')->create({
+            gid => $gid,
+            pid => $_->player->id,
+            entity => $_->entity,
+            expiration => 0,
+         });
+      }
+   });
+   $c->detach ('message', ["accepted invite $inv_id. <a href='[%url_base%]/game/$gid'>Game $gid</a> created."]);
 }
 
 
+sub reject_invite :Global Args(1){
+   my ($self, $c, $inv_id) = @_;
+   $c->detach('login') unless $c->session->{logged_in};
+   
+   my $invite = $c->model('DB::Invite')->find ({id => $inv_id});
+   unless ($invite){
+      $c->detach ('message', ["no such invite $inv_id"]);
+   }
+   unless ($invite->status == Util::INVITE_OPEN()){
+      $c->detach ('message', ["invite $inv_id not open."]);
+   }
+   $invite->set_column (status => Util::INVITE_REJECTED());
+   $invite->update;
+   $c->detach ('message', ["invite $inv_id rejected"]);
+}
 
 
 

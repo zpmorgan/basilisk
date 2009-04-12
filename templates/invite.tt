@@ -1,23 +1,9 @@
 [%  INCLUDE header %]
 
-<form id="inviteform" action="[%url_base%]/invite" method="POST">
 
-[%# INCLUDE proposal_form %]
-<table> <tr>
-  <td>
-    [% INCLUDE propose_ruleset_controls %]
-  </td>
-  <td>
-    [% INCLUDE propose_entity_controls %]
-  </td>
-</tr>
-<tr>
-  <td colspan="2" align="center">
-    <INPUT type="submit" name="invitate" value="Submit invitation" >
-  </td>
-</tr>
-</table>
+Here's a sad form:
+[% form %]
 
-</form>
+
 
 [% INCLUDE footer %]

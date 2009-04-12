@@ -1,0 +1,34 @@
+[% INCLUDE header %]
+[% USE date %]
+
+
+[% #for unseen mmessages, do something like bold the subject %]
+
+You have [% unseen_count %] unseen messages.
+
+<br>
+<table>
+   <tr class="headrow">
+      <td> From </td>
+      <td> Subject </td>
+      <td> Time </td>
+   </tr>
+   [% FOR m = messages_info %]
+      <tr>
+         <td> [% m.sayeth %] </td>
+         <td>
+            <a href="[% url_base %]/mail/[% m.id %]">
+            [% IF m.unseen %] <b> [% END %]
+            [% m.subject %] 
+            [% IF m.unseen %] </b> [% END %]
+            </a>
+         </td>
+         <td> [% date.format(m.time) %] </td>
+      </tr>
+   [% END %]
+</table>
+[% form %]
+
+
+
+[% INCLUDE footer %]
