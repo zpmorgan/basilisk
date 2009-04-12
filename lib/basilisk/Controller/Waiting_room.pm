@@ -1,8 +1,8 @@
 package basilisk::Controller::Waiting_room;
 
+use parent 'Catalyst::Controller::HTML::FormFu';
 use strict;
 use warnings;
-use parent 'Catalyst::Controller::HTML::FormFu';
 #__PACKAGE__->config->{namespace} = '';
 
 

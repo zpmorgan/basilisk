@@ -1,5 +1,5 @@
 [% INCLUDE header %]
-[% USE date %]
+[%# USE date %]
 
 
 [% #for unseen mmessages, do something like bold the subject %]
@@ -23,7 +23,10 @@ You have [% unseen_count %] unseen messages.
             [% IF m.unseen %] </b> [% END %]
             </a>
          </td>
-         <td> [% date.format(m.time) %] </td>
+         [% USE date = DateTime(from_epoch = m.time) %]
+         <td> 
+            [% date.day_abbr %], [% date.month_abbr %]  [% date.day %] - [% date.hour %]:[% date.minute %]
+         </td>
       </tr>
    [% END %]
 </table>

@@ -38,6 +38,7 @@ sub messages :Global{
          sayeth => $m->get_column('sayeth_name'),
          sayeth_id => $m->get_column('sayeth_id'),
          unseen => $m->status == Util::MESSAGE_NOT_SEEN(),
+         time => $m->time,
       };
    }
    
@@ -185,16 +186,56 @@ sub invite : Global Form{
    }
 }
 
-sub accept_invite :Global Args(1){
+sub tee_status_means{
+   my $s = shift;
+   return 'open' if $s == Util::INVITEE_OPEN();
+   return 'accepted' if $s == Util::INVITEE_ACCEPTED();
+   return 'rejected';
+};
+
+sub display_invites : Path('/invites'){
+   my ($self, $c) = @_;
+   $c->detach('login') unless $c->session->{logged_in};
+   
+   my $my_invitees = $c->model('DB::Invitee')->search({
+      player => $c->session->{userid},
+   });
+   my $my_invites = $my_invitees->search_related ('invite',{
+      'invite.status' => Util::INVITE_OPEN(),
+   });
+   
+   my @invites_info;
+   for my $i ($my_invites->all) {
+      my @tees;
+      for ($i->invitees){
+         push @tees, {
+            
+         };
+      }
+      push @invites_info, {
+         row => $i,
+         #invitees => \@tees,
+      };
+   }
+   $c->stash->{invites_info} = \@invites_info;
+   $c->stash->{status_means} = \&tee_status_means;
+   #$c->stash->{my_invites} = [$my_invites->all];
+   $c->stash->{template} = 'list_invites.tt'
+}
+
+
+sub accept_invite :Path('/invite/accept') Args(1){
    my ($self, $c, $inv_id) = @_;
    $c->detach('login') unless $c->session->{logged_in};
    
    my $invite = $c->model('DB::Invite')->find ({id => $inv_id});
    unless ($invite){
-      $c->detach ('message', ["no such invite $inv_id"]);
+      $c->stash->{msg} = "no such invite $inv_id";
+      $c->detach ('display_invites')
    }
    unless ($invite->status == Util::INVITE_OPEN()){
-      $c->detach ('message', ["invite $inv_id not open."]);
+      $c->stash->{msg} = "invite $inv_id not open.";
+      $c->detach ('display_invites')
    }
    
    #find & accept all entities of logged_in player
@@ -210,7 +251,8 @@ sub accept_invite :Global Args(1){
       status => Util::INVITEE_OPEN(),
    });
    if ($open_invitees->count({})){
-      $c->detach ('message', ["accepted invite $inv_id. invite is still open"]);
+      $c->stash->{msg} = "accepted invite $inv_id. invite is still open";
+      $c->detach ('display_invites')
    }
    
    #everyone's accepted. start game and close invite.
@@ -234,11 +276,13 @@ sub accept_invite :Global Args(1){
          });
       }
    });
-   $c->detach ('message', ["accepted invite $inv_id. <a href='[%url_base%]/game/$gid'>Game $gid</a> created."]);
+   
+   $c->stash->{msg} = "accepted invite $inv_id. <a href='[%url_base%]/game/$gid'>Game $gid</a> created.";
+   $c->detach ('display_invites');
 }
 
 
-sub reject_invite :Global Args(1){
+sub reject_invite :Path('invite/reject') Args(1){
    my ($self, $c, $inv_id) = @_;
    $c->detach('login') unless $c->session->{logged_in};
    

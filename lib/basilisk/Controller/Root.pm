@@ -40,7 +40,7 @@ sub default :Path {
    for my $key (keys %{$req->parameters}){
       push @info, " * $key: ". $req->param($key);
    }
-   push @info, "referer: ".$req->referer;
+   push @info, "referer: ".$req->referer if $req->referer;
    push @info, "secure: ".$req->secure;
    push @info, "session data: ";
    for my $key (keys %{$c->session}){
