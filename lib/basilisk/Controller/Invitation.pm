@@ -141,6 +141,7 @@ sub invite : Global Form{
             h => $c->req->param('h'),
             w => $c->req->param('w'),
             rules_description => $desc,
+            phase_description => $pd,
          });
          unless ($topo eq 'plane'){
             $c->model('DB::Extra_rule')->create({
