@@ -206,20 +206,13 @@ sub display_invites : Path('/invites'){
    
    my @invites_info;
    for my $i ($my_invites->all) {
-      my @tees;
-      for ($i->invitees){
-         push @tees, {
-            
-         };
-      }
       push @invites_info, {
          row => $i,
-         #invitees => \@tees,
+         rules => $i->ruleset->rules_description,
       };
    }
    $c->stash->{invites_info} = \@invites_info;
-   $c->stash->{status_means} = \&tee_status_means;
-   #$c->stash->{my_invites} = [$my_invites->all];
+   $c->stash->{status_means} = \&tee_status_means; #translate status codes
    $c->stash->{template} = 'list_invites.tt'
 }
 

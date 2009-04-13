@@ -22,7 +22,7 @@ Here's every one of your currently open invites:<br>
       </tr>
       <tr>
          <td> Description </td>
-         <td> [% row.ruleset.rules_description %] </td>
+         <td> [% i.rules %] </td>
       </tr>
       
       [% FOR ee IN row.invitees %]
