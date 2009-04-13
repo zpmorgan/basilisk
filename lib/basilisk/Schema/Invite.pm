@@ -20,7 +20,7 @@ __PACKAGE__->add_columns(
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (invitees => 'basilisk::Schema::Invitee', 'invite');
 __PACKAGE__->belongs_to (inviter => 'basilisk::Schema::Player');
-__PACKAGE__->has_one  (ruleset => 'basilisk::Schema::Ruleset');
+__PACKAGE__->belongs_to (ruleset => 'basilisk::Schema::Ruleset');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;
