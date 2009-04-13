@@ -1,9 +1,8 @@
 [%  INCLUDE header %]
 
 
-Here's a sad form:
 [% form %]
-
-
+<br>
+<h4><a href="[%url_base%]/invites"> View your invitations </a></h4>
 
 [% INCLUDE footer %]
