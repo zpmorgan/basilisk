@@ -1,17 +1,14 @@
 [% INCLUDE header %]
 
-
-
 This message is from <a href="[%url_base%]/userinfo/[%from.id%]"> [% from.name %] </a>
 
 [% IF mail.invite %]
    <div class="invite_mail">
       <h3> This message is associated with an invitation. </h3>
-      <table><tr><td>
-         <a href="[%url_base%]/invite/accept/[%mail.invite.id%]"> Accept </a>
-      </td><td>
-         <a href="[%url_base%]/invite/reject/[%mail.invite.id%]"> Reject </a>
-      </td></tr></table>
+      [% INCLUDE render_invite 
+          invite=mail.invite
+          controls=1 
+      %]
    </div>
 [% END %]
 

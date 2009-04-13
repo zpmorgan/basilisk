@@ -6,40 +6,12 @@ An invite will remain open until either one invitee rejects it or until every in
 Here's every one of your currently open invites:<br>
 <br>
 
-[% FOR i IN invites_info %]
-   [% row = i.row %]
-   <table>
-      <tr>
-         <td> From </td>
-         <td> [% row.inviter.name %] </td>
-      </tr>
-      <tr>
-         <td> Time </td>
-         [% USE date = DateTime(from_epoch = row.time) %]
-         <td> 
-            [% date.day_abbr %], [% date.month_abbr %]  [% date.day %] - [% date.hour %]:[% date.minute %] EST
-         </td>
-      </tr>
-      <tr>
-         <td> Description </td>
-         <td> [% i.rules %] </td>
-      </tr>
-      
-      [% FOR ee IN row.invitees %]
-         <tr style="background-color:lightgray;">
-            <td> [% ee.player.name %] </td>
-            <td> [% status_means(ee.status) %] </td>
-         </tr>
-      [% END %]
-      
-      <tr>
-         <td> <a href="[%url_base%]/invite/accept/[%row.id%]"> Accept </a>
-         <td> <a href="[%url_base%]/invite/reject/[%row.id%]"> Reject </a>
-      </tr>
-   </table>
+[% FOR i IN invites %]
+   [% INCLUDE render_invite 
+       invite=i
+       controls=1 
+   %]
 [% END %]
-
-
 
 
 

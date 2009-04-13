@@ -27,4 +27,18 @@ sub sqlt_deploy_hook {
     $table->add_index(name => idx_invt => fields => [qw/inviter time/]);
 }
 
+#used by a template
+sub is_open{
+   my $self = shift;
+   $self->status == Util::INVITEE_OPEN();
+}
+
+sub status_string{
+   my $self = shift;
+   my $s = $self->status;
+   return 'open' if $s == Util::INVITE_OPEN();
+   return 'accepted' if $s == Util::INVITE_ACCEPTED();
+   return 'rejected';
+};
+
 1

@@ -23,4 +23,11 @@ sub sqlt_deploy_hook {
     $table->add_index(name => 'idx_invitee' , fields => [qw/player invite entity status/]);
 }
 
+sub status_string{
+   my $self = shift;
+   my $s = $self->status;
+   return 'open' if $s == Util::INVITEE_OPEN();
+   return 'accepted' if $s == Util::INVITEE_ACCEPTED();
+   return 'rejected';
+};
 1

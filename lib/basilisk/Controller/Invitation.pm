@@ -63,8 +63,8 @@ sub mail : Global Args(1){
    $msg->update;
    
    $c->stash->{mail} = $msg;
-   $c->stash->{from} = $msg->sayeth;
-   
+  #$c->stash->{from} = $msg->sayeth;
+  # $c->stash->{status_means} = \&tee_status_means;
   # $c->stash->{subject} = $msg->subject;
   # $c->stash->{invite} = $msg->invite;
 }
@@ -186,13 +186,6 @@ sub invite : Global Form{
    }
 }
 
-sub tee_status_means{
-   my $s = shift;
-   return 'open' if $s == Util::INVITEE_OPEN();
-   return 'accepted' if $s == Util::INVITEE_ACCEPTED();
-   return 'rejected';
-};
-
 sub display_invites : Path('/invites'){
    my ($self, $c) = @_;
    $c->detach('login') unless $c->session->{logged_in};
@@ -211,8 +204,9 @@ sub display_invites : Path('/invites'){
          rules => $i->ruleset->rules_description,
       };
    }
-   $c->stash->{invites_info} = \@invites_info;
-   $c->stash->{status_means} = \&tee_status_means; #translate status codes
+  # $c->stash->{invites_info} = \@invites_info;
+   $c->stash->{invites} = [$my_invites->all];
+  # $c->stash->{status_means} = \&tee_status_means; #translate status codes
    $c->stash->{template} = 'list_invites.tt'
 }
 
@@ -281,14 +275,17 @@ sub reject_invite :Path('invite/reject') Args(1){
    
    my $invite = $c->model('DB::Invite')->find ({id => $inv_id});
    unless ($invite){
-      $c->detach ('message', ["no such invite $inv_id"]);
+      $c->stash->{msg} = "no such invite $inv_id";
+      $c->detach ('display_invites')
    }
    unless ($invite->status == Util::INVITE_OPEN()){
-      $c->detach ('message', ["invite $inv_id not open."]);
+      $c->stash->{msg} = "invite $inv_id not open.";
+      $c->detach ('display_invites')
    }
    $invite->set_column (status => Util::INVITE_REJECTED());
    $invite->update;
-   $c->detach ('message', ["invite $inv_id rejected"]);
+      $c->stash->{msg} = "invite $inv_id rejected";
+      $c->detach ('display_invites')
 }
 
 
