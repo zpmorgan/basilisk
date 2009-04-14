@@ -441,7 +441,7 @@ sub finish_game : Private{ #This does not check permissions. it just wraps thing
    # scoremodes are 'ffa','team', ?other?
    # is this a bad system?
    my $result;
-   my $scoremode = $rulemap->score_mode; # ($pd)
+   my $scoremode = $rulemap->detect_cycle_type; # ($pd)
    if ($scoremode eq 'ffa'){
       my @totalscore;
       for my $entity ($rulemap->all_entities){ #0,1,etc
@@ -557,7 +557,7 @@ sub get_game_player_data : Private{ #for game.tt
          time_remaining => $p->expiration,
       };
    }
-   if ($rulemap->score_mode eq 'ffa'){
+   if ($rulemap->detect_cycle_type eq 'ffa'){
       my $caps = $game->captures;
       for my $entitydata (@playerdata){
          $entitydata->{captures} = $rulemap->captures_of_entity 

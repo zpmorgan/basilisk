@@ -234,23 +234,12 @@ sub count_deads{
    return \%deads;
 }
 
-#TODO: moose's roles for different modes
-sub score_mode{
-   my $self = shift;
-   my @phases = split ' ', $self->phase_description;
-   my (%entities, %sides);
-   for (@phases){
-      /(\d)([wbr])/;
-      $entities{$1}++;
-      $sides{$2}++;
-   }
-   return 'ffa' if (@phases == keys %sides)
-}
+
 
 sub captures_of_side {die'do'}
 sub captures_of_entity{
    my ($self, $entity, $captures) = @_;
-   die 'wrong score mode' unless $self->score_mode eq 'ffa';
+   die 'wrong score mode' unless $self->detect_cycle_type eq 'ffa';
    unless (defined $captures) {$captures = $self->default_captures}
    my @caps = split ' ', $captures;
    for my $phase (split ' ', $self->phase_description) {
@@ -264,7 +253,7 @@ sub captures_of_entity{
 }
 sub side_of_entity{
    my ($self, $entity) = @_;
-   die 'wrong score mode' unless $self->score_mode eq 'ffa';
+   die 'wrong score mode' unless $self->detect_cycle_type eq 'ffa';
    for my $phase (split ' ', $self->phase_description) {
       if ($phase =~ m/$entity([wbr])/){
          return $1;
@@ -320,6 +309,33 @@ sub detect_cycle_type{
    return 'zen' if all {keys %{$ents{$_}} == keys%sides} (keys%ents); 
    
    return 'other';
+}
+
+sub compute_score{
+   my ($self, $board, $caps) = @_;
+   my $type = $self->detect_cycle_type;
+   my $pd = $self->phase_description;
+   my @phases = split ' ', $pd;
+   @phases = map {[split '', $_]} @phases;
+   
+   my @sides = $self->all_sides;
+   my %side_score;
+   
+   { #add up captures of each team.
+      my @caps = split ' ', $caps; # from latest move
+      for my $phase (@phases){
+         my $phase_caps = shift @caps;
+         $side_score{$phase->[1]} += $phase_caps;
+      }
+   }
+   if ($type eq 'ffa' and @phases == 2){
+      $side_score{w} += 6.5
+   }
+   
+   if ($type eq 'ffa' or $type eq 'zen' or $type eq 'team'){
+      return \%side_score
+   }
+   return  'perverse or other modes not scoring...'
 }
 
 
