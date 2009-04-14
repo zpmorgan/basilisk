@@ -118,7 +118,7 @@ sub invite : Global Form{
             $desc .= ', 3-FFA';
          } elsif ($pd eq '0b 1w 2b 3w'){
             $desc .= ', rengo';
-         } elsif ($pd eq '0b 1w 2b 0w 1b 0w'){
+         } elsif ($pd eq '0b 1w 2b 0w 1b 2w'){
             $desc .= ', zen';
          } else{
             $desc .= ", cycle[$pd]";
