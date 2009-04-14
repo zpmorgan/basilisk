@@ -141,13 +141,13 @@ sub games_rss : Global{
          my $gid = $_->get_column ('gid');
          push @{$opponents{$gid}}, $opponent_name;
       }
-      @games = grep {entity_to_move($_->get_columns())} $games->all;
+      @games = grep {entity_to_move ($_->get_column('pd'), $_->phase) == $_->get_column('entity')} $games->all;
       #$c->stash->{games} = \@games;
       #$c->stash->{template} = 'games_rss.tt'
    });
-   my $feed = XML::Atom::SimpleFeed->new( #TODO: make this a View
-      title   => 'Your waiting basilisk games',
-    #  link    => 'http://example.org/',
+   my $feed = XML::Atom::SimpleFeed->new( #TODO: make this a View?
+      title   => "$player's Basilisk",
+      link    => 'http://span.uncg.edu/basilisk/go',
     #  link    => { rel => 'self', href => 'http://example.org/atom', },
     #  updated => '2003-12-13T18:30:02Z',
       author  => 'basilisk',
@@ -170,10 +170,10 @@ sub games_rss : Global{
    #doesnt use a template
 }
 sub entity_to_move{
-   my %d = @_;
-   my $p = (split ' ', $d{pd})[$d{phase}];
+   my ($pd, $phase) = @_;
+   my $p = (split ' ', $pd)[$phase];
    $p =~ /(\d)/;
-   return $1 == $d{entity};
+   return $1;
 }
 
 #show list of games where it's the player's turn
