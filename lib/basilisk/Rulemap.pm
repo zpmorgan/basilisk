@@ -5,6 +5,7 @@ use Mouse;
 
 use basilisk::Rulemap::Rect;
 use basilisk::Util;
+use List::MoreUtils qw/all/;
 
 # This class evaluates moves and determines new board positions.
 # This class stores no board/position data.
@@ -294,5 +295,33 @@ sub default_captures {#for before move 1
    my @phases = split ' ', $self->phase_description;
    return join ' ', map {0} (1..@phases) #'0 0'
 }
+
+
+
+#Necessary to decide how to describe game in /game. 
+#Score & game objectives depend.
+#reads the phase description and
+# returns 'ffa', 'team', 'zen', or 'perverse'? or 'other'?
+sub detect_cycle_type{
+   my $self = shift; #is it a pd or a rulemap?
+   my $pd = ref $self ? $self->phase_description : $self;
+   
+   #assume that this is well-formed
+   #and no entity numbers are skipped
+   my @phases = map {[split'',$_]} split ' ', $pd;
+   my %ents;
+   my %sides;
+   for (@phases){
+      $ents{$_->[0]}{$_->[1]} = 1;
+      $sides{$_->[1]}{$_->[0]} = 1;
+   }
+   return 'ffa' if @phases == keys %ents
+               and @phases == keys %sides;
+   return 'zen' if all {keys %{$ents{$_}} == keys%sides} (keys%ents); 
+   
+   return 'other';
+}
+
+
 
 1;

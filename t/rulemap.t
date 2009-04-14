@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 11;
+use Test::More tests => 16;
 use lib qw/lib/;
 use basilisk::Rulemap;
 
@@ -88,3 +88,10 @@ isa_ok ($rulemap2, 'basilisk::Rulemap::Rect');
    }
 }
 
+
+#detect_cycle_type
+is (basilisk::Rulemap::detect_cycle_type ('0b 1w'), 'ffa',   "'0b 1w' is 'ffa'");
+is (basilisk::Rulemap::detect_cycle_type ('0b 1w 2r'), 'ffa',   "'0b 1w 2r' is 'ffa'");
+is (basilisk::Rulemap::detect_cycle_type ('0b 1w 2b 0w 1b 2w'), 'zen',   "'0b 1w 2b 0w 1b 2w' is 'zen'");
+is (basilisk::Rulemap::detect_cycle_type ('0b 1w 2b 0w 1b 2r'), 'other',   "'0b 1w 2b 0w 1b 2r' is 'other'");
+is (basilisk::Rulemap::detect_cycle_type ('0b 1w 0b 1r'), 'other',   "'0b 1w 0b 1r' is 'other'");
