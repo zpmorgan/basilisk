@@ -56,15 +56,17 @@ sub num_phases{
    return scalar @phases;
 }
 
-sub sides { #returns ('w','r','b'), etc
+sub sides { #returns ('b','w','r'), etc (in order from pd)
    my $self = shift;
    my $pd = $self->phase_description;
-   my %sides;
+   my @sides;
+   my %seen;
    for my $p (split ' ', $pd){
       $p =~ /([bwr])/;
-      $sides {$1} = 1;
+      next if $seen{$1}++;
+      push @sides, $1;
    }
-   return keys %sides;
+   return @sides;
 }
 sub default_captures_string { #returns '0 0', or '0 0 0 0 0 0' for zen, etc
    my $self = shift;

@@ -189,7 +189,7 @@ sub mark_alive{
    }
 }
 
-#this returns (terr_mask, [terr_points_b, terr_pts_w])
+#this returns (terr_mask, {side=>points})
 sub find_territory_mask{
    my ($self, $board, $death_mask) = @_;
    $death_mask ||= {};
@@ -312,14 +312,16 @@ sub detect_cycle_type{
 }
 
 sub compute_score{
-   my ($self, $board, $caps) = @_;
+   my ($self, $board, $caps, $death_mask) = @_;
+   my ($terr_mask, $terr_points) = $self->find_territory_mask($board, $death_mask);
+   
    my $type = $self->detect_cycle_type;
    my $pd = $self->phase_description;
    my @phases = split ' ', $pd;
    @phases = map {[split '', $_]} @phases;
    
    my @sides = $self->all_sides;
-   my %side_score;
+   my %side_score =  map {$_=>0} @sides;
    
    { #add up captures of each team.
       my @caps = split ' ', $caps; # from latest move
@@ -327,7 +329,20 @@ sub compute_score{
          my $phase_caps = shift @caps;
          $side_score{$phase->[1]} += $phase_caps;
       }
+      #add up territory of each team.
+      for my $side (@sides){
+         $side_score{$side} += $terr_points->{$side};
+      }
+      #and count dead things in death_mask 
+      #points in death_mask go to territory owner in terr_mask
+      for my $d (keys %$death_mask){
+         my $capturer = $terr_mask->{$d};
+         if ($capturer){
+            $side_score{$capturer}++;
+         }
+      }
    }
+   
    if ($type eq 'ffa' and @phases == 2){
       $side_score{w} += 6.5
    }
