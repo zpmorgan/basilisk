@@ -97,6 +97,37 @@ sub get_chain { #for all board types
    return (\@found, \@libs, \@foes);
 }
 
+#for selecting groups in js..
+#returns list of lists of nodestrings
+#also returns hash of {nodestring=>1stnodeingroup} 
+#also returns hash of {1stnodeingroup=>side} 
+sub all_chains{
+   my ($self, $board) = shift;
+   my @chains;
+   my %chain_side;
+   my %seen_stones;
+   for my $n ($self->all_stones($board)){
+      my $s = $self->node_to_string($n);
+      next if $seen_stones{$s};
+      
+      $chain_side{$s} = $self->stone_at_node($board, $n);
+      my ($chain,$l,$f) = $self->get_chain($board, $n);
+      my @nodestrings;
+      #examine & to_string each node
+      for (@$chain){
+         my $nodestring =$self->node_to_string($_);
+         push @nodestrings, $nodestring;
+         $seen_stones{$nodestring} = $s;
+      }
+   }
+   return (\@chains, \%seen_stones, \%chain_side)
+}
+
+sub all_stones {
+   my ($self, $board) = @_;
+   return grep {$self->stone_at_node($board, $_)} ($self->all_nodes);
+}
+
 #opposite of get_chain
 sub get_empty_space{
    my ($self, $board, $node1, $ignore_stones) = @_; #start row/column

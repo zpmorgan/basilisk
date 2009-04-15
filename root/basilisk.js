@@ -63,6 +63,39 @@ function select_pass(){ //prepares same submit button as submit()
    document.getElementById ('mv_subm_but').value= 'Submit pass';
 }
 
+var groups_loaded = false;
+var groups; //array of arrays of nodestrings
+var group_side; //object: 1stnode=>char
+var group_selected; //object: 1stnode=>bool
+var group_of_node; //object: nodestring=>1stnode
+
+function select_group(node){
+   if (!groups_loaded) return null;
+   var group = group_of_node[node];
+   if (group==null)
+   group_selected[group] = group_selected[group] ? 0 : 1; //flip selected
+   
+   //replace images
+   var img = img_path + '/' + group_side[group] +  group_selected[group] ? 'd.gif' : '.gif';
+   for (n in groups[group]){
+      var img = document.getElementById('img ' + n);
+      img.setAttribute('src', img);
+   }
+   //adjust action for submit form:
+   var action = "";
+   for (g in groups){
+      if (!groups_selected[g]) continue;
+      if (!action=='') action += '_'; //separator
+      action += g[0];
+   }
+   var submit_form = document.getElementById ('move_submit_form');
+   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/think/' + action);
+   document.getElementById ('mv_subm_but').style.display= '';
+   document.getElementById ('mv_subm_but').value= 'Submit selection';
+}
+
+
+
 function reverse_stone_row(row){
    //alert(row.childNodes.length);
    var nodes = row.childNodes;

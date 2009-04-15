@@ -2,9 +2,17 @@
 
 
 <script language="javascript">
-   //set a few game globals
+//set a few game globals
    var gameid = [% gameid %];
    var side = '[% side %]';
+   
+   [% IF selecting_groups %]
+      groups = eval ([% json_groups %]);
+      group_of_node = eval ([% json_group_of_node %]);
+      group_side = eval ([% json_group_side %]);
+      group_selected = eval ([% json_group_selected %]);
+      groups_loaded = true;
+   [% END %]
 </script>
 
 
@@ -77,7 +85,7 @@
       <h2> <a id="resign_button" href="[%url_base%]/game/[%gameid%]/resign" onclick="select_resign(); return false"> Resign </a> </h2> 
       [% IF marking_dead_stones %]
          <h2> <a href="[%url_base%]/game/[%gameid%]/continue">Continue playing</a> </h2>
-         <h2> <a href="[%url_base%]/game/[%gameid%]/submit/[% new_also_dead %]"> Submit </a> </h2> 
+[%#  REMOVEME <h2> <a href="[%url_base%]/game/[%gameid%]/submit/[% new_also_dead %]"> Submit </a> </h2> %]
       [% ELSE %]
          <h2> <a id="pass_button" href="[%url_base%]/game/[%gameid%]/pass" onclick="select_pass(); return false"> Pass </a> </h2>
       [% END %]

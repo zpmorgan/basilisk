@@ -81,6 +81,9 @@ sub render: Private{
          }
       }
    }
+   if ($c->forward('permission_to_mark_dead')){
+      $c->forward('prepare_group_json');
+   }
    $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
    if ($game->status == Util::FINISHED()){
       $c->stash->{show_dead_stones} = 1;
@@ -206,6 +209,7 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
 }
 
 #not a move. just update board in html: #/game/44/mark/dead/3-13
+#this is to be done in js! so remove is TODO
 sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
    my ($self, $c, $mark, $nodestring, $also_dead) = @_;
    die "no $mark" unless $mark eq 'dead' or $mark eq 'alive';
@@ -242,7 +246,7 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
 #The move will point to the same position,
 #and a string of dead groups is stored as the move text
 #OR, if it's the same as the prev. score submission, the game is over.
-sub action_submit_dead_selection: PathPart('submit') Chained('game'){ 
+sub action_submit_dead_selection: PathPart('think') Chained('game'){ 
    my ($self, $c, $deadgroups) = @_;
    $deadgroups ||= '';
    unless ($c->forward('permission_to_mark_dead')){
@@ -682,4 +686,17 @@ sub allmoves : Chained('game') {
    $c->response->content_type ('text/json');
    $c->response->body (to_json (['success', \@moves]));
 }
+
+sub prepare_group_json : Private {
+   my ( $self, $c) = @_;
+   my ($game, $board, $rulemap, $initially_dead) = @{$c->stash}{ qw/game board rulemap new_also_dead/ };
+   my ($all_groups, $all_nodestrings, $group_sides) = $rulemap->all_chains($board);
+   
+   $c->stash->{selecting_groups} = 1;
+   $c->stash->{json_groups} = to_json ($all_groups);
+   $c->stash->{json_group_of_node} = to_json ($all_nodestrings);
+   $c->stash->{json_group_side} = to_json ($group_sides);
+   $c->stash->{json_group_selected} = to_json ({});
+}
+
 1;
