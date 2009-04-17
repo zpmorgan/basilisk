@@ -105,8 +105,8 @@ function scroll (direction){
    var board = document.getElementById('board');
    var tbody = board.tBodies[0];
    if (direction=='up'){
-      scrolled_ns += (w*2)-1;
-      scrolled_ns %= (w*2);
+      scrolled_ns += (h*2)-1;
+      scrolled_ns %= (h*2);
       var row = board.rows[h];
       row.parentNode.removeChild (row);
       if (twist_ns){
@@ -122,11 +122,11 @@ function scroll (direction){
    }
    else if (direction=='down'){
       scrolled_ns ++;
-      scrolled_ns %= (w*2);
+      scrolled_ns %= (h*2);
       var row = board.rows[1];
       row.parentNode.removeChild (row);
       if (twist_ns){
-         var i=w-1;
+         var i=h-1;
          var r = (i + scrolled_ns);
          r %= (h*2);
          if ((r >= h) && twist_ns)
@@ -236,9 +236,23 @@ function select_empty_img(row,col){
       else if (row==h-1) {Ektah = 'd'}
       else {Ektah = 'e'}
    }
-   if (!wrap_ew){ // && !twist_ew -- only twist ns for now
-      if (col==0) {Ektah += 'l'}
-      else if (col==w-1) {Ektah += 'r'}
+   if (!wrap_ew){ // decide how side should be oriented in case of twisting
+      if (col==0) {
+         if (twist_ns){
+            if ((scrolled_ns + h-row-1) % (2*h) < h) Ektah += 'l';
+            else Ektah += 'r';
+         }
+         else
+            Ektah += 'l';
+      }
+      else if (col==w-1) {
+         if (twist_ns){
+            if ((scrolled_ns + h-row-1) % (2*h) < h) Ektah += 'r';
+            else Ektah += 'l';
+         }
+         else
+            Ektah += 'r';
+      }
    }
    return Ektah + '.gif';
 }
