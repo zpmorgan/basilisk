@@ -41,7 +41,7 @@ sub waiting_room :Chained('/') PathPart CaptureArgs(0) Form{
 }
 
 sub render: Private{
-   my ($self, $c) = @_;
+   my ($self, $c, $msg) = @_;
    my @waiting_rs = $c->model('DB::Game_proposal')->search( #todo:join with ruleset
       {},
       {join => ['proposer', 'ruleset'],
@@ -61,6 +61,9 @@ sub render: Private{
       }
    }
    $c->stash->{waiting_games_info} = \@waiting_games_info;
+   if ($msg and $msg !~ /^\d+$/){ #ignore stray urlpath args..
+      $c->stash->{msg} = $msg;
+   }
    
    $c->stash->{title} = 'Waiting room';
    $c->stash->{template} = 'waiting_room.tt';
@@ -72,8 +75,7 @@ sub view : PathPart('view') Chained('waiting_room') Args(1) {
    
    my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
    unless ($wgame){ #err
-      $c->stash->{msg} = "Sorry no waiting game with id $wgame_id";
-      $c->detach('render');
+      $c->detach('render', ["Sorry no waiting game with id $wgame_id"]);
    }
    $c->stash->{proposal_info}->{id} = $wgame_id;
    $c->stash->{proposal_info}->{quantity} = $wgame->quantity;
@@ -87,11 +89,10 @@ sub view : PathPart('view') Chained('waiting_room') Args(1) {
 sub join : PathPart Chained('waiting_room') Args(1) {
    my ($self, $c, $wgame_id) = @_;
    unless ($c->session->{logged_in}){
-      $c->stash->{msg} = 'log in before submiting waiting games';
-      $c->detach('render');
+      $c->detach('render',['log in before submiting waiting games']);
    }
    my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
-   return "wgame $wgame_id doesn't exist." unless $wgame;
+   return $c->detach('render',["wgame $wgame_id doesn't exist."]) unless $wgame;
    my $ruleset_id = $wgame->ruleset;
    
    my ($b,$w) = ($wgame->proposer->id, $c->session->{userid});
@@ -123,8 +124,7 @@ sub join : PathPart Chained('waiting_room') Args(1) {
 sub add : PathPart Chained('waiting_room') {
    my ($self, $c) = @_;
    unless ($c->session->{logged_in}){
-      $c->stash->{msg} = 'log in before submiting waiting games';
-      $c->detach('render');
+      $c->detach('render',['log in before submiting waiting games']);
    }
    my $form = $c->stash->{form}; #form from /waiting_room above
    if ($form->submitted_and_valid) {
@@ -157,6 +157,21 @@ sub add : PathPart Chained('waiting_room') {
          $c->stash->{msg} = 'proposal '.$proposal->id.' added';
       });
    }
+   $c->detach('render');
+}
+
+sub remove : PathPart Chained('waiting_room') Args(1) {
+   my ($self, $c, $wgame_id) = @_;
+   my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
+   return $c->detach('render',["wgame $wgame_id doesn't exist."]) unless $wgame;
+   unless ($c->session->{logged_in}){
+      $c->detach('render', ['log in before removing waiting games']);
+   }
+   unless ($c->session->{userid} == $wgame->proposer->id){
+      $c->detach('render', ['This waiting game was proposed by someone else']);
+   }
+   $wgame->delete();
+   $c->stash->{msg} = 'proposal '.$wgame->id.' deleted';
    $c->detach('render');
 }
 1

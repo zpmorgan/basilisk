@@ -41,9 +41,19 @@ Info on proposal [%proposal_info.id%]:<br>
    <td>quantity</td>
    <td>[% proposal_info.quantity %]</td>
   </tr>
-  <tr>
-   <td colspan="2" align="center">  <a href="[%url_base%]/waiting_room/join/[%proposal_info.id%]">Join!</a>  </td>
-  </tr> 
+  
+  [% IF logged_in %]
+    <tr>  <td colspan="2" align="center"> 
+      <a href="[%url_base%]/waiting_room/join/[%proposal_info.id%]"> Join! </a> 
+    </td>  </tr>
+    
+    [% IF username == proposal_info.proposer.name %]
+      <tr> <td colspan="2" align="center">  
+            <a href="[%url_base%]/waiting_room/remove/[%proposal_info.id%]"> Delete </a>  
+      </td> </tr>
+    [% END %]
+    
+  [% END %]
  </table>
 
 
