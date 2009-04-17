@@ -127,24 +127,6 @@ sub node_liberties{
    return @nodes;
 }
 
-#return a dgs-filename-like string, such as e, dl, ur
-sub node_is_on_edge{
-   my ($self, $row, $col) = @_;
-   my $string;
-   if ($self->wrap_ns or $self->twist_ns){
-      $string = 'e'
-   }
-   else {
-      if ($row==0) {$string = 'u'}
-      elsif ($row==$self->h-1) {$string = 'd'}
-      else {$string = 'e'}
-   }
-   unless ($self->wrap_ew or $self->twist_ew){
-      if ($col==0) {$string .= 'l'}
-      elsif ($col==$self->w-1) {$string .= 'r'}
-   }
-   return $string;
-}
 
 my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;
 

@@ -198,6 +198,7 @@ function board_row (r, direction){
       clickable = stones_clickable;
       if (stone == 0){
          img = 'e.gif';
+         img = select_empty_img(r,c);
          clickable = space_clickable;
       }
       else
@@ -209,6 +210,25 @@ function board_row (r, direction){
    row.appendChild (board_cell ('c'+num+'.gif',null, false));
    return row;
 }
+
+//find dgs-style filename for empty cells
+function select_empty_img(row,col){
+   var Ektah;
+   if (wrap_ns || twist_ns){
+      Ektah = 'e';
+   }
+   else {
+      if (row==0) {Ektah = 'u'}
+      else if (row==h-1) {Ektah = 'd'}
+      else {Ektah = 'e'}
+   }
+   if (!wrap_ew){ // && !twist_ew -- only twist ns for now
+      if (col==0) {Ektah += 'l'}
+      else if (col==w-1) {Ektah += 'r'}
+   }
+   return Ektah + '.gif';
+}
+
 
 //skip i
 var letters = ['a','b','c','d','e','f','g','h','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
