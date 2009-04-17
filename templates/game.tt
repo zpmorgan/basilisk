@@ -1,10 +1,12 @@
 [%  INCLUDE header %]
 
+<script language="javascript" src="[%url_base%]/basilisk_game.js"></script>
 
 <script language="javascript">
 //set a few game globals
    var gameid = [% gameid %];
    var side = '[% side %]';
+   var board_clickable = [% board_clickable %];
    
    [% IF selecting_groups %]
       groups = eval ([% json_groups %]);
@@ -14,7 +16,6 @@
       groups_loaded = true;
    [% END %]
 </script>
-
 
 
 <br>
@@ -125,5 +126,6 @@
 </table>
 </div>
 </div>
+
     
 [% INCLUDE footer %]

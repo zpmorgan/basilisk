@@ -6,6 +6,8 @@
    var wrap_ns = [% wrap_ns %];
    var wrap_ew = [% wrap_ew %];
    var twist_ns = [% twist_ns %];
+   var board_position = [% json_board_pos %];
+   
 </script>
 
 
@@ -45,22 +47,7 @@
   
   <td>
 <table id="board" class="Goban" style="background-image: url([%img_base%]/wood.gif);">
- [% coordinate_letter_row(base=0); %]
- [% FOREACH row = board_data -%]
-  <tr id="row [% loop.count - 1 %]">
-  [% row_number_cell(loop.count) %]
-    [%- FOREACH cell = row -%]
-      [%- IF cell.ref -%]
-        <td id="cell [% cell.node %]" onClick="select('[% cell.node %]')"> 
-      [%- ELSE -%]
-        <td id="cell [% cell.node %]"> 
-      [%- END -%]
-          <img id="img [% cell.node %]" src="[%img_base%]/[% cell.g %]"> </td>
-    [% END -%]
-  [% row_number_cell(loop.count) %]
-  </tr>
- [% END %]
- [% coordinate_letter_row(base=1) %]
+   [%##### BOARD #####%]
 </table>
   </td>
 

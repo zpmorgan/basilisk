@@ -80,6 +80,9 @@ sub render: Private{
             $c->stash->{terr_points} = $terr_points;
          }
       }
+      else {
+         $c->stash->{board_clickable} = 0;
+      }
    }
    if ($c->forward('permission_to_mark_dead')){
       $c->forward('prepare_group_json');
@@ -98,9 +101,12 @@ sub render: Private{
       $c->stash->{stones} = $board;
    }
    else{ #grid
-      $c->forward ('render_board_table');
+      $c->stash->{json_board_pos} = $c->forward('json_board_pos');
       $c->stash->{h} = $rulemap->h;
       $c->stash->{w} = $rulemap->w;
+      $c->stash->{wrap_ns} = $rulemap->wrap_ns;
+      $c->stash->{wrap_ew} = $rulemap->wrap_ew;
+      $c->stash->{twist_ns} = $rulemap->twist_ns;
    }
    $c->forward ('get_game_player_data');
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
@@ -110,11 +116,8 @@ sub render: Private{
    $c->stash->{result} = $game->result;
    $c->stash->{rules_description} = $c->stash->{ruleset}->rules_description;
    
-   $c->stash->{c_letter} = \&column_letter;
-   $c->stash->{wrap_ns} = $rulemap->wrap_ns;
-   $c->stash->{wrap_ew} = $rulemap->wrap_ew;
-   $c->stash->{twist_ns} = $rulemap->twist_ns;
-   #TODO: let game.tt draw html board
+  # $c->stash->{c_letter} = \&column_letter;
+   #TODO (done?): let javascript draw html board
    $c->stash->{template} = 'game.tt';
 }# now goes to template
 
@@ -572,60 +575,15 @@ sub get_game_player_data : Private{ #for game.tt
    $c->stash->{players_data} = \@playerdata;
 }
 
-#todo: move url param stuff into tt
-#really client should do this drawing stuff
-sub render_board_table : Private{
+#TODO: for a particular game/line?
+sub json_board_pos :Private{
    my ($self, $c) = @_;
-   my $h = $c->stash->{game}->h;
-   my $w = $c->stash->{game}->w;
-   my $board = $c->stash->{board};
-   my $rulemap = $c->stash->{rulemap};
-   my $death_mask = $c->stash->{death_mask};
-   my $terr_mask = $c->stash->{territory_mask};
-   $terr_mask = {} unless $terr_mask;
-   my @table; #html cells representing nodes
-   
-   #TODO: each board type needs a template.
-   #This one could be in templates/game/rectgrid.tt
-   for my $row (0..$h-1){
-      for my $col (0..$w-1){ #get image and url for table cell
-         my $image = select_g_file ($rulemap, $board, $row, $col);
-         my $stone = $board->[$row]->[$col]; #0 if empty, 1 b, 2 w
-         my $terr = $terr_mask->{$row.'-'.$col}; #0 if empty, 1 b, 2 w
-         my $dead = $death_mask->{$row.'-'.$col};
-         if ($stone){
-            if ($dead){ #replace with 'dead gfx'
-               $image =~ s/^b\.gif/bw.gif/;
-               $image =~ s/^w\.gif/wb.gif/;
-            }
-         }
-         else {#no stone
-            if ($terr) { #territory
-               $image =~ s/\.gif/b\.gif/ if $terr eq 'b';
-               $image =~ s/\.gif/w\.gif/ if $terr eq 'w';
-            }
-         }
-         $table[$row][$col]->{g} = $image;
-         $table[$row][$col]->{node} = "$row-$col";
-         #url if applicable:
-         if ($c->stash->{board_clickable}) {
-            unless ($stone){ #empty intersection
-               unless ($c->stash->{marking_dead_stones}){ #can't move when marking dead
-                  my $url = "game/".$c->stash->{gameid} . "/move/" . $row .'-'.$col;
-                  $table[$row][$col]->{ref} = $url;
-               }
-            }
-            elsif ($c->stash->{marking_dead_stones}){ #stone here
-               my $mark = $death_mask->{$row.'-'.$col} ? 'alive' : 'dead'; #have clicker flip stone status
-               my $url = "game/".$c->stash->{gameid} . "/mark/$mark/" . $row .'-'.$col;
-               $url .= "/" . $c->stash->{new_also_dead};
-               $table[$row][$col]->{ref} = $url;
-            }
-         }
-      }
-   }
-   $c->stash->{board_data} = \@table;
+   my $board = $c->stash->{board}; #TODO: only get visible
+   #TODO: send death_mask,territory_mask seperately
+   my $json = to_json( $board );
+   return $json
 }
+
 
 #really client should do this drawing stuff
 sub select_g_file{ #only for rect board

@@ -1,5 +1,10 @@
 //It's called basilisk.js, but this is all for /game
 
+var scrolled_ew = 0;
+var scrolled_ns = 0; //up is -
+var stones_clickable = 0;
+var space_clickable = 0; //up is -
+
 var selectedNode;
 var selectedNode_original_cell;
 var Caleb; //var selectedNode_replacement_cell = too long. so Caleb.
@@ -76,7 +81,7 @@ function select_group(node){
    group_selected[group] = group_selected[group] ? 0 : 1; //flip selected
    
    //replace images
-   var img = img_path + '/' + group_side[group] +  group_selected[group] ? 'd.gif' : '.gif';
+   var img = img_base + '/' + group_side[group] +  group_selected[group] ? 'd.gif' : '.gif';
    for (n in groups[group]){
       var img = document.getElementById('img ' + n);
       img.setAttribute('src', img);
@@ -96,59 +101,158 @@ function select_group(node){
 
 
 
-function reverse_stone_row(row){
-   //alert(row.childNodes.length);
-   var nodes = row.childNodes;
-   
-   //let's remove text elements
-   var j = 0;
-   while (j < nodes.length) {
-      if (nodes[j].nodeType != 1)
-         row.removeChild(nodes[j]);
-      j++;
-   }
-   
-   var cells = new Array;
-   while (row.hasChildNodes()){
-      cells.push(row.firstChild)
-      row.removeChild(row.firstChild)
-   }
-   cells.reverse();
-   for (i in cells){
-      row.appendChild (cells[i]);
-   }
-   cells[1].innerHTML = cells[1].innerHTML.replace (/er.gif/, "el.gif");
-   cells[cells.length-2].innerHTML = cells[cells.length-2].innerHTML.replace (/el.gif/, "er.gif");
-}
 function scroll (direction){
    var board = document.getElementById('board');
    if (direction=='up'){
-      //send top row to bottom
-      var row = board.rows[h];
-      if (twist_ns)
-         reverse_stone_row(row);
-      row.parentNode.insertBefore (row, board.rows[1]);
+      scrolled_ns --;
+      scrolled_ns += (w*2);
+      scrolled_ns %= (w*2);
+      if (twist_ns) render_board();
+      else {
+         var row = board.rows[h];
+         row.parentNode.insertBefore (row, board.rows[1]);
+      }
    }
    else if (direction=='down'){
-      var row = board.rows[1];
-      if (twist_ns)
-         reverse_stone_row(row);
-      row.parentNode.insertBefore (row, board.rows[h+1]);
+      scrolled_ns ++;
+      scrolled_ns %= (w*2);
+      if (twist_ns) render_board();
+      else {
+         var row = board.rows[1];
+         row.parentNode.insertBefore (row, board.rows[h+1]);
+      }
    }
-   else{
-	   for(var i = 0; i < h+2; i++){
-	      var row = board.rows[i];
-	      if (direction=='left'){
+   else {
+      if (direction=='left'){
+         scrolled_ew += w-1;
+         scrolled_ew %= w;
+      }
+      else{ //right
+         scrolled_ew ++;
+         scrolled_ew %= w;
+      }
+      for(var i = 0; i < h+2; i++){ //shift each row l or r
+         var row = board.rows[i];
+         if (direction=='left'){
             var cell = row.cells[w];
             cell.parentNode.insertBefore (cell, row.cells[1]);
          }
          else{ //right
-	         var cell = row.cells[1];
-	         cell.parentNode.insertBefore(cell, row.cells[w+1]);
+            var cell = row.cells[1];
+            cell.parentNode.insertBefore(cell, row.cells[w+1]);
          }
       }
-	}
+   }
 }
+
+//delay until 
+//var tomato=setTimeout ('render_board()', 50);
+//render_board();
+
+//replacement board renderer. redraw after every scroll,
+//using h,w,wraps_(..),twist_(..),scrolled_(..) 
+var foolog='';
+function render_board(){
+   if (typeof (w) == "undefined") return;
+   var board_table = document.getElementById ('board');
+   if (!board_table) return;
+   //clearTimeout(tomato);
+   
+   var old_tbody = document.getElementById ('board_tbody');
+   if (old_tbody)  board_table.removeChild (old_tbody);
+   
+   var new_tbody = document.createElement ('tbody');
+   new_tbody.setAttribute ('id', 'board_tbody');
+   
+   new_tbody.appendChild (board_letter_row('forwards'));
+   var i=0;
+   foolog=''
+   while (i<h){
+      var r = (i + scrolled_ns);
+      r %= (h*2);
+      var row;
+      if ((r >= h) && twist_ns)
+         row = board_row (r, 'reverse');
+      else
+         row = board_row (r, 'forward');
+      new_tbody.appendChild (row);
+      i++
+   }
+   new_tbody.appendChild (board_letter_row (twist_ns ?'reverse' : 'forward'));
+   board_table.appendChild(new_tbody);
+}
+
+function board_row (r, direction){
+   r %= h;
+   var row = document.createElement ('tr');
+   var num = h - r;
+   row.appendChild (board_cell ('c'+num+'.gif',null, false));
+   
+   var i=0;
+   foolog += "\n";
+   while (i<w) {
+      var c = i + scrolled_ew;
+      c %= w;
+      if (direction=='reverse')
+         c = w-c-1;
+      var stone = board_position[r][c];
+      foolog += r+'-'+c+',';
+      var img;
+      
+      clickable = stones_clickable;
+      if (stone == 0){
+         img = 'e.gif';
+         clickable = space_clickable;
+      }
+      else
+         img = stone + '.gif';
+      var node = r +'-'+ c;
+      row.appendChild (board_cell (img,node, clickable));
+      i ++;
+   }
+   row.appendChild (board_cell ('c'+num+'.gif',null, false));
+   return row;
+}
+
+//skip i
+var letters = ['a','b','c','d','e','f','g','h','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z'];
+
+function board_letter_row (direction){
+   var row = document.createElement ('tr');
+   
+   var blank_cell = board_cell ('blank.gif',null, false);
+   blank_cell.firstChild.setAttribute ('height', 25);
+   blank_cell.firstChild.setAttribute ('width', 31);
+   row.appendChild (blank_cell);
+   
+   var i=0;
+   while (i<w) {
+      var col = i + scrolled_ew;
+      col %= w;
+      if (direction=='reverse')
+         col = w-col-1;
+      row.appendChild (board_cell ('c'+letters[col]+'.gif',null, false));
+      i ++;
+   }
+   
+   row.appendChild (blank_cell.cloneNode(true));
+   return row;
+}
+function board_cell (img_src, node, clickable){
+   var cell  = document.createElement ('td');
+   var img = document.createElement ('img');
+   img.setAttribute ('src', img_base + "/" + img_src);
+   cell.appendChild(img);
+   if (node){
+      cell.setAttribute('id', 'cell '+node);
+      img.setAttribute('img', 'img '+node);
+   }
+   if (clickable)
+      cell.setAttribute('onClick', "select('" + node + "')");
+   return cell;
+}
+
+
 
 
 // populate comments
@@ -208,13 +312,18 @@ function highlight_node (move){
    if (!match_node) return; //something like 'pass' or 'resign', i guess
    
    var img = document.getElementById ('img ' + match_node[1]);
+   if (!img) return; //something wrong
    var special_src = img_base +'/'+ move.side + 'm.gif';
    img.setAttribute('src', special_src);
 }
 
-//do stuff for /game/id
 $(document).ready(function() {
-   if (!gameid) {return}
+   if (!gameid) {return}//something wrong
+   
+   stones_clickable = 0;
+   space_clickable = board_clickable;
+   render_board();
+   
    //dl & display comments
    $.getJSON (
       url_base +"/comments/"+ gameid,
@@ -256,4 +365,7 @@ $(document).ready(function() {
       var comment_badness = document.getElementById("cBadness");
       comment_badness.innerHTML = msg;
    }); 
-}); 
+});
+
+
+
