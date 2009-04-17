@@ -151,7 +151,6 @@ function scroll (direction){
 
 //replacement board renderer. redraw after every scroll,
 //using h,w,wraps_(..),twist_(..),scrolled_(..) 
-var foolog='';
 function render_board(){
    if (typeof (w) == "undefined") return;
    var board_table = document.getElementById ('board');
@@ -166,7 +165,6 @@ function render_board(){
    
    new_tbody.appendChild (board_letter_row('forwards'));
    var i=0;
-   foolog=''
    while (i<h){
       var r = (i + scrolled_ns);
       r %= (h*2);
@@ -189,14 +187,12 @@ function board_row (r, direction){
    row.appendChild (board_cell ('c'+num+'.gif',null, false));
    
    var i=0;
-   foolog += "\n";
    while (i<w) {
       var c = i + scrolled_ew;
       c %= w;
       if (direction=='reverse')
          c = w-c-1;
       var stone = board_position[r][c];
-      foolog += r+'-'+c+',';
       var img;
       
       clickable = stones_clickable;
@@ -245,7 +241,7 @@ function board_cell (img_src, node, clickable){
    cell.appendChild(img);
    if (node){
       cell.setAttribute('id', 'cell '+node);
-      img.setAttribute('img', 'img '+node);
+      img.setAttribute('id', 'img '+node);
    }
    if (clickable)
       cell.setAttribute('onClick', "select('" + node + "')");
