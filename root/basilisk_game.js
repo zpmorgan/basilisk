@@ -103,24 +103,38 @@ function select_group(node){
 
 function scroll (direction){
    var board = document.getElementById('board');
+   var tbody = board.tBodies[0];
    if (direction=='up'){
-      scrolled_ns --;
-      scrolled_ns += (w*2);
+      scrolled_ns += (w*2)-1;
       scrolled_ns %= (w*2);
-      if (twist_ns) render_board();
-      else {
-         var row = board.rows[h];
-         row.parentNode.insertBefore (row, board.rows[1]);
+      var row = board.rows[h];
+      row.parentNode.removeChild (row);
+      if (twist_ns){
+         var i=0;
+         var r = (i + scrolled_ns);
+         r %= (h*2);
+         if ((r >= h) && twist_ns)
+            row = board_row (r, 'reverse');
+         else
+            row = board_row (r, 'forward');
       }
+      tbody.insertBefore (row, board.rows[1]);
    }
    else if (direction=='down'){
       scrolled_ns ++;
       scrolled_ns %= (w*2);
-      if (twist_ns) render_board();
-      else {
-         var row = board.rows[1];
-         row.parentNode.insertBefore (row, board.rows[h+1]);
+      var row = board.rows[1];
+      row.parentNode.removeChild (row);
+      if (twist_ns){
+         var i=w-1;
+         var r = (i + scrolled_ns);
+         r %= (h*2);
+         if ((r >= h) && twist_ns)
+            row = board_row (r, 'reverse');
+         else
+            row = board_row (r, 'forward');
       }
+      tbody.insertBefore (row, board.rows[h]);
    }
    else {
       if (direction=='left'){
