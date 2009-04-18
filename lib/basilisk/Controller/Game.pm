@@ -116,8 +116,6 @@ sub render: Private{
    $c->stash->{result} = $game->result;
    $c->stash->{rules_description} = $c->stash->{ruleset}->rules_description;
    
-  # $c->stash->{c_letter} = \&column_letter;
-   #TODO (done?): let javascript draw html board
    $c->stash->{template} = 'game.tt';
 }# now goes to template
 
@@ -575,7 +573,7 @@ sub get_game_player_data : Private{ #for game.tt
    $c->stash->{players_data} = \@playerdata;
 }
 
-#TODO: for a particular game/line?
+#TODO: for a particular game/move?
 sub json_board_pos :Private{
    my ($self, $c) = @_;
    my $board = $c->stash->{board}; #TODO: only get visible

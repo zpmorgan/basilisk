@@ -9,11 +9,11 @@ use base qw/DBIx::Class/;
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Game_proposal');
 __PACKAGE__->add_columns(
-    'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
-    'quantity'      => { data_type => 'INTEGER', default_value => 1},
-    'ruleset'      => { data_type => 'INTEGER'},
-    'proposer'        => { data_type => 'INTEGER'},
-    #'to'        => { data_type => 'INTEGER', default => 0 }, #to all for now
+    id        => { data_type => 'INTEGER', is_auto_increment => 1 },
+    quantity  => { data_type => 'INTEGER', default_value => 1},
+    ruleset   => { data_type => 'INTEGER'},
+    proposer  => { data_type => 'INTEGER'},
+    ent_order     => { data_type => 'INTEGER', default_value => Util::WGAME_ORDER_RANDOM()},
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -27,7 +27,7 @@ sub sqlt_deploy_hook {
 
 sub size{
    my $self = shift;
-   return $self->ruleset->w . '*' . $self->ruleset->h
+   return $self->ruleset->w . 'x' . $self->ruleset->h
 }
 sub h{
    my $self = shift;

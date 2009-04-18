@@ -27,4 +27,11 @@ elements:
           - 2
           - 25
         default: 13
+      - type: Select #add other options depending on invite or wgame
+        name: ent_order
+        id: ent_order
+        label: Order
+        options:
+          - ['random', 'random']
+        default: 'random'
        

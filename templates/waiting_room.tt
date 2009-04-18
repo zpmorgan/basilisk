@@ -1,5 +1,17 @@
 [%  INCLUDE header %]
 
+<script type="text/javascript">
+   //add options for entity order
+   $(document).ready(function() {
+      var Sego_Lily = document.getElementById('ent_order');
+      
+      var option1 = new Option ('proposer as black', 'p_first');
+      Sego_Lily.add (option1, null);
+      var option2 = new Option ('proposer as white', 'p_last');
+      Sego_Lily.add (option2, null);
+   });
+</script>
+
 [% IF joined %]
    <span style="border: 1px solid color: #88b;">
       <a href="[%url_base%]/game/[%joined%]">
@@ -12,14 +24,13 @@ Potential games: <br>
 
 <table>
    <tr style="border: 1px solid #777; background-color:lightgray;">
-      <td>Info</td> <td>Name</td> <td>Size</td> <td>Extra rules</td> 
+      <td>Info</td> <td>Name</td> <td>Rules</td> 
    </tr>
    
   [% FOREACH w = waiting_games_info %]
   <tr>
       <td> <a href="[%url_base%]/waiting_room/view/[% w.id %]">INFO</a> </td>
       <td> <a href="[%url_base%]/userinfo/[% w.proposer_id %]"> [% w.proposer %] </a> </td>
-      <td> [% w.size %] </td>
       <td> [% w.desc %] </td>
   </tr>
   [% END %]
@@ -40,6 +51,10 @@ Info on proposal [%proposal_info.id%]:<br>
   <tr>
    <td>quantity</td>
    <td>[% proposal_info.quantity %]</td>
+  </tr>
+  <tr>
+   <td>ordering</td>
+   <td>[% proposal_info.ent_order %]</td>
   </tr>
   
   [% IF logged_in %]

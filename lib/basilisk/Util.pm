@@ -6,8 +6,8 @@ use basilisk::Proverbs;
 # These are different on the span server:
 sub IMG_BASE{'/g'}
 sub URL_BASE{''}
-#sub IMG_PATH{'/basilisk/g'}
-#sub URL_PATH{'/basilisk/go'}
+#sub IMG_BASE{'/basilisk/g'}
+#sub URL_BASE{'/basilisk/go'}
 
 # using 1 byte per intersection in storage, hopefully in the most natural order
 sub EMPTY{0}
@@ -27,10 +27,34 @@ sub INVITE_OPEN {1}
 sub INVITE_ACCEPTED {2}
 sub INVITE_REJECTED {3}
 
+sub INVITE_ORDER_SPECIFIED {1}
+sub INVITE_ORDER_RANDOM {2}
+
+sub WGAME_ORDER_RANDOM {1}
+sub WGAME_ORDER_PROPOSER_FIRST {2}
+sub WGAME_ORDER_PROPOSER_LAST {3}
+
 sub MESSAGE_NOT_SEEN {1}
 sub MESSAGE_SEEN {2}
 
+#todo: unused?
 our @acceptable_topo = qw/plane cylinder torus mobius klein/;
+
+sub wgame_order_str{
+   my $order = shift;
+   return 'random' if $order == Util::WGAME_ORDER_RANDOM();
+   return 'proposer first' if $order == Util::WGAME_ORDER_PROPOSER_FIRST();
+   return 'proposer first' if $order == Util::WGAME_ORDER_PROPOSER_LAST();
+   die $order;
+}
+
+sub invite_order_str{
+   my $order = shift;
+   return 'random' if $order == Util::INVITE_ORDER_RANDOM();
+   return 'specified' if $order == Util::INVITE_ORDER_SPECIFIED();
+   die $order;
+}
+
 
 #rect-only stuff--mv to rulemap::rect.
 

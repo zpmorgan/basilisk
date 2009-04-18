@@ -56,7 +56,6 @@ sub render: Private{
          id => $waiting->id,
          proposer => $waiting->get_column('name'),
          proposer_id => $waiting->get_column('proposer_id'),
-         size => $waiting->size,
          desc => $waiting->get_column('description'),
       }
    }
@@ -79,8 +78,8 @@ sub view : PathPart('view') Chained('waiting_room') Args(1) {
    }
    $c->stash->{proposal_info}->{id} = $wgame_id;
    $c->stash->{proposal_info}->{quantity} = $wgame->quantity;
-   $c->stash->{proposal_info}->{size} = $wgame->size;
    $c->stash->{proposal_info}->{proposer} = $wgame->proposer;
+   $c->stash->{proposal_info}->{ent_order} = Util::wgame_order_str ($wgame->ent_order);
    
    $c->detach('render');
 }
@@ -92,10 +91,16 @@ sub join : PathPart Chained('waiting_room') Args(1) {
       $c->detach('render',['log in before submiting waiting games']);
    }
    my $wgame = $c->model('DB::Game_proposal')->find({id => $wgame_id});
-   return $c->detach('render',["wgame $wgame_id doesn't exist."]) unless $wgame;
+   $c->detach('render',["wgame $wgame_id doesn't exist."]) unless $wgame;
    my $ruleset_id = $wgame->ruleset;
    
    my ($b,$w) = ($wgame->proposer->id, $c->session->{userid});
+   if ($wgame->ent_order == Util::WGAME_ORDER_PROPOSER_LAST()){
+      ($b,$w) = ($w,$b)
+   }
+   elsif ($wgame->ent_order == Util::WGAME_ORDER_RANDOM()){
+      ($b,$w) = ($w,$b) if rand()<.5;
+   }
    
    $c->model('DB')->schema->txn_do( sub{
       my $game = $c->model('DB::Game')->create({
@@ -133,6 +138,17 @@ sub add : PathPart Chained('waiting_room') {
       my $topo = $c->req->param('topology');
       my $h = $c->req->param('h');
       my $w = $c->req->param('w');
+      my $ent_order = $c->req->param('ent_order');
+      
+      # determine who goes first (as black)
+      if ($ent_order eq 'p_first'){
+         $ent_order = Util::WGAME_ORDER_PROPOSER_FIRST();
+      } elsif ($ent_order eq 'p_last'){
+         $ent_order = Util::WGAME_ORDER_PROPOSER_LAST();
+      } else { #random
+         $ent_order = Util::WGAME_ORDER_RANDOM();
+      }
+      
       my $desc = $w .'x'. $h; # description of interesting rules
       $desc .= ", $topo" unless $topo eq 'plane';  #planes are not interesting
       
@@ -153,6 +169,7 @@ sub add : PathPart Chained('waiting_room') {
             quantity => $c->req->param('quantity'),
             proposer => $c->session->{userid},
             ruleset => $new_ruleset->id,
+            ent_order => $ent_order,
          });
          $c->stash->{msg} = 'proposal '.$proposal->id.' added';
       });

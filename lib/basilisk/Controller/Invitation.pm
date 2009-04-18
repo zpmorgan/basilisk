@@ -4,7 +4,7 @@ use parent 'Catalyst::Controller::HTML::FormFu';
 use strict;
 use warnings;
 use basilisk::Util;
-use List::Util qw/max/;
+use List::Util qw/max shuffle/;
 use List::MoreUtils qw/any/;
 
 
@@ -99,6 +99,14 @@ sub invite : Global Form{
       }
       my $msg = $req->param('msg'); #todo: put in form
       
+      my $ent_order = $c->req->param('ent_order');
+      # determine whether ents are randomized
+      if ($ent_order eq 'specified'){
+         $ent_order = Util::INVITE_ORDER_SPECIFIED();
+      } else { #random
+         $ent_order = Util::INVITE_ORDER_RANDOM();
+      }
+      
       my @digits = $pd =~ /(\d)/g;
       my $max_entity =  max(@digits);
       
@@ -128,7 +136,7 @@ sub invite : Global Form{
       my @players; #with dupes
       for my $entnum (0..$max_entity){
          my $pname = $req->param("entity".$entnum);
-         die "entity".$entnum."required" unless $pname;
+         die "entity".$entnum." required" unless $pname;
          my $player = $c->model('DB::Player')->find ({name=>$pname});
          die "no such player $pname" unless $player;
          push @players, $player;
@@ -154,6 +162,7 @@ sub invite : Global Form{
             ruleset => $new_ruleset->id,
             inviter => $c->session->{userid},
             time => time,
+            ent_order => $ent_order,
          });
          
          my %already_invited = ($c->session->{userid} => 1);
@@ -255,11 +264,18 @@ sub accept_invite :Path('/invite/accept') Args(1){
         # phase => 0, #as default.
       });
       $gid = $game->id;
-      for ($invite->invitees){
+      
+      # shuffle invitees if random order
+      my @tees = $invite->search_related ('invitees',{},{order_by => 'entity DESC'});
+      if ($invite->ent_order == Util::INVITE_ORDER_RANDOM()){
+         @tees = shuffle (@tees);
+      }
+      for (0..$#tees){
+         my $tee = $tees[$_];
          $c->model('DB::Player_to_game')->create({
             gid => $gid,
-            pid => $_->player->id,
-            entity => $_->entity,
+            pid => $tee->player->id,
+            entity => $_,
             expiration => 0,
          });
       }

@@ -1,6 +1,18 @@
 [%  INCLUDE header %]
 
 
+<script type="text/javascript">
+   //add option for entity order
+   $(document).ready(function() {
+      var Sego_Lily = document.getElementById('ent_order');
+      
+      var option1 = new Option ('specified', 'specified');
+      Sego_Lily.add (option1, null);
+   });
+</script>
+
+
+
 [% form %]
 <br>
 <h4><a href="[%url_base%]/invites"> View your invitations </a></h4>

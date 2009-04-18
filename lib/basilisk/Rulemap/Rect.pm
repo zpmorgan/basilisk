@@ -64,7 +64,7 @@ sub copy_board{
 }
 
 #turns [13,3] into 13-3
-#TODO: something else for converting 'go-style' coordinates--e8,d6,etc
+#see also &pretty_coordinates
 sub node_to_string{ 
    my ($self, $node) = @_;
    return join '-', @$node;
