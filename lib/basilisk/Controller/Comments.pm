@@ -27,6 +27,14 @@ sub comments : Global{
          $c->detach('fail_comment_nicely', ['comment too long']);
       }
       
+      #see if user hit submit twice accidentally
+      my $previous_comment = $game->find_related('comments', {}, {order_by => 'id DESC'});
+      if ($previous_comment and $previous_comment->comment eq $new_comment){
+         if ($previous_comment->sayeth == $c->session->{userid}){
+            $c->detach('fail_comment_nicely', ['same as prev. comment']);
+         }
+      }
+      
       $game->create_related ('comments', {
             comment => $new_comment,
             sayeth  => $c->session->{userid},
