@@ -79,6 +79,7 @@ sub view : PathPart('view') Chained('waiting_room') Args(1) {
    $c->stash->{proposal_info}->{id} = $wgame_id;
    $c->stash->{proposal_info}->{quantity} = $wgame->quantity;
    $c->stash->{proposal_info}->{proposer} = $wgame->proposer;
+   $c->stash->{proposal_info}->{rules_desc} = $wgame->ruleset->rules_description;
    $c->stash->{proposal_info}->{ent_order} = Util::wgame_order_str ($wgame->ent_order);
    
    $c->detach('render');

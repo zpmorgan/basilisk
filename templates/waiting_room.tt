@@ -41,16 +41,20 @@ Potential games: <br>
 Info on proposal [%proposal_info.id%]:<br>
  <table style="border: 1px solid #777;background-color:lightgray;" width="222px">
   <tr>
-   <td>instigator</td>
+   <td>Description</td>
+   <td>[% proposal_info.rules_desc %]</td>
+  </tr>
+  <tr>
+   <td>Instigator</td>
    <td>[% proposal_info.proposer.name %]</td>
   </tr>
   <tr>
-   <td>quantity</td>
-   <td>[% proposal_info.quantity %]</td>
+   <td>Ordering</td>
+   <td>[% proposal_info.ent_order %]</td>
   </tr>
   <tr>
-   <td>ordering</td>
-   <td>[% proposal_info.ent_order %]</td>
+   <td>Quantity</td>
+   <td>[% proposal_info.quantity %]</td>
   </tr>
   
   [% IF logged_in %]
