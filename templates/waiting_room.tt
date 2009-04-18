@@ -44,10 +44,6 @@ Info on proposal [%proposal_info.id%]:<br>
    <td>instigator</td>
    <td>[% proposal_info.proposer.name %]</td>
   </tr>
-  <tr> 
-   <td>size</td>
-   <td>[% proposal_info.size %]</td>
-  </tr> 
   <tr>
    <td>quantity</td>
    <td>[% proposal_info.quantity %]</td>
