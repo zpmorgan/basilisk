@@ -17,6 +17,8 @@ function heisenClicked(checkbox) {
 
 $(document).ready(function() {
    var heisenBox = document.getElementById('heisengo_checkbox');
+   if (!heisenBox)
+      return;
    heisenClicked(heisenBox);
    heisenBox.setAttribute ('onClick', "heisenClicked(this);");
 });

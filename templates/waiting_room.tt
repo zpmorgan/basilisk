@@ -6,6 +6,8 @@
    //add options for entity order
    $(document).ready(function() {
       var Sego_Lily = document.getElementById('ent_order');
+      if(!Sego_Lily)
+         return;
       
       var option1 = new Option ('proposer as black', 'p_first');
       Sego_Lily.add (option1, null);

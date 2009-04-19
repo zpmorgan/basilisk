@@ -42,10 +42,10 @@ sub init_schema {
          pass=> Util::pass_hash ($_)}
       ) for qw/foo bar baz a b c d e/;
       
-      my $evil_player = $schema->resultset('Player')->create({
-          name=>"Robert'; DROP TABLE Move;--",
-          pass=> Util::pass_hash "s4p5i6k7e"
-      });
+     # my $evil_player = $schema->resultset('Player')->create({
+     #     name=>"Robert'; DROP TABLE Move;--",
+     #     pass=> Util::pass_hash "s4p5i6k7e"
+     # });
       
       my $new_ruleset = $schema->resultset('Ruleset')->create({h=>6,w=>6}); #default everything
       my $new_game = $new_ruleset->create_related( 'games', {});

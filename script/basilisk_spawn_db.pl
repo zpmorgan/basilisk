@@ -22,7 +22,7 @@ $schema->deploy;
 #make up some data
 my $player_rs = $schema->resultset('Player');
 my $row = $player_rs->create({
-    name=>"Robert'; DROP TABLE Move;--",
+    name=>"plutocrat",
     pass=> Util::pass_hash "s4p5i6k7e"
 });
 $row = $player_rs->create({
