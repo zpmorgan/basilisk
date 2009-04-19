@@ -177,7 +177,7 @@ sub invite : Global Form{
          unless ($topo eq 'plane'){
             $new_ruleset->create_related ('extra_rules', {
                rule => $topo,
-               priority => 2, #this should go
+               priority => 3, #this should go
             });
          }
          if ($heisen){
