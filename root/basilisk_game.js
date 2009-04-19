@@ -1,4 +1,3 @@
-//It's called basilisk.js, but this is all for /game
 
 var scrolled_ew = 0;
 var scrolled_ns = 0; //up is -

@@ -30,8 +30,36 @@ elements:
       - type: Select #add other options depending on invite or wgame
         name: ent_order
         id: ent_order
-        label: Order
+        label: First player
         options:
           - ['random', 'random']
         default: 'random'
+      - type: Checkbox   #Randomness variant
+        name: heisengo
+        id: heisengo_checkbox
+        label: HeisenGo
+      - type: Fieldset
+        id: heisengo_fields
+        elements:
+         - type: Text
+           name: chance_rand_phase
+           label: Chance of a random turn
+           size: 1
+           default: 0
+           constraints:
+            - type: Number
+            - type: Range
+              min: 0
+              max: 1
+         - type: Text
+           name: chance_rand_placement
+           label: Chance of missing on placement
+           size: 1
+           default: 0
+           constraints:
+            - type: Number
+            - type: Range
+              min: 0
+              max: 1
+           
        

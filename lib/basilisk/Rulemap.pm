@@ -1,9 +1,10 @@
 package basilisk::Rulemap;
 
-use Mouse;
+use Moose;
 #use MooseX::Method::Signatures;
 
 use basilisk::Rulemap::Rect;
+use basilisk::Rulemap::Heisengo;
 use basilisk::Util;
 use List::MoreUtils qw/all/;
 
@@ -26,7 +27,7 @@ use List::MoreUtils qw/all/;
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
 #   subclasses may handle as they will. Rect nodes [$row,$col].
 
-#TODO: use these
+#TODO: use these hooks. or getridof. perhaps roles are more flexible.
 has capture_hook => (
    is => 'ro',
    isa => 'CodeRef',
@@ -48,11 +49,18 @@ has phase_description => (
    default => '0b 1w'
 );
 
+# to be extended to fog, atom, etc
+sub apply_rule_role{
+   my ($self, $rule) = @_;
+   if ($rule =~ /^heisengo/){
+      basilisk::Rulemap::Heisengo::apply ($self, $rule);
+   }
+}
+
 
 #These must be implemented in a subclass
 my $blah = 'use a subclass instead of basilisk::Rulemap';
 sub move_is_valid{ die $blah}
-sub evaluate_move{ die $blah}
 sub node_to_string{ die $blah}
 sub node_from_string{ die $blah}
 sub node_liberties{ die $blah}
@@ -60,6 +68,31 @@ sub set_stone_at_node{ die $blah}
 sub stone_at_node{ die $blah}
 sub all_nodes{ die $blah}
 sub copy_board{ die $blah}
+
+
+sub evaluate_move{
+   my ($self, $board, $node, $side) = @_;
+   die "bad side $side" unless $side =~ /^[bwr]$/;
+   
+   if ($self->stone_at_node ($board, $node)){
+      return (undef,"stone exists at ". $self->node_to_string($node)); }
+   
+   #produce copy of board for evaluation -> add stone at $node
+   my $newboard = $self->copy_board ($board);
+   $self->set_stone_at_node ($newboard, $node, $side);
+   # $chain is a list of strongly connected stones,
+   # and $foes=enemies,$libs=liberties adjacent to $chain
+   my ($chain, $libs, $foes) = $self->get_chain($newboard, $node);
+   my $caps = $self->find_captured ($newboard, $foes);
+   if (@$libs == 0 and @$caps == 0){
+      return (undef,'suicide');
+   }
+   for my $cap(@$caps){ # just erase captured stones
+      $self->set_stone_at_node ($newboard, $cap, 0);
+   }
+   return ($newboard, '', $caps, $node);#no err
+   #node is returned to make this method easier to override for heisenGo
+}
 
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
@@ -384,6 +417,16 @@ sub compute_score{
    return  'perverse or other modes not scoring...'
 }
 
+sub num_phases{
+   my ($self) = @_;
+   my @phases = split ' ', $self->phase_description;
+   return scalar @phases;
+}
 
+sub determine_next_phase{
+   my ($self, $phase) = @_;
+   my $np = $self->num_phases;
+   return ($phase + 1) % $np;
+}
 
 1;

@@ -94,6 +94,8 @@ sub invite : Global Form{
       my $w = $c->req->param('w');
       my $topo = $c->req->param('topology');
       my $pd = $req->param('pd');
+      my $heisen = $req->param('heisengo');
+      my ($random_phase, $random_place);
       if ($pd eq 'other'){
          $pd = $req->param('other');
       }
@@ -133,6 +135,27 @@ sub invite : Global Form{
          }
       }
       
+      if ($heisen){
+         $random_phase = $c->req->param('chance_rand_phase') || 0;
+         $random_place = $c->req->param('chance_rand_placement') || 0;
+         if ($random_phase or $random_place){
+            $desc .= ", HeisenGo: ";
+         }
+         if ($random_phase == 1) {
+            $desc .= "random squence of turns";
+         }
+         elsif ($random_phase) {
+            $desc .= "turns " . int($random_phase*100) . "% random";
+         }
+            $desc .= ", " if $random_phase and $random_place;
+         if ($random_place == 1) {
+            $desc .= "inaccurate placement of stones";
+         }
+         elsif ($random_place) {
+            $desc .= "stone placement " . int($random_phase*100) . "% inaccurate";
+         }
+      }
+      
       my @players; #with dupes
       for my $entnum (0..$max_entity){
          my $pname = $req->param("entity".$entnum);
@@ -152,10 +175,19 @@ sub invite : Global Form{
             phase_description => $pd,
          });
          unless ($topo eq 'plane'){
-            $c->model('DB::Extra_rule')->create({
+            $new_ruleset->create_related ('extra_rules', {
                rule => $topo,
                priority => 2, #this should go
-               ruleset  => $new_ruleset->id,
+            });
+         }
+         if ($heisen){
+            #chop off decimal places less than .01
+            my $rph = int($random_phase*100)/100;
+            my $rpl = int($random_place*100)/100;
+            my $heisenRule = "heisengo $rph,$rpl";
+            $new_ruleset->create_related ('extra_rules', {
+               rule => $heisenRule,
+               priority => 2, #this should go?
             });
          }
          my $invite = $c->model('DB::Invite')->create({

@@ -1,6 +1,8 @@
 [%  INCLUDE header %]
 
 
+<script type="text/javascript" src="[%url_base%]/proposal_forms.js"></script>
+
 <script type="text/javascript">
    //add option for entity order
    $(document).ready(function() {

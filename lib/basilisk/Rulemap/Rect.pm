@@ -1,5 +1,5 @@
 package basilisk::Rulemap::Rect;
-use Mouse;
+use Moose;
 extends 'basilisk::Rulemap';
 
 has h  => ( #height
@@ -33,30 +33,6 @@ has twist_ew => (
    default => 0,
 );
 
-sub evaluate_move{
-   my ($self, $board, $node, $side) = @_;
-   die "bad side $side" unless $side =~ /^[bwr]$/;
-   #die (ref $node . $node) unless ref $node eq 'ARRAY';
-   #die 'badboard' unless ref $board eq 'ARRAY';
-   
-   if ($self->stone_at_node ($board, $node)){
-      return (undef,"stone exists at ". $self->node_to_string($node)); }
-   
-   #produce copy of board for evaluation -> add stone at $node
-   my $newboard = $self->copy_board ($board);
-   $self->set_stone_at_node ($newboard, $node, $side);
-   # $chain is a list of strongly connected stones,
-   # and $foes=enemies,$libs=liberties adjacent to $chain
-   my ($chain, $libs, $foes) = $self->get_chain($newboard, $node);
-   my $caps = $self->find_captured ($newboard, $foes);
-   if (@$libs == 0 and @$caps == 0){
-      return (undef,'suicide');
-   }
-   for my $cap(@$caps){ # just erase captured stones
-      $self->set_stone_at_node ($newboard, $cap, 0);
-   }
-   return ($newboard, '', $caps);#no err
-}
 
 sub copy_board{
    my ($self, $board) = @_;

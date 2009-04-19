@@ -47,10 +47,11 @@ sub player_name_to_move_next{
    die "no player as entity $entity in game ".$self->id;
 }
 sub shift_phase{
-   my $self = shift;
-   my $np = $self->ruleset->num_phases;
-   $self->set_column('phase', ($self->phase + 1) % $np);
- #  $self->set_column('num_moves', $self->num_moves + 1);
+   my ($self, $phase) = @_;
+   unless (defined $phase){
+      $phase = ($self->phase + 1) % $self->ruleset->num_phases
+   }
+   $self->set_column('phase', $phase);
    $self->update;
 }
 sub turn{ #return 'who' and 'what'

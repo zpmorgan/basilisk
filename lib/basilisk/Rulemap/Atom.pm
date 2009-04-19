@@ -1,6 +1,6 @@
 package basilisk::Rulemap::Atom;
 #rulemap modifier
-use Mouse::Role;
+use Moose::Role;
 
 requires ('remove_caps');
 

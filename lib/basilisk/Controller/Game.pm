@@ -140,12 +140,15 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
    }
    
    $c->forward('evaluate_move', [$node, $oldboard]);
-   my ($newboard, $caps) = @{$c->stash}{ qw/newboard newcaps/ };
-   
    if ($c->stash->{eval_move_fail}){
       $c->stash->{msg} = "move is failure: ".$c->stash->{eval_move_fail};
       $c->detach('render');
    }
+   
+   my ($newboard, $caps) = @{$c->stash}{ qw/newboard newcaps/ };
+   #dunno how to handle the heisengo discrepency. overwrite $node for now.
+   $node = $c->stash->{newnode};
+   
    my $h = $c->stash->{game}->h;
    my $w = $c->stash->{game}->w;
    my $new_pos_data = Util::pack_board ($newboard, $h, $w);
@@ -178,7 +181,8 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
          time => time,
          captures => $new_captures,
       });
-      $game->shift_phase; #b to w, etc num_moves++
+      my $nextphase = $rulemap->determine_next_phase($game->phase);
+      $game->shift_phase($nextphase); #b to w, etc num_moves++
    });
    $c->stash->{board} = $newboard;
    $c->stash->{msg} = 'move is success';
@@ -478,10 +482,14 @@ sub build_rulemap : Private{
    my $pd = $ruleset->phase_description;
    my $topo = 'plane';
    my @extra_rules = $ruleset->extra_rules;
+   my @extra_roles;
    for my $rulerow (@extra_rules){
       my $rule = $rulerow->rule;
       if (grep {$rule eq $_} @Util::acceptable_topo){
          $topo = $rule;
+      }
+      elsif ($rule =~ /^heisengo/){
+         push @extra_roles, $rule;
       }
    }
    my $rulemap = new basilisk::Rulemap::Rect(
@@ -494,6 +502,9 @@ sub build_rulemap : Private{
       topology => $topo,
       phase_description => $pd,
    );
+   for (@extra_roles){
+      $rulemap->apply_rule_role ($_);
+   }
    $c->stash->{rulemap} = $rulemap;
 }
 
@@ -518,13 +529,14 @@ sub detect_duplicate_position{
    return 1 if $oldmove;
 }
 
+#this wraps the rulemap method to set stash values and detect ko
 sub evaluate_move : Private{
    my ($self, $c, $node, $board) = @_;
    my $side = $c->stash->{side};
    die $side unless $side =~ /^[bwr]$/;
    $c->stash->{eval_move_fail} = '';
    #find next board position:
-   my ($newboard, $err, $caps) = $c->stash->{rulemap}->evaluate_move
+   my ($newboard, $err, $caps, $newnode) = $c->stash->{rulemap}->evaluate_move
          ($board,$node,$side);
    unless ($newboard){
       $c->stash->{eval_move_fail} = $err;
@@ -534,7 +546,7 @@ sub evaluate_move : Private{
       $c->stash->{eval_move_fail} = 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum;
       return;
    }
-   @{$c->stash}{ qw/newboard newcaps/ } = ($newboard, $caps);#no err
+   @{$c->stash}{ qw/newboard newcaps newnode/ } = ($newboard, $caps, $newnode);#no err
 }
 
 sub get_game_player_data : Private{ #for game.tt
