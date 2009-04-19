@@ -132,14 +132,17 @@ sub add : PathPart Chained('waiting_room') {
    unless ($c->session->{logged_in}){
       $c->detach('render',['log in before submiting waiting games']);
    }
+   my $req = $c->request;
    my $form = $c->stash->{form}; #form from /waiting_room above
    if ($form->submitted_and_valid) {
       $c->stash->{msg} = 'form submitted...';
       
-      my $topo = $c->req->param('topology');
-      my $h = $c->req->param('h');
-      my $w = $c->req->param('w');
-      my $ent_order = $c->req->param('ent_order');
+      my $topo = $req->param('topology');
+      my $h = $req->param('h');
+      my $w = $req->param('w');
+      my $ent_order = $req->param('ent_order');
+      my $heisen = $req->param('heisengo');
+      my ($random_phase, $random_place);
       
       # determine who goes first (as black)
       if ($ent_order eq 'p_first'){
@@ -153,17 +156,49 @@ sub add : PathPart Chained('waiting_room') {
       my $desc = $w .'x'. $h; # description of interesting rules
       $desc .= ", $topo" unless $topo eq 'plane';  #planes are not interesting
       
+      #this is pretty much duplicated in Invitation.pm
+      if ($heisen){
+         $random_phase = $req->param('chance_rand_phase') || 0;
+         $random_place = $req->param('chance_rand_placement') || 0;
+         if ($random_phase or $random_place){
+            $desc .= ", HeisenGo: ";
+         }
+         if ($random_phase == 1) {
+            $desc .= "random squence of turns";
+         }
+         elsif ($random_phase) {
+            $desc .= "turns " . int($random_phase*100) . "% random";
+         }
+            $desc .= ", " if $random_phase and $random_place;
+         if ($random_place == 1) {
+            $desc .= "inaccurate placement of stones";
+         }
+         elsif ($random_place) {
+            $desc .= "stone placement " . int($random_phase*100) . "% inaccurate";
+         }
+      }
+      
       $c->model('DB')->schema->txn_do (sub{
          my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
-            h => $c->req->param('h'),
-            w => $c->req->param('w'),
+            h => $h,
+            w => $w,
             rules_description => $desc,
          });
          unless ($topo eq 'plane'){
             $c->model('DB::Extra_rule')->create({
                rule => $topo,
-               priority => 2,
+               priority => 1,
                ruleset  => $new_ruleset->id,
+            });
+         }
+         if ($heisen){
+            #chop off decimal places less than .01
+            my $rph = int($random_phase*100)/100;
+            my $rpl = int($random_place*100)/100;
+            my $heisenRule = "heisengo $rph,$rpl";
+            $new_ruleset->create_related ('extra_rules', {
+               rule => $heisenRule,
+               priority => 2, #this should go?
             });
          }
          my $proposal = $c->model('DB::Game_proposal')->create({

@@ -90,9 +90,9 @@ sub invite : Global Form{
    $c->stash->{form} = $form;
    
    if ($form->submitted_and_valid){
-      my $h = $c->req->param('h');
-      my $w = $c->req->param('w');
-      my $topo = $c->req->param('topology');
+      my $h = $req->param('h');
+      my $w = $req->param('w');
+      my $topo = $req->param('topology');
       my $pd = $req->param('pd');
       my $heisen = $req->param('heisengo');
       my ($random_phase, $random_place);
@@ -135,6 +135,7 @@ sub invite : Global Form{
          }
       }
       
+      #this is pretty much duplicated in Waiting_room.pm...
       if ($heisen){
          $random_phase = $c->req->param('chance_rand_phase') || 0;
          $random_place = $c->req->param('chance_rand_placement') || 0;
@@ -177,7 +178,7 @@ sub invite : Global Form{
          unless ($topo eq 'plane'){
             $new_ruleset->create_related ('extra_rules', {
                rule => $topo,
-               priority => 3, #this should go
+               priority => 1, #this should go
             });
          }
          if ($heisen){
