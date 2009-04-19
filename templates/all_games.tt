@@ -14,7 +14,7 @@ And here's every running game on this server:
       <td>ID</td>
       <td>Black</td>
       <td>White</td>
-      <td>Rules</td>
+      <td style="width:250px;">Rules</td>
    </tr>
    
 [% FOREACH g = games_data %]
