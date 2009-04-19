@@ -132,10 +132,16 @@ sub add : PathPart Chained('waiting_room') {
    unless ($c->session->{logged_in}){
       $c->detach('render',['log in before submiting waiting games']);
    }
+   my $player = $c->model('DB::Player')->find ({id => $c->session->{userid}});
    my $req = $c->request;
    my $form = $c->stash->{form}; #form from /waiting_room above
    if ($form->submitted_and_valid) {
       $c->stash->{msg} = 'form submitted...';
+      
+      my $other_games_count = $player->count_related ('proposed_games',{});
+      if ($other_games_count >= 5){
+         $c->detach('render',['an arbitrary limit (5) has been exceeded.']);
+      }
       
       my $topo = $req->param('topology');
       my $h = $req->param('h');
@@ -201,9 +207,8 @@ sub add : PathPart Chained('waiting_room') {
                priority => 2, #this should go?
             });
          }
-         my $proposal = $c->model('DB::Game_proposal')->create({
+         my $proposal = $player->create_related ('proposed_games',{
             quantity => $c->req->param('quantity'),
-            proposer => $c->session->{userid},
             ruleset => $new_ruleset->id,
             ent_order => $ent_order,
          });
