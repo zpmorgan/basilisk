@@ -26,7 +26,7 @@ Potential games: <br>
 
 <table>
    <tr style="border: 1px solid #777; background-color:lightgray;">
-      <td>Info</td> <td>Name</td> <td>Rules</td> 
+      <td>Info</td> <td>Name</td> <td style="width:300px;">Rules</td> 
    </tr>
    
   [% FOREACH w = waiting_games_info %]

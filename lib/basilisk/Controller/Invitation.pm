@@ -153,7 +153,7 @@ sub invite : Global Form{
             $desc .= "inaccurate placement of stones";
          }
          elsif ($random_place) {
-            $desc .= "stone placement " . int($random_phase*100) . "% inaccurate";
+            $desc .= "stone placement " . int($random_place*100) . "% inaccurate";
          }
       }
       
