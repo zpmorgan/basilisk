@@ -85,7 +85,7 @@ sub last_move_string{
 sub fin{
    my $self = shift;
    my $lastmove = $self->last_move;
-   return $lastmove->fin if $lastmove->fin;
+   return $lastmove->fin if $lastmove and $lastmove->fin;
    #make a default one..
    return join ' ', map {0} (1..$self->ruleset->num_phases)
 }
@@ -136,6 +136,13 @@ sub sides{
 sub phase_description{
    my $self = shift;
    return $self->ruleset->phase_description
+}
+
+sub phases{
+   my ($self) = @_;
+   my $pd = $self->phase_description;
+   my @phases = map {[split '',$_]} split ' ', $pd;
+   return @phases;
 }
 
 #TODO: getridof? not generic
@@ -252,27 +259,23 @@ sub clear_fin_intent{
 #return all phases with FIN_INTENT_OKAY
 sub okay_phases{
    my ($self) = @_;
-   my $last_move = $self->last_move;
-
    my @fins = split ' ', $self->fin; #'0 0',etc
    my @phases = (0..$self->num_phases-1);
    return grep {$fins[$_] == Util::FIN_INTENT_OKAY()} @phases
 }
+#return all phases with FIN_INTENT_OKAY
+sub fin_phases{
+   my ($self) = @_;
+   my @fins = split ' ', $self->fin; #'0 0',etc
+   my @phases = (0..$self->num_phases-1);
+   return grep {$fins[$_] == Util::FIN_INTENT_FIN()} @phases
+}
 #return all phases without FIN_INTENT_DROP
 sub active_phases{
    my ($self) = @_;
-   my $last_move = $self->last_move;
-
    my @fins = split ' ', $self->fin; #'0 0',etc
    my @phases = (0..$self->num_phases-1);
    return grep {$fins[$_] != Util::FIN_INTENT_DROP()} @phases
-}
-
-sub phases{
-   my ($self) = @_;
-   my $pd = $self->phase_description;
-   my @phases = map {[split '',$_]} split ' ', $pd;
-   return @phases;
 }
 
 #TODO: take basis into account?

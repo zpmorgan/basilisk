@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 25;
+use Test::More tests => 28;
 
 use lib qw(t/lib lib);
 use b_schema;
@@ -74,7 +74,7 @@ my $mech = b_mech->new;
    is (game_fin(), '1 1 3');
    is_deeply(game_active(), [0,1]);
    $mech->login_as('lamp');
-   $mech->get_ok("/game/".$game->id."/pass/move/0-0");
+   $mech->get_ok("/game/".$game->id."/move/0-0");
    is (move_count(), 6);
    is (game_fin(), '0 0 3');
    is_deeply(game_active(), [0,1]);

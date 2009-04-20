@@ -428,7 +428,6 @@ sub num_phases{
    return scalar @phases;
 }
 
-#dont pass this bad \@okay_phases
 sub determine_next_phase{
    my ($self, $phase, $okay_phases) = @_;
    my $np = $self->num_phases;

@@ -181,6 +181,7 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
          movenum => $game->num_moves+1,
          time => time,
          captures => $new_captures,
+         fin => $game->fin,
       });
       $game->clear_fin_intent(); #clear any intent to score,etc
       my @okay_phases = $game->okay_phases();
@@ -212,10 +213,14 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
             movenum => $game->num_moves+1,
             time => time,
             captures => $game->captures,
+            fin => $game->fin,
          });
       $game->signal_fin_intent (Util::FIN_INTENT_FIN(), $pass_all);
-      my @okay_phases = $game->okay_phases();
-      my $nextphase = $rulemap->determine_next_phase($game->phase, \@okay_phases);
+      my @next_phases = $game->okay_phases();
+      unless (@next_phases){ #everyone's ready to score.
+         @next_phases = $game->fin_phases();
+      }
+      my $nextphase = $rulemap->determine_next_phase($game->phase, \@next_phases);
       $game->shift_phase($nextphase); #b to w, etc num_moves++
    });
    $c->forward('render');
@@ -247,6 +252,7 @@ sub resign : PathPart('resign') Chained('game'){
             movenum => $game->num_moves+1,
             time => time,
             captures => $game->captures,
+            fin => $game->fin,
          });
       $game->signal_fin_intent (Util::FIN_INTENT_DROP(), $resign_all);
       $game->clear_fin_intent (); #this upsets the balance, so reset _FIN and _SCORED
