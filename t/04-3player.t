@@ -54,7 +54,7 @@ $game->create_related ('player_to_game', {
 }
 sub rx_side_on_board {
    my $side = shift;
-   return qr/td id="cell[^<]* <img [^<]*$side.gif/
+   return qr/board_position [^\n]*"$side"/
 }
 
 $mech->login_as('king');
