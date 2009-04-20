@@ -27,6 +27,12 @@ use List::MoreUtils qw/all/;
 # Note: I'm treating intersections (i.e. nodes) as scalars, which different rulemap 
 #   subclasses may handle as they will. Rect nodes [$row,$col].
 
+
+#To support more than 2 players or sides, each game inherently has a sort of basis
+# such as 'ffa', 'zen', 'team', 'perverse', or perhaps more
+
+
+
 #TODO: use these hooks. or getridof. perhaps roles are more flexible.
 has capture_hook => (
    is => 'ro',
@@ -303,7 +309,7 @@ sub count_deads{
 sub captures_of_side {die'do'}
 sub captures_of_entity{
    my ($self, $entity, $captures) = @_;
-   die 'wrong score mode' unless $self->detect_cycle_type eq 'ffa';
+   die 'wrong score mode' unless $self->detect_basis eq 'ffa';
    unless (defined $captures) {$captures = $self->default_captures}
    my @caps = split ' ', $captures;
    for my $phase (split ' ', $self->phase_description) {
@@ -317,7 +323,7 @@ sub captures_of_entity{
 }
 sub side_of_entity{
    my ($self, $entity) = @_;
-   die 'wrong score mode' unless $self->detect_cycle_type eq 'ffa';
+   die 'wrong score mode' unless $self->detect_basis eq 'ffa';
    for my $phase (split ' ', $self->phase_description) {
       if ($phase =~ m/$entity([wbr])/){
          return $1;
@@ -350,12 +356,11 @@ sub default_captures {#for before move 1
 }
 
 
-
 #Necessary to decide how to describe game in /game. 
 #Score & game objectives depend.
 #reads the phase description and
 # returns 'ffa', 'team', 'zen', or 'perverse'? or 'other'?
-sub detect_cycle_type{
+sub detect_basis{
    my $self = shift; #is it a pd or a rulemap?
    my $pd = ref $self ? $self->phase_description : $self;
    
@@ -379,7 +384,7 @@ sub compute_score{
    my ($self, $board, $caps, $death_mask) = @_;
    my ($terr_mask, $terr_points) = $self->find_territory_mask($board, $death_mask);
    
-   my $type = $self->detect_cycle_type;
+   my $type = $self->detect_basis;
    my $pd = $self->phase_description;
    my @phases = split ' ', $pd;
    @phases = map {[split '', $_]} @phases;
@@ -423,10 +428,16 @@ sub num_phases{
    return scalar @phases;
 }
 
+#dont pass this bad \@okay_phases
 sub determine_next_phase{
-   my ($self, $phase) = @_;
+   my ($self, $phase, $okay_phases) = @_;
    my $np = $self->num_phases;
-   return ($phase + 1) % $np;
+   my $next = $phase;
+   for (1..$np){
+      $next = ($next + 1) % $np;
+      return $next if grep {$next==$_} @$okay_phases;
+   }
+   die "I was given a bad list of okay phases: " .join',',@$okay_phases
 }
 
 1;

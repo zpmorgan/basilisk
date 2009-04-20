@@ -30,17 +30,17 @@ sub apply{
 
 #next phase may be random.
 around 'determine_next_phase' => sub {
-   my ($orig, $self, $phase) = @_;
+   my ($orig, $self, $phase, $okay_phases) = @_;
    if (rand() < $self->chance_random_turn){
-      return $self->random_phase();
+      return $self->random_phase($okay_phases);
    }
-   return $orig->($self, $phase);
+   return $orig->($self, $phase, $okay_phases);
 };
 
 sub random_phase{
-   my $self = shift;
-   my @phases = split ' ', $self->phase_description;
-   return int rand(@phases)
+   my ($self, $okay_phases) = shift;
+#   my @phases = split ' ', $self->phase_description;
+   return $okay_phases->[int rand(@$okay_phases)]
 }
 
 #find adjacent nodes, and perhaps try moving there randomly

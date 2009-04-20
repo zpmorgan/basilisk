@@ -18,6 +18,17 @@ __PACKAGE__->add_columns(
       # (atm, it only does 1.)
     captures => { data_type => 'TEXT'}, #'0 0'
     
+      #fin--intent of each _phase_ to score (or drop out of the game)
+      #intent may be signalled by the passing or resigning
+      #'' or '0 0' means everyone is okay. FIN_INTENT_OKAY.
+      #if a phase is FIN_INTENT_FIN, it's satisfied, ready to score.
+      #if a phase is FIN_INTENT_DROP, then it's skipped
+      #  unless a same-sided phase is still OKAY.
+      #if every phase is FIN_INTENT_SCORED or FIN_INTENT_DROP,
+      #   then consider the game complete
+      #also: on each normal move, reset all fins except DROPped ones
+    fin => { data_type => 'TEXT', is_nullable => 1}, #'0 0'
+    
     phase  => { data_type => 'INTEGER'}, #0, 1, etc
     move   => { data_type => 'TEXT'}, #pass, submit(?), {node}, etc
 );
@@ -28,6 +39,15 @@ __PACKAGE__->belongs_to(position => 'basilisk::Schema::Position', 'position_id')
 sub sqlt_deploy_hook {
     my($self, $table) = @_;
     #$table->add_index(name => idx_mv => fields => [qw/gid movenum/]);
+}
+
+sub entity{
+   my($self) = @_;
+   my $phase = $self->phase;
+   my $pd = $self->game->phase_description;
+   my @phases = split ' ', $pd;
+   $phases[$phase] =~ /(\d)/;
+   return $1;
 }
 
 1

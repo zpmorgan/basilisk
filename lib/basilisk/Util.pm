@@ -37,6 +37,11 @@ sub WGAME_ORDER_PROPOSER_LAST {3}
 sub MESSAGE_NOT_SEEN {1}
 sub MESSAGE_SEEN {2}
 
+sub FIN_INTENT_OKAY {0}
+sub FIN_INTENT_FIN {1} #ready to score
+sub FIN_INTENT_SCORED {2}
+sub FIN_INTENT_DROP {3}
+
 #todo: unused?
 our @acceptable_topo = qw/plane cylinder torus mobius klein/;
 

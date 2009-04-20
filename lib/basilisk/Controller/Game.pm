@@ -7,7 +7,8 @@ use basilisk::Util;
 use basilisk::Rulemap;
 use JSON;
 
-#__PACKAGE__->config->{namespace} = '';
+
+
 
 # /game
 sub default :Path {
@@ -154,8 +155,8 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
    my $new_pos_data = Util::pack_board ($newboard, $h, $w);
    Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
    
-   #alter db
-   #perhaps wrong somehow. I think capture count can get messed up.
+   
+   #perhaps txn wrong somehow. I think capture count can get messed up.
    $c->model('DB')->schema->txn_do(  sub{
       #update capture count:
       my $captures = $game->captures;
@@ -181,7 +182,9 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
          time => time,
          captures => $new_captures,
       });
-      my $nextphase = $rulemap->determine_next_phase($game->phase);
+      $game->clear_fin_intent(); #clear any intent to score,etc
+      my @okay_phases = $game->okay_phases();
+      my $nextphase = $rulemap->determine_next_phase($game->phase, \@okay_phases);
       $game->shift_phase($nextphase); #b to w, etc num_moves++
    });
    $c->stash->{board} = $newboard;
@@ -195,8 +198,9 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
       $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
       $c->detach('render');
    }
-   my $game = $c->stash->{game};
+   my ($game, $rulemap) = @{$c->stash}{ qw/game rulemap/ };
    my ($entity, $side) = $game->turn;
+   my $pass_all = $c->req->param('pass_all');
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
       $game->create_related( 'moves',
@@ -208,11 +212,60 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
             time => time,
             captures => $game->captures,
          });
-      $game->shift_phase;
+      $game->signal_fin_intent (Util::FIN_INTENT_FIN(), $pass_all);
+      my @okay_phases = $game->okay_phases();
+      my $nextphase = $rulemap->determine_next_phase($game->phase, \@okay_phases);
+      $game->shift_phase($nextphase); #b to w, etc num_moves++
    });
    $c->forward('render');
 }
 
+#at least one phase wants to drop out!
+sub resign : PathPart('resign') Chained('game'){ 
+   my ($self, $c) = @_;
+   unless ($c->forward ('permission_to_move')){
+      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
+   }
+   my $rulemap = $c->stash->{rulemap};
+   my $game = $c->stash->{game};
+   my $resign_all = $c->req->param('resign_all');
+   
+   my ($entity, $side) = $game->turn;
+  # my @sides = $rulemap->all_sides;
+  # my $winning_side = $sides[0] eq $side ? $sides[1] : $sides[0];
+  # my $result = $winning_side . " + resign";
+   
+   #transaction!
+   $c->model('DB')->schema->txn_do(  sub{
+      $game->create_related( 'moves',
+         {
+            position_id => $game->current_position_id,
+            phase => $game->phase,
+            move  => 'resign',
+            movenum => $game->num_moves+1,
+            time => time,
+            captures => $game->captures,
+         });
+      $game->signal_fin_intent (Util::FIN_INTENT_DROP(), $resign_all);
+      $game->clear_fin_intent (); #this upsets the balance, so reset _FIN and _SCORED
+      my $winner = $game->winner_by_resignation;
+      if (defined $winner){
+         $game->set_column ('status', Util::FINISHED());
+         $game->set_column ('result', $winner.'+resign');
+         $game->update();
+      }
+      else{
+         my @okay_phases = $game->okay_phases();
+         my $nextphase = $rulemap->determine_next_phase($game->phase, \@okay_phases);
+         $game->shift_phase($nextphase);
+      }
+   });
+   $c->forward('render');
+}
+
+
+#The following couple things are WRONG & UNUSED
 #not a move. just update board in html: #/game/44/mark/dead/3-13
 #this is to be done in js! so remove is TODO
 sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
@@ -302,41 +355,6 @@ sub wants_to_stop_scoring : PathPart('continue') Chained('game'){
    $c->forward('render');
 }
 
-#Player wants to finish game by losing immediately
-sub resign : PathPart('resign') Chained('game'){ 
-   my ($self, $c) = @_;
-   unless ($c->forward ('permission_to_move')){
-      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
-      $c->detach('render');
-   }
-   my $rulemap = $c->stash->{rulemap};
-   unless ($rulemap->all_entities == 2){
-      $c->stash->{msg} =  "Sorry, can't can't handle resigns for these special games";
-      $c->detach('render');
-   }
-   my $game = $c->stash->{game};
-   my ($entity, $side) = $game->turn;
-   my @sides = $rulemap->all_sides;
-   my $winning_side = $sides[0] eq $side ? $sides[1] : $sides[0];
-   my $result = $winning_side . " + resign";
-   
-   #transaction!
-   $c->model('DB')->schema->txn_do(  sub{
-      $game->create_related( 'moves',
-         {
-            position_id => $game->current_position_id,
-            phase => $game->phase,
-            move  => 'resign',
-            movenum => $game->num_moves+1,
-            time => time,
-            captures => $game->captures,
-         });
-      $game->set_column ('status', Util::FINISHED());
-      $game->set_column ('result', $result);
-      $game->update();
-   });
-   $c->forward('render');
-}
 
 sub invalid_request : Private{
    my ($self, $c, $err) = @_;
@@ -344,7 +362,8 @@ sub invalid_request : Private{
    $c->stash->{template} = 'message.tt';
 }
 
-#returns error string if error. #TODO: these could return true, or set some stash error var
+
+#sets $c->stash->{whynot} error. returns 1 if true
 sub permission_to_move : Private{
    my ($self, $c) = @_;
    
@@ -382,8 +401,8 @@ sub permission_to_move : Private{
    $c->stash->{side} = $side;
    return 1
 }
-   
-sub permission_to_mark_dead : Private{ #returns err if err
+#sets $c->stash->{whynot} error. returns 1 if true
+sub permission_to_mark_dead : Private{
    my ($self, $c) = @_;
    return 0 unless ($c->forward ('permission_to_move'));
    #last 2 moves should be passes to start scoring process
@@ -391,6 +410,7 @@ sub permission_to_mark_dead : Private{ #returns err if err
    return 1 if $c->forward('prev_p_moves_were_passes');
    return 0;
 }
+#replaced by fin?
 sub last_move_was_score : Private{
    my ($self,$c) = @_;
    my $game = $c->stash->{game};
@@ -406,6 +426,7 @@ sub last_move_was_score : Private{
    }
    return 1;
 }
+#replaced by fin?
 #returns explanation if no, '' if yes
 sub prev_p_moves_were_passes : Private { #p=2players
    my ($self,$c) = @_;
@@ -450,7 +471,7 @@ sub finish_game : Private{ #This does not check permissions. it just wraps thing
    # scoremodes are 'ffa','team', ?other?
    # is this a bad system?
    my $result;
-   my $scoremode = $rulemap->detect_cycle_type; # ($pd)
+   my $scoremode = $rulemap->detect_basis; # ($pd)
    if ($scoremode eq 'ffa'){
       my @totalscore;
       for my $entity ($rulemap->all_entities){ #0,1,etc
@@ -574,7 +595,7 @@ sub get_game_player_data : Private{ #for game.tt
          time_remaining => $p->expiration,
       };
    }
-   if ($rulemap->detect_cycle_type eq 'ffa'){
+   if ($rulemap->detect_basis eq 'ffa'){
       my $caps = $game->captures;
       for my $entitydata (@playerdata){
          $entitydata->{captures} = $rulemap->captures_of_entity 

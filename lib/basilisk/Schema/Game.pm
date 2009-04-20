@@ -20,6 +20,8 @@ __PACKAGE__->add_columns(
     'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
     #phase-- rule description is in ruleset
     'phase' => { data_type => 'INTEGER', default_value => 0 },
+    #to sort by most recently active, this stores a time.
+    #'perturbation' => { data_type => 'INTEGER', default_value => 0 },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -79,6 +81,13 @@ sub last_move_string{
    my $c = shift;
    #my $mvnum = $c->stash->{game}->num_moves;
    return $c->stash->{game}->find_related ('moves', {}, {order_by => 'movenum DESC'})->get_columns ('phase', 'move');
+}
+sub fin{
+   my $self = shift;
+   my $lastmove = $self->last_move;
+   return $lastmove->fin if $lastmove->fin;
+   #make a default one..
+   return join ' ', map {0} (1..$self->ruleset->num_phases)
 }
 
 sub current_position{
@@ -159,4 +168,132 @@ sub captures{
    return join ' ', map {'0'} (1..$self->num_phases); # normally '0 0';
 }
 
+
+sub okay_phasesBLAH{
+   my ($self) = @_;
+   my $last_move = $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
+   my $fin = $last_move->fin;
+   unless ($fin) { #all okay
+      return (0..$self->num_phases-1);
+   }
+   my @okay_phases;
+   my @fins = split ' ', $fin;
+   for my $pnum (0..$self->num_phases-1){
+      push @okay_phases, $pnum if $fins[$pnum] == Util::FIN_INTENT_OKAY();
+      #TODO: some dropped phases will be okay..
+   }
+   return @okay_phases;
+}
+
+#take the most recent move, and adjust its fin column
+#  to signal intent to score, drop, or finish.
+#  I dont see a reason to signal okay...
+#call this right after it's created
+sub signal_fin_intent{
+   my ($self, $intent, $for_all_phases_of_ent) = @_;
+   my ($last_move, $move_before_last) = $self->search_related ('moves', {}, {
+      order_by => 'movenum DESC',
+      limit    => 2,
+   });
+   
+   #can not use $self->fin() here. it would be circular because this is
+   # what sets last_move->fin, which self->fin wraps
+   my $prev_fin; #'0 0',etc
+   if ($move_before_last){
+      $prev_fin = $move_before_last->fin
+   }
+   unless ($prev_fin){
+      $prev_fin = join ' ', map {0} $self->num_phases;
+   }
+   my @fins = split ' ', $prev_fin;
+   
+   my @phases_to_signal;
+   if ($for_all_phases_of_ent){
+      @phases_to_signal = $self->phases_of_ent ($last_move->entity)
+   }
+   else {
+      @phases_to_signal = $last_move->phase;
+   }
+   for my $phase (@phases_to_signal){
+      $fins[$phase] = $intent;
+   }
+   my $newfin = join ' ', @fins;
+   $last_move->set_column('fin', $newfin);
+   $last_move->update();
+}
+
+#someone made a move?
+#reset FIN and SCORED to OKAY
+#leave DROP as it is
+#call this right after it's created
+sub clear_fin_intent{
+   my ($self, $intent, $for_all_phases_of_ent) = @_;
+   my ($last_move) = $self->find_related ('moves', {}, {
+      order_by => 'movenum DESC',
+   });
+   
+   #can not always use $self->fin() here. see above..
+   my $fin = $last_move->fin;
+   unless ($fin){
+      $fin = join ' ', map {0} $self->num_phases;
+   }
+   
+   my @fins = split ' ', $fin;
+   for my $f (@fins){
+      warn $f . ($f == Util::FIN_INTENT_DROP()) . Util::FIN_INTENT_DROP();
+      unless ($f == Util::FIN_INTENT_DROP()){
+         $f = Util::FIN_INTENT_OKAY();
+      }
+   }
+   my $newfin = join ' ', @fins;
+   $last_move->set_column('fin', $newfin);
+   $last_move->update();
+}
+
+#return all phases with FIN_INTENT_OKAY
+sub okay_phases{
+   my ($self) = @_;
+   my $last_move = $self->last_move;
+
+   my @fins = split ' ', $self->fin; #'0 0',etc
+   my @phases = (0..$self->num_phases-1);
+   return grep {$fins[$_] == Util::FIN_INTENT_OKAY()} @phases
+}
+#return all phases without FIN_INTENT_DROP
+sub active_phases{
+   my ($self) = @_;
+   my $last_move = $self->last_move;
+
+   my @fins = split ' ', $self->fin; #'0 0',etc
+   my @phases = (0..$self->num_phases-1);
+   return grep {$fins[$_] != Util::FIN_INTENT_DROP()} @phases
+}
+
+sub phases{
+   my ($self) = @_;
+   my $pd = $self->phase_description;
+   my @phases = map {[split '',$_]} split ' ', $pd;
+   return @phases;
+}
+
+#TODO: take basis into account?
+#return undef if none
+sub active_sides{
+   my ($self) = @_;
+   my @phases = $self->phases;
+   my @a_phases = $self->active_phases;
+   my %notdropped_sides;
+   for (@a_phases){
+      my $side = $phases[$_]->[1];
+      $notdropped_sides{$side}++ #$_ ~~ [0,'b']
+   }
+   return keys %notdropped_sides;
+}
+
+sub winner_by_resignation{
+   my ($self) = @_;
+   my @a_sides = $self->active_sides;
+   return undef unless @a_sides==1;
+   return $a_sides[0];
+}
 1;

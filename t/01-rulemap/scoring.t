@@ -42,3 +42,5 @@ use basilisk::Rulemap;
    is_deeply ($score3, {b=>13, w=>6.5}, 'the only w stone is dead');
 }
 
+
+
