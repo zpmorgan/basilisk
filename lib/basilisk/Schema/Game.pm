@@ -203,7 +203,7 @@ sub signal_fin_intent{
       $prev_fin = $move_before_last->fin
    }
    unless ($prev_fin){
-      $prev_fin = join ' ', map {0} $self->num_phases;
+      $prev_fin = join ' ', map {0} (1..$self->num_phases);
    }
    my @fins = split ' ', $prev_fin;
    
@@ -235,12 +235,11 @@ sub clear_fin_intent{
    #can not always use $self->fin() here. see above..
    my $fin = $last_move->fin;
    unless ($fin){
-      $fin = join ' ', map {0} $self->num_phases;
+      $fin = join ' ', map {0} (1..$self->num_phases);
    }
    
    my @fins = split ' ', $fin;
    for my $f (@fins){
-      warn $f . ($f == Util::FIN_INTENT_DROP()) . Util::FIN_INTENT_DROP();
       unless ($f == Util::FIN_INTENT_DROP()){
          $f = Util::FIN_INTENT_OKAY();
       }

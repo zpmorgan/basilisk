@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 2;
+use Test::More tests => 25;
 
 use lib qw(t/lib lib);
 use b_schema;
@@ -31,8 +31,8 @@ my $mech = b_mech->new;
    sub game_fin{
       return $schema->resultset('Game')->find({id=>$gid})->fin;
    }
-   sub game_okay{
-      return [$schema->resultset('Game')->find({id=>$gid})->okay_phases];
+   sub game_active{
+      return [$schema->resultset('Game')->find({id=>$gid})->active_phases];
    }
    
    $game->create_related ('player_to_game', {
@@ -52,22 +52,37 @@ my $mech = b_mech->new;
    $mech->get_ok("/game/".$game->id."/move/2-2");
    is (move_count(), 1);
    is (game_fin(), '0 0 0');
-   is_deeply(game_okay(), [0,1,2]);
+   is_deeply(game_active(), [0,1,2]);
    $mech->login_as('athame');
    $mech->get_ok("/game/".$game->id."/pass");
    is (move_count(), 2);
    is (game_fin(), '0 1 0');
-   is_deeply(game_okay(), [0,1,2]);
+   is_deeply(game_active(), [0,1,2]);
    $mech->login_as('bag');
    $mech->get_ok("/game/".$game->id."/resign");
    is (move_count(), 3);
-   is (game_fin(), '0 1 3');
-   is_deeply(game_okay(), [0,1]);
+   is (game_fin(), '0 0 3');
+   is_deeply(game_active(), [0,1]);
    $mech->login_as('lamp');
-   $mech->get_ok("/game/".$game->id."/resign");
+   $mech->get_ok("/game/".$game->id."/pass");
    is (move_count(), 4);
-   is (game_fin(), '3 1 3');
-   is_deeply(game_okay(), [1]);
+   is (game_fin(), '1 0 3');
+   is_deeply(game_active(), [0,1]);
+   $mech->login_as('athame');
+   $mech->get_ok("/game/".$game->id."/pass");
+   is (move_count(), 5);
+   is (game_fin(), '1 1 3');
+   is_deeply(game_active(), [0,1]);
+   $mech->login_as('lamp');
+   $mech->get_ok("/game/".$game->id."/pass/move/0-0");
+   is (move_count(), 6);
+   is (game_fin(), '0 0 3');
+   is_deeply(game_active(), [0,1]);
+   $mech->login_as('athame');
+   $mech->get_ok("/game/".$game->id."/resign");
+   is (move_count(), 7);
+   is (game_fin(), '0 3 3');
+   is_deeply(game_active(), [0]);
    
    
 }

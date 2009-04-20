@@ -200,7 +200,8 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
    }
    my ($game, $rulemap) = @{$c->stash}{ qw/game rulemap/ };
    my ($entity, $side) = $game->turn;
-   my $pass_all = $c->req->param('pass_all');
+   #whether this entity's other phases should be marked _FIN
+   my $pass_all = $c->req->param('pass_all'); 
    #transaction!
    $c->model('DB')->schema->txn_do(  sub{
       $game->create_related( 'moves',
