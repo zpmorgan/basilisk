@@ -7,7 +7,8 @@ __PACKAGE__->add_columns(
     gid         => { data_type => 'INTEGER'},
     movenum     => { data_type => 'INTEGER'},
     position_id => { data_type => 'INTEGER'},
-    # dead_groups -- like '2-3_5-0_5-6'
+    # dead_groups -- underscore-separated stringified representative nodes
+    # like '2-3_5-0_5-6'
     # not sure whether to move this info into move field..
     dead_groups => { data_type => 'TEXT', is_nullable => 1}, 
     time        => { data_type => 'INTEGER'},

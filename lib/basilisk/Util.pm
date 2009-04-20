@@ -17,7 +17,7 @@ sub WHITE{'w'}
 #values for game's status column
 sub RUNNING {1}
 sub FINISHED {2}
-sub PAUSED {3}
+sub PAUSED {3} #unused..
 
 sub INVITEE_OPEN {1}
 sub INVITEE_ACCEPTED {2}
@@ -37,6 +37,7 @@ sub WGAME_ORDER_PROPOSER_LAST {3}
 sub MESSAGE_NOT_SEEN {1}
 sub MESSAGE_SEEN {2}
 
+#these values are used lot directly. (without being called)
 sub FIN_INTENT_OKAY {0}
 sub FIN_INTENT_FIN {1} #ready to score
 sub FIN_INTENT_SCORED {2}
@@ -62,6 +63,7 @@ sub invite_order_str{
 
 
 #rect-only stuff--mv to rulemap::rect.
+#Or not, they're are pretty convenient here.
 
 sub empty_pos{ #create a long string of unset bits
    my ($h,$w) = @_;

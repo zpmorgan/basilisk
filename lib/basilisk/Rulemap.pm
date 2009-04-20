@@ -249,7 +249,7 @@ sub death_mask_to_list{
          push @list, $deadnodes->[0];
       }
    }
-   return \@list;
+   return @list;
 }
 sub mark_alive{
    my ($self, $board, $mask, $node) = @_;
@@ -304,7 +304,14 @@ sub count_deads{
    return \%deads;
 }
 
-
+sub compare_masks{
+   my ($self, $mask1, $mask2) = @_;
+   return 0 unless (keys %$mask1 == keys %$mask2);
+   for my $n (keys %$mask1){
+      return 0 unless $mask2->{$n};
+   }
+   return 1;
+}
 
 sub captures_of_side {die'do'}
 sub captures_of_entity{
@@ -429,14 +436,14 @@ sub num_phases{
 }
 
 sub determine_next_phase{
-   my ($self, $phase, $okay_phases) = @_;
+   my ($self, $phase, $choice_phases) = @_;
    my $np = $self->num_phases;
    my $next = $phase;
    for (1..$np){
       $next = ($next + 1) % $np;
-      return $next if grep {$next==$_} @$okay_phases;
+      return $next if grep {$next==$_} @$choice_phases;
    }
-   die "I was given a bad list of okay phases: " .join',',@$okay_phases
+   die "I was given a bad list of choice phases: " . join',',@$choice_phases;
 }
 
 1;

@@ -184,9 +184,9 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
          fin => $game->fin,
       });
       $game->clear_fin_intent(); #clear any intent to score,etc
-      my @okay_phases = $game->okay_phases();
-      my $nextphase = $rulemap->determine_next_phase($game->phase, \@okay_phases);
-      $game->shift_phase($nextphase); #b to w, etc num_moves++
+      my $next_phases = $c->forward('phases_to_choose_from');
+      my $nextphase = $rulemap->determine_next_phase($game->phase, $next_phases);
+      $game->shift_phase($nextphase);
    });
    $c->stash->{board} = $newboard;
    $c->stash->{msg} = 'move is success';
@@ -216,12 +216,9 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
             fin => $game->fin,
          });
       $game->signal_fin_intent (Util::FIN_INTENT_FIN(), $pass_all);
-      my @next_phases = $game->okay_phases();
-      unless (@next_phases){ #everyone's ready to score.
-         @next_phases = $game->fin_phases();
-      }
-      my $nextphase = $rulemap->determine_next_phase($game->phase, \@next_phases);
-      $game->shift_phase($nextphase); #b to w, etc num_moves++
+      my $next_phases = $c->forward('phases_to_choose_from');
+      my $nextphase = $rulemap->determine_next_phase($game->phase, $next_phases);
+      $game->shift_phase($nextphase);
    });
    $c->forward('render');
 }
@@ -263,14 +260,94 @@ sub resign : PathPart('resign') Chained('game'){
          $game->update();
       }
       else{
-         my @okay_phases = $game->okay_phases();
-         my $nextphase = $rulemap->determine_next_phase($game->phase, \@okay_phases);
+         my $next_phases = $c->forward('phases_to_choose_from');
+         my $nextphase = $rulemap->determine_next_phase($game->phase, $next_phases);
          $game->shift_phase($nextphase);
       }
    });
    $c->forward('render');
 }
 
+#use fin to signal intent to wrap things up
+#and take dead groups that player wants dead.
+#if these dead groups == prev_move's dead groups, just change ent's intent(s)
+#if these dead groups != prev_move's dead groups, clear intent of other phases.
+
+#unlike DGS, you should be allowed to submit deads without passing first
+
+#This replaces submit_dead_selection and wants_to_stop_scoring and mark_dead_or_alive
+sub think: PathPart('think') Chained('game'){
+   my ($self, $c, $deads) = @_;
+   $deads ||= '';
+   unless ($c->forward ('permission_to_move')){
+      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
+      $c->detach('render');
+   }
+   
+   my $rulemap = $c->stash->{rulemap};
+   my $game = $c->stash->{game};
+   my $board = $c->stash->{board};
+   my $think_all = 1; #always true....
+   
+   my ($entity, $side) = $game->turn;
+   
+   #not generic. do with rulemap.
+   my @new_deads = map {[split'-',$_]} split '_', $deads;
+   my $new_death_mask = $rulemap->death_mask_from_list($board, \@new_deads);
+   
+   my $prev_deads = $game->deads;
+   my @old_deads = map {[split'-',$_]} split '_', $prev_deads;
+   my $old_death_mask = $rulemap->death_mask_from_list($board, \@old_deads);
+   
+   my $equal_marks = $rulemap->compare_masks ($old_death_mask, $new_death_mask);
+   my @new_death_list = $rulemap->death_mask_to_list($board, $new_death_mask);
+   my $deadgroupsstring = join '_', map {join'-',@$_} @new_death_list;
+   
+   $c->model('DB')->schema->txn_do(  sub{
+      $game->create_related( 'moves',
+         {
+            position_id => $game->current_position_id,
+            phase => $game->phase,
+            move  => 'think',
+            movenum => $game->num_moves+1,
+            time => time,
+            captures => $game->captures,
+            dead_groups => $deadgroupsstring,
+            fin => $game->fin,
+         });
+      unless ($equal_marks){
+         $game->clear_fin_scored (); #if this upsets the balance, reset  _SCORED to _FIN
+      }
+      $game->signal_fin_intent (Util::FIN_INTENT_SCORED(), $think_all);
+      my $done = $game->done_thinking;
+      if ($done){ #game's over
+         my $result = $rulemap->compute_score($board, $game->captures, $new_death_mask);
+         $game->set_column ('status', Util::FINISHED());
+         $game->set_column ('result', %$result);
+         $game->update();
+      }
+      else{
+         my $next_phases = $c->forward('phases_to_choose_from');
+         my $nextphase = $rulemap->determine_next_phase($game->phase, $next_phases);
+         $game->shift_phase($nextphase);
+      }
+   });
+   $c->forward('render');
+}
+
+sub phases_to_choose_from : Private{
+   my ($self, $c) = @_;
+   my $game = $c->stash->{game};
+   my @next_phases = $game->okay_phases();
+   unless (@next_phases){ #everyone's ready to score.
+      @next_phases = $game->fin_phases();
+   }
+   unless (@next_phases){ #everyone's ready to score.
+      die 'should the game be over?'
+   }
+   #catalyst coerces multiple return values into one, so return arrayref
+   return \@next_phases;
+}
 
 #The following couple things are WRONG & UNUSED
 #not a move. just update board in html: #/game/44/mark/dead/3-13
@@ -311,7 +388,7 @@ sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
 #The move will point to the same position,
 #and a string of dead groups is stored as the move text
 #OR, if it's the same as the prev. score submission, the game is over.
-sub action_submit_dead_selection: PathPart('think') Chained('game'){ 
+sub action_submit_dead_selection: PathPart('submit_dead_selection') Chained('game'){ 
    my ($self, $c, $deadgroups) = @_;
    $deadgroups ||= '';
    unless ($c->forward('permission_to_mark_dead')){
@@ -371,6 +448,7 @@ sub invalid_request : Private{
 
 
 #sets $c->stash->{whynot} error. returns 1 if true
+#TODO: handle surrogates! and set {surrogate} in stash!
 sub permission_to_move : Private{
    my ($self, $c) = @_;
    
@@ -403,7 +481,7 @@ sub permission_to_move : Private{
    
    #success
    #return 'strange' unless $entity == $p->entity;
-   $c->stash->{p2g} = $p;
+   $c->stash->{p2g} = $p; #unused..
    $c->stash->{entity} = $entity;
    $c->stash->{side} = $side;
    return 1

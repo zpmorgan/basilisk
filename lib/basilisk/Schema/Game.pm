@@ -90,6 +90,14 @@ sub fin{
    return join ' ', map {0} (1..$self->ruleset->num_phases)
 }
 
+#return string of representative nodes that were marked dead in last move.
+sub deads{
+   my $self = shift;
+   my $lastmove = $self->last_move;
+   return $lastmove->dead_groups if $lastmove and $lastmove->dead_groups;
+   return '';
+}
+
 sub current_position{
    my $self = shift;
    my $move = $self->moves->find({
@@ -155,6 +163,15 @@ sub side_of_entity{
    return $1;
 }
 
+sub phases_of_entity{ 
+   my ($self, $ent) = @_;
+   my @phases = $self->phases;
+   my @pnums;
+   for (0..@phases-1){
+      push @pnums,$_  if $phases[$_][0] == $ent;
+   }
+   return @pnums;
+}
 sub sides_of_entity{ 
    my ($self, $ent) = @_;
    my $pd = $self->phase_description;
@@ -173,23 +190,6 @@ sub captures{
    my $last_move = $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
    return $last_move->captures if $last_move;
    return join ' ', map {'0'} (1..$self->num_phases); # normally '0 0';
-}
-
-
-sub okay_phasesBLAH{
-   my ($self) = @_;
-   my $last_move = $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
-   my $fin = $last_move->fin;
-   unless ($fin) { #all okay
-      return (0..$self->num_phases-1);
-   }
-   my @okay_phases;
-   my @fins = split ' ', $fin;
-   for my $pnum (0..$self->num_phases-1){
-      push @okay_phases, $pnum if $fins[$pnum] == Util::FIN_INTENT_OKAY();
-      #TODO: some dropped phases will be okay..
-   }
-   return @okay_phases;
 }
 
 #take the most recent move, and adjust its fin column
@@ -216,7 +216,7 @@ sub signal_fin_intent{
    
    my @phases_to_signal;
    if ($for_all_phases_of_ent){
-      @phases_to_signal = $self->phases_of_ent ($last_move->entity)
+      @phases_to_signal = $self->phases_of_entity ($last_move->entity)
    }
    else {
       @phases_to_signal = $last_move->phase;
@@ -234,7 +234,7 @@ sub signal_fin_intent{
 #leave DROP as it is
 #call this right after it's created
 sub clear_fin_intent{
-   my ($self, $intent, $for_all_phases_of_ent) = @_;
+   my ($self) = @_;
    my ($last_move) = $self->find_related ('moves', {}, {
       order_by => 'movenum DESC',
    });
@@ -249,6 +249,29 @@ sub clear_fin_intent{
    for my $f (@fins){
       unless ($f == Util::FIN_INTENT_DROP()){
          $f = Util::FIN_INTENT_OKAY();
+      }
+   }
+   my $newfin = join ' ', @fins;
+   $last_move->set_column('fin', $newfin);
+   $last_move->update();
+}
+#if there's disagreement, turn all _SCORED back into _FIN
+sub clear_fin_scored{
+   my ($self) = @_;
+   my ($last_move) = $self->find_related ('moves', {}, {
+      order_by => 'movenum DESC',
+   });
+   
+   #can not always use $self->fin() here. see above...maybe...
+   my $fin = $last_move->fin;
+   unless ($fin){
+      $fin = join ' ', map {0} (1..$self->num_phases);
+   }
+   
+   my @fins = split ' ', $fin;
+   for my $f (@fins){
+      if ($f == Util::FIN_INTENT_SCORED()){
+         $f = Util::FIN_INTENT_FIN();
       }
    }
    my $newfin = join ' ', @fins;
@@ -297,5 +320,14 @@ sub winner_by_resignation{
    my @a_sides = $self->active_sides;
    return undef unless @a_sides==1;
    return $a_sides[0];
+}
+
+#if so, there's a winner. game's over
+sub done_thinking{
+   my ($self) = @_;
+   my $fin = $self->fin;
+   return 0 if $fin =~ /0/; #_OKAY ~~ incomplete
+   return 0 if $fin =~ /1/; #_FIN ~~ incomplete
+   return 1; #everuone's either _DROP or _SCORED
 }
 1;
