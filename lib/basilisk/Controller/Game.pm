@@ -51,7 +51,7 @@ sub game : Chained('/') CaptureArgs(1){
    my $board = Util::unpack_position($pos_data, $h, $w);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
    @{$c->stash}{qw/entity side/} = $game->turn; #phase data in stash
-} #now c does move, etc
+} #now c does chained actions:  move, pass, resign, think
 
 sub render: Private{
    my ($self, $c) = @_;
@@ -117,6 +117,8 @@ sub render: Private{
    $c->stash->{result} = $game->result;
    $c->stash->{rules_description} = $c->stash->{ruleset}->rules_description;
    
+   my $comments = $c->forward(qw/basilisk::Controller::Comments all_comments/);
+   $c->stash->{json_comments} = to_json ($comments);
    $c->stash->{template} = 'game.tt';
 }# now goes to template
 

@@ -19,6 +19,8 @@ sub comments : Global{
    unless ($game){
       $c->detach('fail_comment_nicely', ['invalid_request: no game with that id']);
    }
+   $c->stash->{game} = $game;
+   
    if ($new_comment){
       unless ($c->forward('allowed_to_comment')){  #fail nicely
          $c->detach('fail_comment_nicely', [$c->stash->{whynot}]);
@@ -41,7 +43,16 @@ sub comments : Global{
             time    => time,
       });
    }
+   my $comments = $c->forward('all_comments');
    
+   $c->response->content_type ('text/json');
+   $c->response->body (to_json(['success', $comments]));
+}
+
+#call this from /game as well
+sub all_comments :  Private{
+   my ($self, $c) = @_;
+   my $game = $c->stash->{game};
    my @comments;
    my $comments_rs = $game->search_related ('comments', {},
          {join => ['speaker'],
@@ -72,8 +83,7 @@ sub comments : Global{
          movenum => $movenum,
       };
    }
-   $c->response->content_type ('text/json');
-   $c->response->body (to_json(['success', \@comments]));
+   return \@comments;
 }
 
 #TODO: something more elaborate, with kibitzing and privacy options
@@ -82,9 +92,6 @@ sub allowed_to_comment : Private{
    $c->stash->{whynot} = '';
    unless ($c->session->{logged_in}) {
       $c->stash->{whynot} = 'not logged in' ;
-      return 0; }
-   if ($c->session->{userid} == 1) {
-      $c->stash->{whynot} = 'not registered';
       return 0; }
    return 1;
 }

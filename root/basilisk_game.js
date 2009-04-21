@@ -367,12 +367,13 @@ $(document).ready(function() {
    space_clickable = board_clickable;
    render_board();
    
+   //pass through tt now
    //dl & display comments
-   $.getJSON (
-      url_base +"/comments/"+ gameid,
-      function (data) {render_comment_table(data[1])}
-      //data is ['success', game_comments]
-   );
+   //$.getJSON (
+   //   url_base +"/comments/"+ gameid,
+   //   function (data) {render_comment_table(data[1])}
+   //   //data is ['success', game_comments]
+   //);
    
    //dl & display move list
    $.getJSON ( url_base +"/game/"+ gameid +"/allmoves",
