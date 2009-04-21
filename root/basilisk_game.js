@@ -8,6 +8,8 @@ var selectedNode;
 var selectedNode_original_cell;
 var Caleb; //var selectedNode_replacement_cell = too long. so Caleb.
 
+var moves; //move history
+
 var cell_swap_set_up = 0;
 function setup_cell_swap_if_need_be(){
    if (cell_swap_set_up==1){return;} //only do this once
@@ -120,6 +122,7 @@ function scroll (direction){
             row = board_row (r, 'forward');
       }
       tbody.insertBefore (row, board.rows[1]);
+      highlight_node (moves[moves.length-1]);
    }
    else if (direction=='down'){
       scrolled_ns ++;
@@ -136,6 +139,7 @@ function scroll (direction){
             row = board_row (r, 'forward');
       }
       tbody.insertBefore (row, board.rows[h]);
+      highlight_node (moves[moves.length-1]);
    }
    else {
       if (direction=='left'){
@@ -381,7 +385,7 @@ $(document).ready(function() {
    $.getJSON ( url_base +"/game/"+ gameid +"/allmoves",
       function (data) {
          if (data[0] == 'success'){
-            var moves = data[1];
+            moves = data[1];
             if (moves.length){
                render_moves_list (moves);
                highlight_node (moves[moves.length-1]);
