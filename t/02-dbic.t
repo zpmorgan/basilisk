@@ -11,7 +11,7 @@ use_ok( 'b_schema' );
 my $schema;
 ok($schema = b_schema->init_schema('populate'), 'create&populate a test db' );
 
-is ($schema->resultset('Player')->count(), 9, 'players inserted');
+is ($schema->resultset('Player')->count(), 8, 'players inserted');
 
 my $game = $schema->resultset('Game')->find({});
 isa_ok ($game, 'basilisk::Schema::Game');

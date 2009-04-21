@@ -198,29 +198,20 @@ sub captures{
 #call this right after it's created
 sub signal_fin_intent{
    my ($self, $intent, $for_all_phases_of_ent) = @_;
-   my ($last_move, $move_before_last) = $self->search_related ('moves', {}, {
+   my ($last_move) = $self->find_related ('moves', {}, {
       order_by => 'movenum DESC',
-      limit    => 2,
    });
    
-   #can not use $self->fin() here. it would be circular because this is
-   # what sets last_move->fin, which self->fin wraps
-   my $prev_fin; #'0 0',etc
-   if ($move_before_last){
-      $prev_fin = $move_before_last->fin
-   }
-   unless ($prev_fin){
-      $prev_fin = join ' ', map {0} (1..$self->num_phases);
-   }
-   my @fins = split ' ', $prev_fin;
-   
+   my @fins = split ' ',  $self->fin;
    my @phases_to_signal;
+   
    if ($for_all_phases_of_ent){
       @phases_to_signal = $self->phases_of_entity ($last_move->entity)
    }
    else {
       @phases_to_signal = $last_move->phase;
    }
+   
    for my $phase (@phases_to_signal){
       $fins[$phase] = $intent;
    }
@@ -240,7 +231,7 @@ sub clear_fin_intent{
    });
    
    #can not always use $self->fin() here. see above..
-   my $fin = $last_move->fin;
+   my $fin = $self->fin;
    unless ($fin){
       $fin = join ' ', map {0} (1..$self->num_phases);
    }
@@ -262,8 +253,7 @@ sub clear_fin_scored{
       order_by => 'movenum DESC',
    });
    
-   #can not always use $self->fin() here. see above...maybe...
-   my $fin = $last_move->fin;
+   my $fin = $self->fin;
    unless ($fin){
       $fin = join ' ', map {0} (1..$self->num_phases);
    }

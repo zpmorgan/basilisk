@@ -220,6 +220,7 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
       my $nextphase = $rulemap->determine_next_phase($game->phase, $next_phases);
       $game->shift_phase($nextphase);
    });
+   $c->stash->{msg} = 'pass is success';
    $c->forward('render');
 }
 
@@ -265,6 +266,7 @@ sub resign : PathPart('resign') Chained('game'){
          $game->shift_phase($nextphase);
       }
    });
+   $c->stash->{msg} = 'You have resigned';
    $c->forward('render');
 }
 
@@ -316,7 +318,7 @@ sub think: PathPart('think') Chained('game'){
             fin => $game->fin,
          });
       unless ($equal_marks){
-         $game->clear_fin_scored (); #if this upsets the balance, reset  _SCORED to _FIN
+         $game->clear_fin_scored (); #if this upsets the balance, reset _SCORED to _FIN
       }
       $game->signal_fin_intent (Util::FIN_INTENT_SCORED(), $think_all);
       my $done = $game->done_thinking;
@@ -325,11 +327,13 @@ sub think: PathPart('think') Chained('game'){
          $game->set_column ('status', Util::FINISHED());
          $game->set_column ('result', %$result);
          $game->update();
+         $c->stash->{msg} = 'Game finished successfully';
       }
       else{
          my $next_phases = $c->forward('phases_to_choose_from');
          my $nextphase = $rulemap->determine_next_phase($game->phase, $next_phases);
          $game->shift_phase($nextphase);
+         $c->stash->{msg} = 'Thought submitted successfully';
       }
    });
    $c->forward('render');

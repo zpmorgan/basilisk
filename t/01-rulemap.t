@@ -55,8 +55,8 @@ isa_ok ($rulemap2, 'basilisk::Rulemap::Rect');
       [sort keys %$mask],
       'death_mask_from_list on a square grid board'
    );
-   my $list2 = $rulemap2->death_mask_to_list($boardA, $mask);
-   is (scalar @$list2, 1, 'death_mask_to_list returns correct size')
+   my @list2 = $rulemap2->death_mask_to_list($boardA, $mask);
+   is (scalar @list2, 1, 'death_mask_to_list returns correct size')
 }
 
 #wrapping variant

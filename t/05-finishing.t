@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 61;
+use Test::More tests => 62;
 
 use lib qw(t/lib lib);
 use b_schema;
@@ -170,7 +170,7 @@ my @players = map {
    
    #start the process of scoring
    $mech->login_as('bag');
-   $mech->get_ok("/game/".$game->id."/think/1-1_0-1");   #think_all would be implied..
+   $mech->get_ok("/game/".$game->id."/think/1-1_0-0");   #think_all would be implied..
    is (game_phase(), 3, 'score phases 2,5');
    is (game_fin(), '1 1 2 1 1 2');
    $mech->login_as('lamp');
@@ -181,11 +181,13 @@ my @players = map {
    $mech->get_ok("/game/".$game->id."/think/1-1");   #think_all would be implied..
    is (game_phase(), 5, 'score (agree) phases 1,4');
    is (game_fin(), '2 2 1 2 2 1');
+   $mech->login_as('bag');
    $mech->get_ok("/game/".$game->id."/think/1-1");   #think_all would be implied..
+   $mech->content_contains("success", 'bag notified of mv success');
    #is (game_phase(), 0, 'score (agree) phases 2,5');
    is (game_fin(), '2 2 2 2 2 2');
    ok (game_finished(), 'game status is FINISHED');
 }
 
-#now do a team drop/recovery thing
+#now do a team drop/recovery/surrogate thing
 
