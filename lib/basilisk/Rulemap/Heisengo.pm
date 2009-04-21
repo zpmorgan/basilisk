@@ -38,7 +38,7 @@ around 'determine_next_phase' => sub {
 };
 
 sub random_phase{
-   my ($self, $okay_phases) = shift;
+   my ($self, $okay_phases) = @_;
 #   my @phases = split ' ', $self->phase_description;
    return $okay_phases->[int rand(@$okay_phases)]
 }

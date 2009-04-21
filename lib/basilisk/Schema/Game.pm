@@ -50,6 +50,7 @@ sub player_name_to_move_next{
 }
 sub shift_phase{
    my ($self, $phase) = @_;
+   die unless defined $phase;
    unless (defined $phase){
       $phase = ($self->phase + 1) % $self->ruleset->num_phases
    }

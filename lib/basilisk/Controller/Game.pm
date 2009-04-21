@@ -461,8 +461,8 @@ sub permission_to_move : Private{
    $c->stash->{whynot} = '';
    $c->stash->{whynot} = 'not logged in' unless $c->session->{logged_in};
    return 0 if $c->stash->{whynot};
-   $c->stash->{whynot} = 'not registered' if $c->session->{userid} == 1;
-   return 0 if $c->stash->{whynot};
+   #$c->stash->{whynot} = 'not registered' if $c->session->{userid} == 1;
+   #return 0 if $c->stash->{whynot};
    
    my $game = $c->stash->{game};
    unless ($game->status == Util::RUNNING()){
