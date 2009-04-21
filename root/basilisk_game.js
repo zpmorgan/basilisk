@@ -23,6 +23,8 @@ function setup_cell_swap_if_need_be(){
 function retire_caleb_clone(){
    if (selectedNode_original_cell){
       var caleb_clone = document.getElementById ('caleb_clone');
+      if (!caleb_clone)
+         return null;
       caleb_clone.parentNode.replaceChild (selectedNode_original_cell, caleb_clone);
       selectedNode_original_cell = null;
    }
