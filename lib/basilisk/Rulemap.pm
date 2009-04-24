@@ -32,18 +32,6 @@ use List::MoreUtils qw/all/;
 # such as 'ffa', 'zen', 'team', 'perverse', or perhaps more
 
 
-
-#TODO: use these hooks. or getridof. perhaps roles are more flexible.
-has capture_hook => (
-   is => 'ro',
-   isa => 'CodeRef',
-   default => sub{sub{}},
-);
-has placement_hook => (
-   is => 'ro',
-   isa => 'CodeRef',
-   default => sub{sub{}},
-);
 has topology => (
    is => 'ro',
    isa => 'Str',

@@ -46,16 +46,22 @@ sub random_phase{
 #find adjacent nodes, and perhaps try moving there randomly
 around 'evaluate_move' => sub{
    my ($orig, $self,  $board, $node, $side) = @_;
-   if (rand() < $self->chance_random_placement){
-      my @nodes = ($node);
-      push @nodes, $self->node_liberties($node);
-      for my $n (shuffle @nodes){
-         my ($newboard, $err, $caps, $newnode) = $orig->($self, $board, $n, $side);
-         return ($newboard, $err, $caps, $newnode) unless $err;
-      }
-      return ('', 'what you thinking willy?'); #at least $node should be valid..
+   if (rand() > $self->chance_random_placement){
+      return $orig->($self,$board, $node, $side);
    }
-   return $orig->($self,$board, $node, $side);
+   
+   #This would probably be a bad idea, if half the players don't realize it's possible.
+   if ($self->stone_at_node ($board, $node)){
+      return ('', 'You may not move on an occupied node...');
+   }
+   
+   my @nodes = ($node);
+   push @nodes, $self->node_liberties($node);
+   for my $n (shuffle @nodes){
+      my ($newboard, $err, $caps, $newnode) = $orig->($self, $board, $n, $side);
+      return ($newboard, $err, $caps, $newnode) unless $err;
+   }
+   return ('', 'what you thinking willy?'); #at least $node should be valid..
 };
 
 
