@@ -185,6 +185,11 @@ sub entities_of_side{
    my @ents =  $pd =~ /(\d)$side/g;
    return uniq @ents
 }
+sub side_of_phase{ 
+   my ($self, $phasenum) = @_;
+   my @phases = $self->phases;
+   return $phase[$phasenum][1];
+}
 
 sub captures{
    my ($self, $move) = @_;

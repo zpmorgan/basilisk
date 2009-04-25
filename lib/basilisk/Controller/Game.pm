@@ -621,16 +621,18 @@ sub build_rulemap : Private{
    $c->stash->{rulemap} = $rulemap;
 }
 
-
+#todo: situational vs positional as an option.. Would anyone care?
+#situational is default now.
 sub detect_duplicate_position{
    my ($c, $newboard) = @_;
    my $game = $c->stash->{game};
+   #todo, use ruleset...
    my $h = $game->h;
    my $w = $game->w;
    my $newpos = Util::pack_board($newboard, $h, $w);
    
    #search position table for the same board state from the same game
-   my $oldmove = $game->find_related ( 'moves',
+   my @similar_moves = $game->search_related ( 'moves',
      {
       'position.position' => $newpos,
      },{
@@ -638,8 +640,17 @@ sub detect_duplicate_position{
       '+select' => [ 'position.position'],
       '+as'     => [ 'oldpos' ],
    });
-   $c->stash->{oldmove} = $oldmove;
-   return 1 if $oldmove;
+   my $now_side;
+   for my $mv (@similar_moves){
+      #situational superko: compare side AND position
+      my $side = $game->side_of_phase($mv->phase);
+      next unless $side eq $now_side;
+      #And another position comparison..sqlite seems to get false positives..
+      next unless $mv->get_column('oldpos') eq $newpos;
+      $c->stash->{oldmove} = $oldmove;
+      return 1
+   }
+   #no dupes..
 }
 
 #this wraps the rulemap method to set stash values and detect ko
