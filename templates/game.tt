@@ -119,7 +119,7 @@
       <td>Intent</td>
    </tr>
   [% FOREACH phase = phase_data %]
-   <tr [% IF phase.active; 'class="active_phase"'; END %]>
+   <tr [% IF phase.active and game_running; 'class="active_phase"'; END %]>
      [%# <td> 
          [% phase.num 
       </td> %]

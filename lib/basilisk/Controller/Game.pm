@@ -110,6 +110,7 @@ sub render: Private{
       $c->stash->{twist_ns} = $rulemap->twist_ns;
    }
    $c->forward ('get_game_phase_data');
+   $c->stash->{game_running} = 1 if $game->status==Util::RUNNING();
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    
    $c->stash->{to_move_side} = $side;
