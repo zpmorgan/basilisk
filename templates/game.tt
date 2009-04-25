@@ -110,21 +110,39 @@
 </table>
 
 
-<table id="players">
-
-  [% FOREACH p = players_data %]
-   <tr>
+<table id="phases">
+   <tr class="headrow">
+    [%#   <td>Phase</td> %]
+      <td>Side</td>
+      <td>Player</td>
+      <td>Captures</td>
+      <td>Intent</td>
+   </tr>
+  [% FOREACH phase = phase_data %]
+   <tr [% IF phase.active; 'class="active_phase"'; END %]>
+     [%# <td> 
+         [% phase.num 
+      </td> %]
       <td> 
-      [% FOREACH side = p.sides %]
-         <img src="[%img_base%]/[% side %].gif">
-      [% END %]
+         <img src="[%img_base%]/[% phase.side %].gif">
       </td>
-      <td> <a href="[%url_base%]/userinfo/[% p.id %]"> <b>[% p.name %]</b> </a>  </td>
-      <td> Captures: [% p.captures %]</td>
-[%#   <td> Time remaining: [% p.time_remaining </td> %]
+      <td> 
+        <a href="[%url_base%]/userinfo/[% phase.entity.player.id %]"> 
+          <b>[% phase.playername %]</b> 
+        </a>
+      </td>
+      <td> [% phase.captures %] </td>
+      <td> 
+           [% IF phase.fin == 0 %] Okay
+           [% ELSIF phase.fin == 1 %] Passed 
+           [% ELSIF phase.fin == 2 %] Scored 
+           [% ELSIF phase.fin == 3 %] Dropped [% END %]
+      </td>
    </tr>
   [% END %]
-  
+</table>
+
+<table id="rules">
    <tr>
       <td colspan="4"> rules: <b>[% rules_description %]</b> </td>
    </tr>

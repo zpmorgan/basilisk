@@ -293,7 +293,6 @@ sub active_phases{
 }
 
 #TODO: take basis into account?
-#return undef if none
 sub active_sides{
    my ($self) = @_;
    my @phases = $self->phases;

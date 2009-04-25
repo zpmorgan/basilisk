@@ -109,7 +109,7 @@ sub render: Private{
       $c->stash->{wrap_ew} = $rulemap->wrap_ew;
       $c->stash->{twist_ns} = $rulemap->twist_ns;
    }
-   $c->forward ('get_game_player_data');
+   $c->forward ('get_game_phase_data');
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    
    $c->stash->{to_move_side} = $side;
@@ -661,41 +661,43 @@ sub evaluate_move : Private{
    @{$c->stash}{ qw/newboard newcaps newnode/ } = ($newboard, $caps, $newnode);#no err
 }
 
-sub get_game_player_data : Private{ #for game.tt
+#by default, phases are shown, with the active phase displayed
+#TODO: congeal here, or specify what to congeal
+sub get_game_phase_data : Private{ #for game.tt
    my ($self, $c) = @_;
-   my $game = $c->stash->{game};
-   my $rulemap = $c->stash->{rulemap};
-   #get player-game data
-   my @players = $game->search_related( 'player_to_game',
+   my ($game, $rulemap) = @{$c->stash}{qw/game rulemap/};
+   
+   my @p2g = $game->search_related( 'player_to_game',
       {},
-      {join => 'player',
+      {
+         join => 'player',
          '+select' => ['player.name'],
-         '+as'     => ['name']
+         '+as'     => ['name'],
+         order_by => 'entity ASC',
       }
    );
-   my @playerdata;
-   #put data in hashes in @playerdata for template
-   for my $p (@players){
-      #todo: calc time remaining, render human readable
-      my @sides = $game->sides_of_entity($p->entity);
-      push @playerdata, {
-         entity => $p->entity,
-         sides => \@sides,
-         name => $p->get_column('name'),
-         id => $p->pid,
-         time_remaining => $p->expiration,
+   my @phases = $game->phases;
+   my @fin = split ' ', $game->fin;
+   my @caps = split ' ', $game->captures;
+   
+   my @phasedata;
+   for my $phase (@phases){
+      my $phasenum = scalar @phasedata;
+      my ($ent,$side) = @$phase;
+      my $p = $p2g[$ent];
+      push @phasedata, { #this stuff sent to template.
+         num => $phasenum,
+         side => $side,
+         playerid => $p->pid,
+         playername => $p->get_column('name'),
+         fin => $fin[$phasenum],
+         captures => $caps[$phasenum],
+         active => $game->phase == $phasenum,
       };
    }
-   if ($rulemap->detect_basis eq 'ffa'){
-      my $caps = $game->captures;
-      for my $entitydata (@playerdata){
-         $entitydata->{captures} = $rulemap->captures_of_entity 
-                                    ($entitydata->{entity}, 
-                                    $caps);
-      }
-   }
-   $c->stash->{players_data} = \@playerdata;
+   $c->stash->{phase_data} = \@phasedata;
 }
+
 
 #TODO: for a particular game/move?
 sub json_board_pos :Private{
