@@ -1,20 +1,43 @@
 [%  INCLUDE header %]
 
-Hi there.
-<br>
+<table>
+  <tr>
+    <td> <a href="[%url_base%]/games"> All games </a> </td>
+    <td> <a href="[%url_base%]/games/finished"> All finished games </a> </td>
+    <td> <a href="[%url_base%]/games/running"> All running games </a> </td>
+  </tr>
+  <tr>
+    <td> <a href="[%url_base%]/games/[%username%]"> All of your games </a> </td>
+    <td> <a href="[%url_base%]/games/[%username%]/finished"> All of your finished games </a> </td>
+    <td> <a href="[%url_base%]/games/[%username%]/running"> All of your running games </a> </td>
+  </tr>
+  [% IF logged_in AND playername AND username != playername %]
+    <tr>
+      <td> <a href="[%url_base%]/games/[%playername%]"> All games of [%playername%] </a> </td>
+      <td> <a href="[%url_base%]/games/[%playername%]/finished"> All finished games of [%playername%] </a> </td>
+      <td> <a href="[%url_base%]/games/[%playername%]/running"> All running games of [%playername%] </a> </td>
+    </tr>
+  [% END %]
+</table>
 
-Here's a number:
-[% num %]
-<br>
-    
-And here's every running game on this server:
+[% display_status = 1 %]
+
+And here's every 
+   [% IF cat=='running'; 'running' %] 
+   [% ELSIF cat=='finished'; 'finished'; END %]
+game 
+   [% IF playername; 'of '; playername; END %]
+on this server:
 <br>
 <table class="gameslist">
    <tr class="headrow">
       <td>ID</td>
       <td>Black</td>
       <td>White</td>
-      <td style="width:250px;">Rules</td>
+      [% IF display_status %]
+         <td>Status</td>
+      [% END %]
+      <td class="rules_col">Rules</td>
    </tr>
    
 [% FOREACH g = games_data %]
@@ -22,6 +45,12 @@ And here's every running game on this server:
       <td><a href="[%url_base%]/game/[% g.id %]"> [% g.id %] </a></td>
       <td> <a href="[%url_base%]/userinfo/[% g.bid %]"> [% g.bname %] </a> </td>
       <td> <a href="[%url_base%]/userinfo/[% g.wid %]"> [% g.wname %] </a> </td>
+      [% IF display_status %]
+        <td> 
+         [% IF g.status == 1 %]Running
+         [% ELSIF g.status == 2 %]Finished [% END %]
+        </td>
+      [% END %]
       <td> [% g.rulestring %] </td>
    </tr>
 [% END %]

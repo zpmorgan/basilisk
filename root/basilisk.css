@@ -54,7 +54,7 @@ table.pagefoot td#campaign {
 table.gameslist {
    border: 2px solid #337733;
    background: #dddddd;
-   width: 40%;
+   width: 60%;
    border-collapse: collapse;
 }
 
@@ -132,7 +132,9 @@ tr.active_phase{
    background: #cdc;
 }
 
-
+td.rules_col{ 
+   width:300px;
+}
 
  /*</STYLE>*/
  

@@ -24,21 +24,42 @@ sub players :Global{
        };
    }
    $c->stash->{playerinfo} = \@players_info;
+   $c->stash->{logged_in} = $c->session->{logged_in};
+   $c->stash->{username} = $c->session->{username};
    $c->stash->{template} = 'players.tt';
 }
 
+my %game_cats = ( #this contains game search constraints
+   all => {},
+   running => {status => Util::RUNNING()},
+   finished => {status => Util::FINISHED()},
+);
+
 #todo: prefetch?
 sub games : Global{
-   my ($self, $c, $playername) = @_;
+   my ($self, $c, $playername, $cat) = @_;
+   
+   #I'm assuming that nobody calls themself 'finished' or 'running'
+   if ($playername and $game_cats{$playername}){
+      $cat = $playername;
+      $playername = undef;
+   }
+   else {
+      $cat = 'all' unless $game_cats{$cat};
+   }
+   my $gamesearch_constraints = $game_cats{$cat};
+   
+   $c->stash->{cat} = $cat;
+   $c->stash->{playername} = $playername;
    $c->stash->{title} = 'All games';
    $c->stash->{title} .= " of $playername" if $playername;
+   
    my $page = 0;
    my $pagesize = 300;
    my ($num_games, $num_pages);
    my %gameplayers; #to show who plays which game
    my %rulestrings; #to summarize game rulesets
    my $games_rs;
-   my $gamesearch_constraints = {status => Util::RUNNING()};
    #transaction!
    $c->model('DB')->schema->txn_do( sub{
       my $gid_col; #used to resolve resultset col naming issue
@@ -48,8 +69,9 @@ sub games : Global{
          my $relevant_p2g = $p->search_related('player_to_game', {});
          $games_rs = $relevant_p2g->search_related('game',
               $gamesearch_constraints, 
-              {rows => $pagesize,
-               }
+              {
+                 rows => $pagesize,
+              }
          )->page($page);
          $gid_col = 'game.id'; 
       }
@@ -64,8 +86,8 @@ sub games : Global{
       my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
          {
             join => ['player'],
-            select => ['player.name', $gid_col, 'player_to_game.pid', 'player_to_game.entity'],
-            as => ['pname', 'gid', 'pid', 'side'],
+            select => ['player.name', $gid_col, 'player_to_game.pid', 'player_to_game.entity', 'status'],
+            as => ['pname', 'gid', 'pid', 'side', 'status'],
          });
       $num_games = $games_rs->count();
       for my $p2g ($p2g_rs->all()){ #who plays what game
@@ -96,6 +118,7 @@ sub games : Global{
       my $gid = $game->id;
       push @games_data, { #todo: make generic for 3+ players
          id => $gid,
+         status => $game->status,
          bname => $gameplayers{$gid}->[0]->{pname},
          wname => $gameplayers{$gid}->[1]->{pname},
          bid => $gameplayers{$gid}->[0]->{pid},
