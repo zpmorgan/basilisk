@@ -16,14 +16,12 @@ sub index :Path :Args(0) {
    my ( $self, $c ) = @_;
    
    # Hello World
-   if ($c->session->{name}){
+   if ($c->session->{logged_in}){
       $c->stash->{message} = 'Hello, ' . $c->session->{name};
       $c->stash->{template} = 'message.tt';
    }
    else{
-      $c->stash->{title} = 'log in';
-      $c->stash->{name} = $c->session->{name};
-      $c->stash->{template} = 'login.tt';
+      $c->forward('basilisk::Controller::Registration', 'login');
    }
 }
 

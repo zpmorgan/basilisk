@@ -6,7 +6,7 @@ use parent 'Catalyst::Controller::HTML::FormFu';
 
 __PACKAGE__->config->{namespace} = '';
 
-sub login :Global FormConfig{
+sub login :Global FormConfig('login'){
    my ( $self, $c ) = @_;
    $c->stash->{template} = 'login.tt';
    if ($c->session->{logged_in}){
@@ -16,7 +16,6 @@ sub login :Global FormConfig{
       return;
    }
    my $form = $c->stash->{form};
-   #die $form->render;
    unless ($form->submitted_and_valid){
       if ($form->submitted and $form->has_errors){
          #die $form->get_errors;
