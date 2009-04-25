@@ -647,7 +647,7 @@ sub detect_duplicate_position{
       next unless $side eq $now_side;
       #And another position comparison..sqlite seems to get false positives..
       next unless $mv->get_column('oldpos') eq $newpos;
-      $c->stash->{oldmove} = $oldmove;
+      $c->stash->{oldmove} = $mv;
       return 1
    }
    #no dupes..
