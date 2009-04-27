@@ -6,7 +6,7 @@ use parent 'Catalyst::Controller::HTML::FormFu';
 
 __PACKAGE__->config->{namespace} = '';
 
-sub login :Global FormConfig('login.yml'){
+sub login :Global FormConfig('login'){
    my ( $self, $c ) = @_;
    $c->stash->{template} = 'login.tt';
    if ($c->session->{logged_in}){

@@ -1,9 +1,9 @@
 package basilisk::Controller::Root;
+use parent 'Catalyst::Controller::HTML::FormFu';
 
 use strict;
 use warnings;
 use basilisk::Util;
-use parent 'Catalyst::Controller';
 
 
 
@@ -12,7 +12,7 @@ use parent 'Catalyst::Controller';
 __PACKAGE__->config->{namespace} = '';
 
 
-sub index :Path :Args(0) {
+sub index :Path Args(0) FormConfig('login'){
    my ( $self, $c ) = @_;
    
    # Hello World
