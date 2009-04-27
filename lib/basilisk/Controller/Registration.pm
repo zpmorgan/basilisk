@@ -39,7 +39,7 @@ sub login :Global FormConfig('login'){
    $c->session->{name} = $username;
    $c->session->{userid} = $player->id;
    $c->session->{logged_in} = 1;
-   $c->detach ('status');
+   $c->detach ('basilisk::Controller::Lists','status');
 }
 
 sub logout :Global {
