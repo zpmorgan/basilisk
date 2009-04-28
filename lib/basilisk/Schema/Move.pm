@@ -9,7 +9,6 @@ __PACKAGE__->add_columns(
     position_id => { data_type => 'INTEGER'},
     # dead_groups -- underscore-separated stringified representative nodes
     # like '2-3_5-0_5-6'
-    # not sure whether to move this info into move field..
     dead_groups => { data_type => 'TEXT', is_nullable => 1}, 
     time        => { data_type => 'INTEGER'},
       #2+ ways to count captures--space-separated values, 
@@ -31,7 +30,8 @@ __PACKAGE__->add_columns(
     fin => { data_type => 'TEXT', is_nullable => 1}, #'0 0'
     
     phase  => { data_type => 'INTEGER'}, #0, 1, etc
-    move   => { data_type => 'TEXT'}, #pass, submit(?), {node}, etc
+    move   => { data_type => 'TEXT'}, #pass, score, {node}, resign
+    #special_stuff => TEXT
 );
 __PACKAGE__->set_primary_key('gid', 'movenum');
 __PACKAGE__->belongs_to(game => 'basilisk::Schema::Game', 'gid');

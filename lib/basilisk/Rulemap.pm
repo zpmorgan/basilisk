@@ -88,6 +88,17 @@ sub evaluate_move{
    #node is returned to make this method easier to override for heisenGo
 }
 
+sub nodestrings_to_list{
+   my ($self, $nodes) = @_; #'4-4_3-5', etc
+   my @nodestrings = split '_', $nodes;
+   return map {$self->node_from_string($_)} @nodestrings
+}
+sub nodestrings_from_list{
+   my ($self, $nodes) = @_; #[[3,3],[5,4]] 
+   my $nodestrings = join '_', map {$self->node_to_string($_)} @$nodes;
+   return $nodestrings  #'4-4_3-5', etc
+}
+
 #uses a floodfill algorithm
 #returns (string, liberties, adjacent_foes)
 sub get_chain { #for all board types
@@ -129,7 +140,7 @@ sub get_chain { #for all board types
 #also returns hash of {nodestring=>1stnodeingroup} 
 #also returns hash of {1stnodeingroup=>side} 
 sub all_chains{
-   my ($self, $board) = shift;
+   my ($self, $board) = @_;
    my @chains;
    my %chain_side;
    my %seen_stones;
@@ -139,6 +150,7 @@ sub all_chains{
       
       $chain_side{$s} = $self->stone_at_node($board, $n);
       my ($chain,$l,$f) = $self->get_chain($board, $n);
+      push @chains, $chain;
       my @nodestrings;
       #examine & to_string each node
       for (@$chain){

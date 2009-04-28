@@ -316,6 +316,13 @@ sub winner_by_resignation{
    return undef unless @a_sides==1;
    return $a_sides[0];
 }
+sub no_phases_are_okay{
+   #this means some phase(s) has shown no intention of stopping
+   my ($self) = @_;
+   my $fin = $self->fin;
+   return 0 if $fin =~ /0/; #okay --false
+   return 1
+}
 
 #if so, there's a winner. game's over
 sub done_thinking{
@@ -323,6 +330,6 @@ sub done_thinking{
    my $fin = $self->fin;
    return 0 if $fin =~ /0/; #_OKAY ~~ incomplete
    return 0 if $fin =~ /1/; #_FIN ~~ incomplete
-   return 1; #everuone's either _DROP or _SCORED
+   return 1; #everyone's either _DROP or _SCORED
 }
 1;

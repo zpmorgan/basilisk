@@ -123,7 +123,7 @@ sub board_from_text{
    my ($text, $h, $w) = @_;
    $w = $h unless $w;
    $text =~ s/\s*//g; #rm whitespace
-   die "bad data: $text" if $text =~ /([^0bw])/;
+   die "bad data: $text" if $text =~ /([^0bwr])/;
    die 'bad size' unless length $text == $w*$h;
    
    my @list = split '', $text;

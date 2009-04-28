@@ -25,7 +25,7 @@ sub default :Path {
 # $c->stash->{marking_dead_stones}
 # $c->stash->{territory_mask}
 # $c->stash->{death_mask}
-#and for cgi params: $c->stash->{caps, new_also_dead}
+#and for cgi params: $c->stash->{caps}? (or not..)
 
 # /game/14/move/4-4
 # /game/14/pass
@@ -59,43 +59,42 @@ sub render: Private{
    #game's state may be altered:
    my $game = $c->stash->{game} = $c->model('DB::Game')->find ({'id' => $gameid});
    die 'wat' unless $game;
+   my $lastmove = $game->last_move;
    my ($entity, $side) = $game->turn;
    
    unless ($c->stash->{board_clickable}){ #default: determine level of interaction with game
       if ($c->forward ('permission_to_move')){ #your turn
          $c->stash->{board_clickable} = 1;
-         if ($c->forward('permission_to_mark_dead')){ #mark dead
-            $c->stash->{marking_dead_stones} = 1;
-            my ($deadgroups, $deathmask) = get_marked_dead_from_last_move ($c);
-            if ($deadgroups){
-               $c->stash->{new_also_dead} = $deadgroups;
-               $c->stash->{death_mask} = $deathmask;
-            }
-            else { #start marking dead stones from nothing
-               $c->stash->{new_also_dead} = '';
-               $c->stash->{death_mask} = {};
-            }
-            my ($terr_mask, $terr_points) = $rulemap->find_territory_mask 
-                           ($board, $deathmask);
-            $c->stash->{territory_mask} = $terr_mask;
-            $c->stash->{terr_points} = $terr_points;
-         }
+           # my ($terr_mask, $terr_points) = $rulemap->find_territory_mask 
+           #                ($board, $deathmask);
+           # $c->stash->{territory_mask} = $terr_mask;
+           # $c->stash->{terr_points} = $terr_points;
       }
       else {
          $c->stash->{board_clickable} = 0;
       }
    }
-   if ($c->forward('permission_to_mark_dead')){
-      $c->forward('prepare_group_json');
-   }
+   
    $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
-   if ($game->status == Util::FINISHED()){
+   
+   if ($lastmove and $lastmove->move eq 'score'){
+      $c->forward('provide_all_groups', [$lastmove->dead_groups]);
       $c->stash->{show_dead_stones} = 1;
-      my ($dg,$dm) = get_marked_dead_from_last_move ($c);
-      $c->stash->{death_mask} = $dm;
+      #$c->stash->{death_mask} = $dm; #is this used anymore (on client)?
+   }
+   elsif ($game->no_phases_are_okay()){ #everyone just passed..
+      #score by default, but no initial deads
+      $c->forward('provide_all_groups', ['']); #start empty
+      $c->stash->{show_dead_stones} = 1;
+      #$c->stash->{death_mask} = {}; #is this used anymore???
+   }
+   elsif ($c->forward('permission_to_move')){
+      #no score by default, but it is an option
+      $c->forward('provide_all_groups', ['']); #start empty
+      $c->stash->{show_dead_stones} = 0;
    }
    
-   if ($rulemap->topology eq 'C20'){
+   if ($rulemap->topology eq 'C20'){ #todo: ...use some day?
       $c->stash->{topo} = 'graph';
       $c->stash->{nodes} = $rulemap->all_node_coordinates;
       $c->stash->{edges} = $rulemap->node_adjacency_list;
@@ -284,7 +283,7 @@ sub resign : PathPart('resign') Chained('game'){
 sub think: PathPart('think') Chained('game'){
    my ($self, $c, $deads) = @_;
    $deads ||= '';
-   unless ($c->forward ('permission_to_move')){
+   unless ($c->forward ('permission_to_move')){ #...to_score
       $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
       $c->detach('render');
    }
@@ -297,16 +296,16 @@ sub think: PathPart('think') Chained('game'){
    my ($entity, $side) = $game->turn;
    
    #not generic. do with rulemap.
-   my @new_deads = map {[split'-',$_]} split '_', $deads;
+   my @new_deads = $rulemap->nodestrings_to_list ($deads);
    my $new_death_mask = $rulemap->death_mask_from_list($board, \@new_deads);
    
    my $prev_deads = $game->deads;
-   my @old_deads = map {[split'-',$_]} split '_', $prev_deads;
+   my @old_deads = $rulemap->nodestrings_to_list ($prev_deads);
    my $old_death_mask = $rulemap->death_mask_from_list($board, \@old_deads);
    
    my $equal_marks = $rulemap->compare_masks ($old_death_mask, $new_death_mask);
    my @new_death_list = $rulemap->death_mask_to_list($board, $new_death_mask);
-   my $deadgroupsstring = join '_', map {join'-',@$_} @new_death_list;
+   my $deadgroupsstring = $rulemap->nodestrings_from_list (\@new_death_list);
    
    $c->model('DB')->schema->txn_do(  sub{
       $game->create_related( 'moves',
@@ -356,96 +355,6 @@ sub phases_to_choose_from : Private{
    return \@next_phases;
 }
 
-#The following couple things are WRONG & UNUSED
-#not a move. just update board in html: #/game/44/mark/dead/3-13
-#this is to be done in js! so remove is TODO
-sub mark_dead_or_alive : PathPart('mark') Chained('game') Args{
-   my ($self, $c, $mark, $nodestring, $also_dead) = @_;
-   die "no $mark" unless $mark eq 'dead' or $mark eq 'alive';
-   
-   unless ($c->forward('permission_to_mark_dead')){
-      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
-      $c->detach('render');
-   }
-   $c->stash->{marking_dead_stones} = 1;
-   $c->stash->{board_clickable} = 1;
-   
-   my $rulemap = $c->stash->{rulemap};
-   my $board = $c->stash->{board};
-   my $mark_node = $rulemap->node_from_string ($nodestring);
-   #my $also_dead = $c->req->param('also_dead');
-   my @marked_dead_stones = map {[split'-',$_]} split '_', $also_dead;
-   push @marked_dead_stones, $mark_node;
-   my $death_mask = $rulemap->death_mask_from_list($board, \@marked_dead_stones);
-   if ($mark eq 'alive'){
-      $rulemap->mark_alive($board, $death_mask, $mark_node);
-   }
-   my $new_death_list = $rulemap->death_mask_to_list($board, $death_mask);
-   
-   $c->stash->{death_mask} = $death_mask;
-   my ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
-   $c->stash->{territory_mask} = $terr_mask;
-   $c->stash->{terr_points} = $terr_points;
-   # create string in url for cgi, in clickable board nodes
-   $c->stash->{new_also_dead} = join '_', map{join'-',@$_} @$new_death_list;
-   $c->forward('render');
-}
-
-#I guess this 'action' will be appended to the moves list.
-#The move will point to the same position,
-#and a string of dead groups is stored as the move text
-#OR, if it's the same as the prev. score submission, the game is over.
-sub action_submit_dead_selection: PathPart('submit_dead_selection') Chained('game'){ 
-   my ($self, $c, $deadgroups) = @_;
-   $deadgroups ||= '';
-   unless ($c->forward('permission_to_mark_dead')){
-      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
-      $c->detach('render');
-   }
-   my $game = $c->stash->{game};
-   
-   #transaction!
-   $c->model('DB')->schema->txn_do(  sub{
-      my $moverow = $game->create_related( 'moves',
-      {
-         position_id => $game->current_position_id,
-         move => 'submit_dead_selection',
-         phase => $game->phase,
-         movenum => $game->num_moves+1,
-         time => time,
-         dead_groups => $deadgroups,
-         captures => $game->captures,
-      });
-      $game->shift_phase; #b to w, etc num_moves++
-   });
-   
-   #Should game end now?
-   my @prev_2_moves = $game->search_related ('moves', {}, {
-      order_by=>'movenum DESC',
-      rows => 2});
-   #this is very much not generic!
-   if (($prev_2_moves[0]->move eq 'submit_dead_selection')
-     and ($prev_2_moves[1]->move eq 'submit_dead_selection')){
-        if ($prev_2_moves[0]->dead_groups and $prev_2_moves[1]->dead_groups){
-           $c->forward ('finish_game');
-        }
-        unless ($prev_2_moves[0]->dead_groups or $prev_2_moves[1]->dead_groups){
-           $c->forward ('finish_game');
-        }
-   }
-   $c->forward('render');
-}
-#to place a stone instead of scoring after 2+ passes:
-sub wants_to_stop_scoring : PathPart('continue') Chained('game'){ 
-   my ($self, $c) = @_;
-   unless ($c->forward ('permission_to_move')){
-      $c->stash->{msg} =  "permission fail: ".$c->stash->{whynot};
-      $c->detach('render');
-   }
-   $c->stash->{board_clickable} = 1;
-   $c->forward('render');
-}
-
 
 sub invalid_request : Private{
    my ($self, $c, $err) = @_;
@@ -456,6 +365,7 @@ sub invalid_request : Private{
 
 #sets $c->stash->{whynot} error. returns 1 if true
 #TODO: handle surrogates! and set {surrogate} in stash!
+#perhaps return 'true' | 'false' | 'surrogate'
 sub permission_to_move : Private{
    my ($self, $c) = @_;
    
@@ -493,100 +403,7 @@ sub permission_to_move : Private{
    $c->stash->{side} = $side;
    return 1
 }
-#sets $c->stash->{whynot} error. returns 1 if true
-sub permission_to_mark_dead : Private{
-   my ($self, $c) = @_;
-   return 0 unless ($c->forward ('permission_to_move'));
-   #last 2 moves should be passes to start scoring process
-   return 1 if $c->forward('last_move_was_score');
-   return 1 if $c->forward('prev_p_moves_were_passes');
-   return 0;
-}
-#replaced by fin?
-sub last_move_was_score : Private{
-   my ($self,$c) = @_;
-   my $game = $c->stash->{game};
-   my $nummoves = $game->num_moves;
-   unless ($nummoves >= 3){ #impossible--require 2 pass moves + 1 score move
-      $c->stash->{whynot} = 'You hound! You just started!';
-      return 0;
-   }
-   my $prevmove = $game->moves->find ({movenum => $nummoves})->move;
-   unless ($prevmove eq 'submit_dead_selection'){
-      $c->stash->{whynot} = 'lastmove not score';
-      return 0;
-   }
-   return 1;
-}
-#replaced by fin?
-#returns explanation if no, '' if yes
-sub prev_p_moves_were_passes : Private { #p=2players
-   my ($self,$c) = @_;
-   my $game = $c->stash->{game};
-   my $nummoves = $game->num_moves;
-   unless ($nummoves >= 2){
-      $c->stash->{whynot} = 'You hound! You just started!';
-      return 0}
-   unless ($game->moves->find ({movenum => $nummoves})->move eq 'pass'){
-      $c->stash->{whynot} = 'lastmove not pass';
-      return 0}
-   unless ($game->moves->find ({movenum => $nummoves-1})->move eq 'pass'){
-      $c->stash->{whynot} = '2nd-to-lastmove not pass';
-      return 0}
-   return 1;
-}
-sub get_marked_dead_from_last_move{ #returns mask,stringofgroups
-   my $c = shift;
-   my $rulemap = $c->stash->{rulemap};
-   my $game = $c->stash->{game};
-   my $board = $c->stash->{board};
-   my $last_move = $c->stash->{game}->last_move;   
-    return unless $last_move;
-   my $dead_groups = $last_move->dead_groups;
-    return unless $dead_groups;
-   # convert to list of nodes:
-   my @dlist = map {$rulemap->node_from_string($_)} (split '_',$dead_groups); 
-   my $death_mask = $rulemap->death_mask_from_list ($board, \@dlist);
-   return ($dead_groups, $death_mask);
-}
-#TODO: make score calc generic
-sub finish_game : Private{ #This does not check permissions. it just wraps things up
-   my ($self, $c) = @_;
-   my $rulemap = $c->stash->{rulemap};
-   my $game = $c->stash->{game};
-   my $board = $c->stash->{board};
-   my ($death_mask, $terr_mask, $terr_points);
-   $death_mask = $c->stash->{death_mask};
-   ($terr_mask, $terr_points) = $rulemap->find_territory_mask ($board, $death_mask);
-   my $deads = $rulemap->count_deads($board, $death_mask);
-   
-   # scoremodes are 'ffa','team', ?other?
-   # is this a bad system?
-   my $result;
-   my $scoremode = $rulemap->detect_basis; # ($pd)
-   if ($scoremode eq 'ffa'){
-      my @totalscore;
-      for my $entity ($rulemap->all_entities){ #0,1,etc
-         my $caps = $rulemap->captures_of_entity($entity, $game->captures);
-         my $side = $rulemap->side_of_entity($entity);
-         $totalscore[$entity] = $caps + $terr_points->{$side} - $deads->{$side};
-         $totalscore[$entity] += 6.5 if $side eq 'w';
-      }
-      my $winning_entity = largest (@totalscore);
-      $result = "b:$totalscore[0], w:$totalscore[1]"; #not generic
-   }
-   else{
-      die 'scoremode neq ffa';
-   }
-   $game->set_column ('status', Util::FINISHED());
-   $game->set_column ('result', $result);
-   $game->update();
-}
-#index of largest in list
-sub largest{my ($i,$g,$v)=(-1,-1,-1);for$i(0..$#_){next if!defined$_[$i];next if$_[$i]<$v;$v=$_[$i];$g=$i}return$i}
 
-#key of largest in hash
-sub hashlargest{my%h=@_;my ($i,$g,$v)=(-1,-1,-1);for$i(keys%h){next if!defined$h{$i};next if$h{$i}<$v;$v=$h{$i};$g=$i}return$i}
 
 sub build_rulemap : Private{
    my ($self, $c) = @_;
@@ -674,7 +491,7 @@ sub evaluate_move : Private{
 }
 
 #by default, phases are shown, with the active phase displayed
-#TODO: congeal here, or specify what to congeal
+#TODO: either congeal here, or specify what to congeal
 sub get_game_phase_data : Private{ #for game.tt
    my ($self, $c) = @_;
    my ($game, $rulemap) = @{$c->stash}{qw/game rulemap/};
@@ -720,31 +537,6 @@ sub json_board_pos :Private{
    return $json
 }
 
-
-#really client should do this drawing stuff
-sub select_g_file{ #only for rect board
-   my ($rulemap, $board, $row, $col) = @_;
-   my $stone = $board->[$row][$col];
-   return "$stone.gif" if $stone =~ /^[bwr]$/;
-   #so it's an empty intersection
-   return $rulemap->node_is_on_edge($row, $col) . '.gif';
-}
-
-my @cletters = qw/a b c d e f g h j k l m n o p q r s t u v w x y z/;
-
-sub column_letter{
-   my $c = shift;
-   return $cletters[$c]
-}
-
-sub most_recent_move : Private{
-   my ($self, $c) = @_;
-   my $game = $c->stash->{game};
-   my $mv = $game->find_related ('moves',
-      {}, {order_by => 'movenum DESC'} );
-   return $mv;
-}
-
 sub allmoves : Chained('game') {
    my ( $self, $c) = @_;
    my $game = $c->stash->{game};
@@ -781,16 +573,43 @@ sub allmoves : Chained('game') {
    $c->response->body (to_json (['success', \@moves]));
 }
 
-sub prepare_group_json : Private {
-   my ( $self, $c) = @_;
-   my ($game, $board, $rulemap, $initially_dead) = @{$c->stash}{ qw/game board rulemap new_also_dead/ };
+#also provide list of groups marked as dead
+sub provide_all_groups : Private {
+   my ($self, $c, $deads) = @_;
+   $deads ||= [];
+   my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
    my ($all_groups, $all_nodestrings, $group_sides) = $rulemap->all_chains($board);
    
    $c->stash->{selecting_groups} = 1;
    $c->stash->{json_groups} = to_json ($all_groups);
    $c->stash->{json_group_of_node} = to_json ($all_nodestrings);
    $c->stash->{json_group_side} = to_json ($group_sides);
-   $c->stash->{json_group_selected} = to_json ({});
+   
+   my %initially_selected;
+   for (@$deads){
+      $initially_selected {$all_nodestrings->{$_}} = 1;
+   }
+   $c->stash->{json_group_selected} = to_json (\%initially_selected);
+   
+   $c->stash->{provide_groups} = 1
+}
+
+#for testing purposes
+sub groups : Chained('game'){
+   my ($self, $c) = @_;
+   
+   my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
+   my ($all_groups, $all_nodestrings, $group_sides) = $rulemap->all_chains($board);
+   
+   my $res = {
+      groups => $all_groups,
+      group_of_node => $all_nodestrings,
+      side_of_group => $group_sides,
+   };
+   
+   $c->response->content_type ('text/json');
+   $c->response->body (to_json ($res));
+   $c->detach
 }
 
 1;

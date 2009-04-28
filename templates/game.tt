@@ -8,7 +8,7 @@
    var side = '[% side %]';
    var board_clickable = [% board_clickable %];
    
-   [% IF selecting_groups %]
+   [% IF provide_groups %]
       groups = eval ([% json_groups %]);
       group_of_node = eval ([% json_group_of_node %]);
       group_side = eval ([% json_group_side %]);
