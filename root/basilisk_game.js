@@ -1,8 +1,8 @@
 
 var scrolled_ew = 0;
 var scrolled_ns = 0; //up is -
-var stones_clickable = 0;
-var space_clickable = 0; //up is -
+var stones_clickable = 0; //determined by mode: score or move or (view?)
+var space_clickable = 0;
 
 var selectedNode;
 var selectedNode_original_cell;
@@ -11,6 +11,15 @@ var Caleb; //var selectedNode_replacement_cell = too long. so Caleb.
 var moves; //move history
 
 var cell_swap_set_up = 0;
+
+var chains_loaded = false;
+var scoring = false;
+//var chains; //array of arrays of nodestrings
+var delegates; //hash of {delegate=>[chain]}
+var delegate_side; //object: 1stnode=>char
+var delegate_of_stone; //object: nodestring=>1stnode
+var chain_selected; //object: 1stnode=>bool
+
 function setup_cell_swap_if_need_be(){
    if (cell_swap_set_up==1){return;} //only do this once
    cell_swap_set_up==1;
@@ -32,7 +41,12 @@ function retire_caleb_clone(){
    }
 }
 
-function select(node){ 
+function select(node){
+   if (delegate_of_stone[node]){
+      select_chain(node);
+      return;
+   }
+   //caleb no longer good
    setup_cell_swap_if_need_be();
    retire_caleb_clone();
    
@@ -71,35 +85,39 @@ function select_pass(){ //prepares same submit button as submit()
    document.getElementById ('mv_subm_but').value= 'Submit pass';
 }
 
-var groups_loaded = false;
-var groups; //array of arrays of nodestrings
-var group_side; //object: 1stnode=>char
-var group_selected; //object: 1stnode=>bool
-var group_of_node; //object: nodestring=>1stnode
 
-function select_group(node){
-   if (!groups_loaded) return null;
-   var group = group_of_node[node];
-   if (group==null)
-   group_selected[group] = group_selected[group] ? 0 : 1; //flip selected
+function select_chain(node){
+   if (!chains_loaded) return null;
+   var delegate_node = delegate_of_stone[node];
+   if (delegate_node==null)
+      return;
    
-   //replace images
-   var img = img_base + '/' + group_side[group] +  group_selected[group] ? 'd.gif' : '.gif';
-   for (n in groups[group]){
-      var img = document.getElementById('img ' + n);
-      img.setAttribute('src', img);
+   var imgfile;
+   if (chain_selected[delegate_node]){
+      chain_selected[delegate_node] = 0; // deselect
+      imgsrc = img_base + '/' + delegate_side[delegate_node] + '.gif';
+   }
+   else{
+      chain_selected[delegate_node] = 1; // select
+      imgsrc = img_base + '/' + delegate_side[delegate_node] + 'd.gif';
+   }
+   
+   for (n in delegates[node]){
+      var img = document.getElementById('img ' + node);
+      img.setAttribute('src', imgsrc);
    }
    //adjust action for submit form:
    var action = "";
-   for (g in groups){
-      if (!groups_selected[g]) continue;
+   for (d in delegates){
+      if (!chain_selected[d]) continue;
       if (!action=='') action += '_'; //separator
-      action += g[0];
+      action += d;
    }
    var submit_form = document.getElementById ('move_submit_form');
    submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/think/' + action);
-   document.getElementById ('mv_subm_but').style.display= '';
-   document.getElementById ('mv_subm_but').value= 'Submit selection';
+   var submit_but = document.getElementById ('mv_subm_but');
+   submit_but.style.display= '';
+   submit_but.value= 'Submit selection';
 }
 
 
@@ -164,11 +182,7 @@ function scroll (direction){
    }
 }
 
-//delay until 
-//var tomato=setTimeout ('render_board()', 50);
-//render_board();
 
-//replacement board renderer. redraw after every scroll,
 //using h,w,wraps_(..),twist_(..),scrolled_(..) 
 function render_board(){
    if (typeof (w) == "undefined") return;
@@ -301,7 +315,35 @@ function board_cell (img_src, node, clickable){
    return cell;
 }
 
-
+function switch_mode (mode){
+   var submitbutton = document.getElementById ('mv_subm_but');
+   var mode_display = document.getElementById ('clicking_mode');
+   if (mode=='score'){
+      if (scoring==1)
+         ;//return;
+      document.getElementById ('move_mode_button').style.display= '';
+      document.getElementById ('score_mode_button').style.display= 'none';
+      scoring=1;
+      submitbutton.style.display= '';
+      space_clickable = false;
+      stones_clickable = true;
+      render_board();
+      mode_display.innerHTML = "Currently scoring";
+      return;
+   }
+   //else mode=='move'
+   if (scoring == 0)
+     ;// return;
+   document.getElementById ('move_mode_button').style.display= 'none';
+   document.getElementById ('score_mode_button').style.display= '';
+   scoring=0;
+   submitbutton.style.display= 'none';
+   submitbutton.value= 'Submit selection';
+   space_clickable = true;
+   stones_clickable = false;
+   render_board();
+   mode_display.innerHTML = "Currently moving";
+}
 
 
 // populate comments
@@ -369,17 +411,12 @@ function highlight_node (move){
 $(document).ready(function() {
    if (!gameid) {return}//something wrong
    
-   stones_clickable = 0;
-   space_clickable = board_clickable;
-   render_board();
+   if (board_clickable && scoring==1)
+      stones_clickable = 1;
+   if (board_clickable && scoring==0)
+      space_clickable = 1;
    
-   //pass through tt now
-   //dl & display comments
-   //$.getJSON (
-   //   url_base +"/comments/"+ gameid,
-   //   function (data) {render_comment_table(data[1])}
-   //   //data is ['success', game_comments]
-   //);
+   render_board();
    
    //dl & display move list
    $.getJSON ( url_base +"/game/"+ gameid +"/allmoves",

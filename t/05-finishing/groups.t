@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 8;
+use Test::More tests => 9;
 use JSON;
 
 use lib qw(t/lib lib);
@@ -43,15 +43,15 @@ my @players = map {
    my $gid = $game->id;
    
    $game->create_related ('player_to_game', {
-      pid  => $players[0]->id, #lamp
+      pid  => $players[0]->id, #sohia
       entity => 0,
    });
    $game->create_related ('player_to_game', {
-      pid  => $players[1]->id, #athame
+      pid  => $players[1]->id, #ki
       entity => 1,
    });
    $game->create_related ('player_to_game', {
-      pid  => $players[2]->id, #bag
+      pid  => $players[2]->id, #dondai
       entity => 2,
    });
    
@@ -67,6 +67,6 @@ my @players = map {
    is ($nodes->{'3-2'}, $nodes->{'4-2'}, 'adj. r stones in same group');
    isnt ($nodes->{'1-2'}, $nodes->{'3-2'}, 'other r stones not in same group');
    
-   
+   is ($sides->{'1-2'}, 'r', 'correct side of little group');
    
 }

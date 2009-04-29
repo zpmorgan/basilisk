@@ -135,31 +135,33 @@ sub get_chain { #for all board types
    return (\@found, \@libs, \@foes);
 }
 
-#for selecting groups in js..
-#returns list of lists of nodestrings
-#also returns hash of {nodestring=>1stnodeingroup} 
-#also returns hash of {1stnodeingroup=>side} 
+
+#chains are represented by a single 'delegate' node to identify chain
+#returns chains, keyed by their delegates. a chain is a list of nodestrings
+#also returns hash of {nodestring=>delegate} 
+#also returns hash of {delegate=>side} 
 sub all_chains{
    my ($self, $board) = @_;
-   my @chains;
-   my %chain_side;
-   my %seen_stones;
+   my %delegates;
+   my %delegate_of_stone;
+   my %delegate_side;
    for my $n ($self->all_stones($board)){
       my $s = $self->node_to_string($n);
-      next if $seen_stones{$s};
+      next if $delegate_of_stone{$s};
       
-      $chain_side{$s} = $self->stone_at_node($board, $n);
+      $delegate_side{$s} = $self->stone_at_node($board, $n);
       my ($chain,$l,$f) = $self->get_chain($board, $n);
-      push @chains, $chain;
+      #push @chains, $chain;
+      $delegates{$s} = $chain;
       my @nodestrings;
       #examine & to_string each node
       for (@$chain){
          my $nodestring =$self->node_to_string($_);
          push @nodestrings, $nodestring;
-         $seen_stones{$nodestring} = $s;
+         $delegate_of_stone{$nodestring} = $s;
       }
    }
-   return (\@chains, \%seen_stones, \%chain_side)
+   return (\%delegates, \%delegate_of_stone, \%delegate_side)
 }
 
 sub all_stones {
@@ -221,7 +223,7 @@ sub find_captured{
 #   some interactive score estimation too.
 
 sub death_mask_from_list{ 
-   #Takes list of some dead stones. Other stones in same groups are also dead.
+   #Takes list of some dead stones. Other stones in same chains are also dead.
    my ($self, $board, $list) = @_;
    my %mask;
    for my $node (@$list){

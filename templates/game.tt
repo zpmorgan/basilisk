@@ -8,12 +8,14 @@
    var side = '[% side %]';
    var board_clickable = [% board_clickable %];
    
-   [% IF provide_groups %]
-      groups = eval ([% json_groups %]);
-      group_of_node = eval ([% json_group_of_node %]);
-      group_side = eval ([% json_group_side %]);
-      group_selected = eval ([% json_group_selected %]);
-      groups_loaded = true;
+   [% IF provide_chains %]
+      [%# chains = [% json_chains %];
+      delegates = [% json_delegates %];
+      delegate_of_stone = [% json_delegate_of_stone %];
+      delegate_side = [% json_delegate_side %];
+      chain_selected = [% json_selected_chains %];
+      chains_loaded = true;
+      scoring = [% should_score %]; //false if expected to do normal move
    [% END %]
    
    var comments_initially = [% json_comments %];
@@ -75,6 +77,8 @@
 </div>
 
 
+
+
 [%# submission controls %]
 <form id="move_submit_form" action="">
    <input id="mv_subm_but" value="Submit move" tabindex="3" type="submit" style="display:none;">
@@ -83,20 +87,35 @@
 
 <div style="clear:both;">
 
-<table id="controls">
+<table id="move_controls" style="border:0px;">
  <tr><td>
  
-   <div id="commands" style="float:left;">
-     [% IF board_clickable %]
-      <h2> <a id="resign_button" href="[%url_base%]/game/[%gameid%]/resign" onclick="select_resign(); return false"> Resign </a> </h2> 
-      [% IF marking_dead_stones %]
-         <h2> <a href="[%url_base%]/game/[%gameid%]/continue">Continue playing</a> </h2>
-[%#  REMOVEME <h2> <a href="[%url_base%]/game/[%gameid%]/submit/[% new_also_dead %]"> Submit </a> </h2> %]
-      [% ELSE %]
-         <h2> <a id="pass_button" href="[%url_base%]/game/[%gameid%]/pass" onclick="select_pass(); return false"> Pass </a> </h2>
-      [% END %]
+   <table id="commands" style="float:left;">
+   <tr>
+     [% IF player_is_involved or board_clickable %]
+       <td>
+       <h2> <a id="resign_button" href="#" onclick="select_resign(); return false"> Resign </a> </h2> 
+       <h2> <a id="pass_button" href="#" onclick="select_pass(); return false"> Pass </a> </h2>
+       </td>
      [% END %]
-   </div>
+     
+     [% IF board_clickable %]
+     <td>
+       <span id="clicking_mode"> Currently [% should_score ? 'scoring' : 'moving' %] </span>
+       <h2 id="move_mode_button" [% should_score ? '' : 'style="display:none"' %]> 
+         <a href="#" onClick="switch_mode('move');return false">
+           Move instead of score 
+         </a> 
+       </h2>
+       <h2 id="score_mode_button" [% should_score ? 'style="display:none"' : '' %]>
+         <a href="#" onClick="switch_mode('score');return false">
+           Start scoring
+         </a> 
+       </h2>
+     </td>
+     [% END %]
+   </tr>
+   </table>
    
  </td><td>
  

@@ -78,20 +78,20 @@ sub render: Private{
    $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
    
    if ($lastmove and $lastmove->move eq 'score'){
-      $c->forward('provide_all_groups', [$lastmove->dead_groups]);
-      $c->stash->{show_dead_stones} = 1;
+      $c->forward('provide_all_chains', [$lastmove->dead_groups]);
+      $c->stash->{should_score} = 1;
       #$c->stash->{death_mask} = $dm; #is this used anymore (on client)?
    }
    elsif ($game->no_phases_are_okay()){ #everyone just passed..
       #score by default, but no initial deads
-      $c->forward('provide_all_groups', ['']); #start empty
-      $c->stash->{show_dead_stones} = 1;
+      $c->forward('provide_all_chains', ['']); #start empty
+      $c->stash->{should_score} = 1;
       #$c->stash->{death_mask} = {}; #is this used anymore???
    }
    elsif ($c->forward('permission_to_move')){
       #no score by default, but it is an option
-      $c->forward('provide_all_groups', ['']); #start empty
-      $c->stash->{show_dead_stones} = 0;
+      $c->forward('provide_all_chains', ['']); #start empty
+      $c->stash->{should_score} = 0;
    }
    
    if ($rulemap->topology eq 'C20'){ #todo: ...use some day?
@@ -574,37 +574,40 @@ sub allmoves : Chained('game') {
 }
 
 #also provide list of groups marked as dead
-sub provide_all_groups : Private {
+sub provide_all_chains : Private {
    my ($self, $c, $deads) = @_;
    $deads ||= [];
    my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
-   my ($all_groups, $all_nodestrings, $group_sides) = $rulemap->all_chains($board);
+   my ($delegates, $delegate_of_stone, $delegate_side) = $rulemap->all_chains($board);
    
-   $c->stash->{selecting_groups} = 1;
-   $c->stash->{json_groups} = to_json ($all_groups);
-   $c->stash->{json_group_of_node} = to_json ($all_nodestrings);
-   $c->stash->{json_group_side} = to_json ($group_sides);
+   $c->stash->{selecting_chains} = 1;
+   #$c->stash->{json_chains} = to_json ([keys %$delegates]);
+   #chains are the values of %$delegates
+   $c->stash->{json_delegates} = to_json ($delegates);
+   $c->stash->{json_delegate_of_stone} = to_json ($delegate_of_stone);
+   $c->stash->{json_delegate_side} = to_json ($delegate_side);
    
-   my %initially_selected;
+   #initially. player can modify in page by clicking
+   my %selected_chains = map {$_ => 0} keys %$delegate_side;
    for (@$deads){
-      $initially_selected {$all_nodestrings->{$_}} = 1;
+      $selected_chains{$delegate_of_stone->{$_}} = 1;
    }
-   $c->stash->{json_group_selected} = to_json (\%initially_selected);
+   $c->stash->{json_selected_chains} = to_json (\%selected_chains);
    
-   $c->stash->{provide_groups} = 1
+   $c->stash->{provide_chains} = 1
 }
 
 #for testing purposes
-sub groups : Chained('game'){
+sub chains : Chained('game'){
    my ($self, $c) = @_;
    
    my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
-   my ($all_groups, $all_nodestrings, $group_sides) = $rulemap->all_chains($board);
+   my ($chains, $delegate_of_stone, $delegate_side) = $rulemap->all_chains($board);
    
    my $res = {
-      groups => $all_groups,
-      group_of_node => $all_nodestrings,
-      side_of_group => $group_sides,
+      chains => $chains,
+      group_of_node => $delegate_of_stone,
+      side_of_group => $delegate_side,
    };
    
    $c->response->content_type ('text/json');
