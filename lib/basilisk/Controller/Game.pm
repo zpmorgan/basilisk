@@ -602,12 +602,12 @@ sub chains : Chained('game'){
    my ($self, $c) = @_;
    
    my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
-   my ($chains, $delegate_of_stone, $delegate_side) = $rulemap->all_chains($board);
+   my ($delegates, $delegate_of_stone, $delegate_side) = $rulemap->all_chains($board);
    
    my $res = {
-      chains => $chains,
-      group_of_node => $delegate_of_stone,
-      side_of_group => $delegate_side,
+      delegates => $delegates,
+      delegate_of_stone => $delegate_of_stone,
+      delegate_side => $delegate_side,
    };
    
    $c->response->content_type ('text/json');

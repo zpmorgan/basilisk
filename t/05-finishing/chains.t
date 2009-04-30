@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 9;
+use Test::More tests => 10;
 use JSON;
 
 use lib qw(t/lib lib);
@@ -55,18 +55,18 @@ my @players = map {
       entity => 2,
    });
    
-   $mech->get_ok("/game/$gid/groups");
+   $mech->get_ok("/game/$gid/chains");
    is($mech->ct, "text/json", 'correct group content type');
    my $res = from_json($mech->content);
-   my ($groups,$nodes,$sides) = @{$res}{qw/groups group_of_node side_of_group/};
+   my ($delegates, $delegate_of_stone, $delegate_side) = @{$res}{qw/delegates delegate_of_stone delegate_side/};
    
-   is (@$groups, 4, '4 groups');
-   ok ($nodes->{'1-2'}, 'r');
-   ok ($nodes->{'3-2'}, 'r');
-   ok ($nodes->{'4-2'}, 'r');
-   is ($nodes->{'3-2'}, $nodes->{'4-2'}, 'adj. r stones in same group');
-   isnt ($nodes->{'1-2'}, $nodes->{'3-2'}, 'other r stones not in same group');
-   
-   is ($sides->{'1-2'}, 'r', 'correct side of little group');
+   is (keys %$delegates, 4, '4 delegates, so 4 chains,');
+   is ($delegate_side->{'1-2'}, 'r');
+   is_deeply ($delegates->{'1-2'}, [[1,2]], 'single-stone group has only node as a delegate');
+   is ($delegate_side->{'4-2'} || $delegate_side->{'3-2'}, 'r');
+   is ($delegate_side->{'5-4'} || $delegate_side->{'5-5'}, 'w');
+   is ($delegate_side->{'0-0'} || $delegate_side->{'0-1'}, 'b');
+   is ($delegate_of_stone->{'3-2'}, $delegate_of_stone->{'4-2'}, 'adj. r stones in same chain');
+   isnt ($delegate_of_stone->{'1-2'}, $delegate_of_stone->{'3-2'}, 'other r stones not in same chain');
    
 }
