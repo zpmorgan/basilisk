@@ -14,13 +14,13 @@ use basilisk::Rulemap;
 
    my $captures = '0 0';
    my $score1 = $rulemap->compute_score ($board, $captures, {});
-   is_deeply ($score1, {b=>0, w=>6.5}, 'empty score');
+   is_deeply ($score1, {b=>0, w=>0}, 'empty score');
    $rulemap->set_stone_at_node($board, [2,2], 'b');
    my $score2 = $rulemap->compute_score ($board, $captures, {});
-   is_deeply ($score2, {b=>15, w=>6.5}, 'score with black board');
+   is_deeply ($score2, {b=>15, w=>0}, 'score with black board');
    $rulemap->set_stone_at_node($board, [1,1], 'w');
    my $score3 = $rulemap->compute_score ($board, $captures, {});
-   is_deeply ($score3, {b=>0, w=>6.5}, 'score: board has 1 w, 1 b stone');
+   is_deeply ($score3, {b=>0, w=>0}, 'score: board has 1 w, 1 b stone');
 }
 
 
@@ -35,11 +35,11 @@ use basilisk::Rulemap;
 
    my $captures = '0 0';
    my $score1 = $rulemap->compute_score ($board, $captures, {});
-   is_deeply ($score1, {b=>1, w=>6.5}, 'count b enclosure point');
+   is_deeply ($score1, {b=>1, w=>0}, 'count b enclosure point');
    my $score2 = $rulemap->compute_score ($board, $captures, {'0-1' => 1});
-   is_deeply ($score2, {b=>0, w=>6.5}, 'breach b enclosure, unknown killer');
+   is_deeply ($score2, {b=>0, w=>0}, 'breach b enclosure, unknown killer');
    my $score3 = $rulemap->compute_score ($board, $captures, {'3-3' => 1});
-   is_deeply ($score3, {b=>13, w=>6.5}, 'the only w stone is dead');
+   is_deeply ($score3, {b=>13, w=>0}, 'the only w stone is dead');
 }
 
 

@@ -422,7 +422,7 @@ sub compute_score{
    }
    
    if ($type eq 'ffa' and @phases == 2){
-      $side_score{w} += 6.5
+      #$side_score{w} += 6.5 worry about these later. it's a big small concern.
    }
    
    if ($type eq 'ffa' or $type eq 'zen' or $type eq 'team'){

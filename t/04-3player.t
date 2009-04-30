@@ -36,22 +36,6 @@ $game->create_related ('player_to_game', {
    entity => 2,
 });
 
-{     #This is for blah
-         my $game2 = $new_ruleset->create_related('games',{});
-         #my $gid = $game->id;
-         $game2->create_related ('player_to_game', {
-            pid  => $players[2]->id, #king
-            entity => 0,
-         });
-         $game2->create_related ('player_to_game', {
-            pid  => $players[2]->id, #bishop
-            entity => 1,
-         });
-         $game2->create_related ('player_to_game', {
-            pid  => $players[2]->id, #pawn
-            entity => 2,
-         });
-}
 sub rx_side_on_board {
    my $side = shift;
    return qr/board_position [^\n]*"$side"/

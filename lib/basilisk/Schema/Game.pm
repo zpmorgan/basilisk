@@ -36,7 +36,11 @@ sub sqlt_deploy_hook { #indices
     my($self, $table) = @_;
     $table->add_index(name => idx_status => fields => [qw/status/]);
 }
-sub num_moves{
+
+#maybe this should give the movenum of the most recent move.
+#maybe that would be more reliable?
+#maybe there will be actual_movenums that dont count thinking/resigning phases..
+sub num_moves{ 
    my $self = shift;
    return $self->count_related('moves');
 }

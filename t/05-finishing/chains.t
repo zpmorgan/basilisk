@@ -22,7 +22,7 @@ my @players = map {
    my $ruleset = $schema->resultset('Ruleset')->create({
       h=>6,w=>6,
       phase_description => '0b 1w 2r 3w',
-   }); #3-player perverted
+   }); #3-player oddly perverted
    
    my $board = Util::board_from_text ( #give b 6, w 0
    'bb0000

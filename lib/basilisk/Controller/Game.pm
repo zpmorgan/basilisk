@@ -289,8 +289,7 @@ sub think: PathPart('think') Chained('game'){
    }
    
    my $rulemap = $c->stash->{rulemap};
-   my $game = $c->stash->{game};
-   my $board = $c->stash->{board};
+   my ($game,$board,$ruleset) = @{$c->stash}{qw/game board ruleset/};
    my $think_all = 1; #always true....
    
    my ($entity, $side) = $game->turn;
@@ -325,9 +324,12 @@ sub think: PathPart('think') Chained('game'){
       $game->signal_fin_intent (Util::FIN_INTENT_SCORED(), $think_all);
       my $done = $game->done_thinking;
       if ($done){ #game's over
-         my $result = $rulemap->compute_score($board, $game->captures, $new_death_mask);
+         my $score = $rulemap->compute_score($board, $game->captures, $new_death_mask);
+         my @ordered_sides = $ruleset->sides;
+         my $result = join ' ', map{"$_ ".$score->{$_}} @ordered_sides;
+         #result should be something like 'b 4 w 12'
          $game->set_column ('status', Util::FINISHED());
-         $game->set_column ('result', %$result);
+         $game->set_column ('result', $result);
          $game->update();
          $c->stash->{msg} = 'Game finished successfully';
       }
