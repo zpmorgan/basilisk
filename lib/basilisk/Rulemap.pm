@@ -152,7 +152,8 @@ sub all_chains{
       $delegate_side{$s} = $self->stone_at_node($board, $n);
       my ($chain,$l,$f) = $self->get_chain($board, $n);
       #push @chains, $chain;
-      $delegates{$s} = $chain;
+      #only deal with nodestrings here;
+      $delegates{$s} =  [map {$self->node_to_string($_)} @$chain];
       my @nodestrings;
       #examine & to_string each node
       for (@$chain){

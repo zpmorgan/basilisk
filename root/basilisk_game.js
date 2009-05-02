@@ -91,6 +91,7 @@ function select_chain(node){
    var delegate_node = delegate_of_stone[node];
    if (delegate_node==null)
       return;
+   var chain = delegates[delegate_node];
    
    var imgfile;
    if (chain_selected[delegate_node]){
@@ -102,8 +103,10 @@ function select_chain(node){
       imgsrc = img_base + '/' + delegate_side[delegate_node] + 'd.gif';
    }
    
-   for (n in delegates[node]){
-      var img = document.getElementById('img ' + node);
+   //alert(chain);
+   for (n in chain){
+      //alert(n);
+      var img = document.getElementById('img ' + chain[n]);
       img.setAttribute('src', imgsrc);
    }
    //adjust action for submit form:
