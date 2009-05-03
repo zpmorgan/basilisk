@@ -148,7 +148,7 @@
          <img src="[%img_base%]/[% phase.side %].gif">
       </td>
       <td> 
-        <a href="[%url_base%]/userinfo/[% phase.entity.player.id %]"> 
+        <a href="[%url_base%]/userinfo/[% phase.playerid %]"> 
           <b>[% phase.playername %]</b> 
         </a>
       </td>
