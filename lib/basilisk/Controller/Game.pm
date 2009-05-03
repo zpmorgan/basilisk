@@ -460,7 +460,7 @@ sub detect_duplicate_position{
       '+select' => [ 'position.position'],
       '+as'     => [ 'oldpos' ],
    });
-   my $now_side;
+   my $now_side = $game->side_of_phase($game->phase);
    for my $mv (@similar_moves){
       #situational superko: compare side AND position
       my $side = $game->side_of_phase($mv->phase);
