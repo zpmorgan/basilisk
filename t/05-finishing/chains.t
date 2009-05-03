@@ -62,7 +62,7 @@ my @players = map {
    
    is (keys %$delegates, 4, '4 delegates, so 4 chains,');
    is ($delegate_side->{'1-2'}, 'r');
-   is_deeply ($delegates->{'1-2'}, [[1,2]], 'single-stone group has only node as a delegate');
+   is_deeply ($delegates->{'1-2'}, ['1-2'], 'single-stone group has only node as a delegate');
    is ($delegate_side->{'4-2'} || $delegate_side->{'3-2'}, 'r');
    is ($delegate_side->{'5-4'} || $delegate_side->{'5-5'}, 'w');
    is ($delegate_side->{'0-0'} || $delegate_side->{'0-1'}, 'b');

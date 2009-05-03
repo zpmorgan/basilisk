@@ -75,24 +75,25 @@ sub render: Private{
       }
    }
    
-   $c->stash->{show_dead_stones} = 1 if $c->stash->{death_mask}; # todo: or if game is over!
-   
-   if ($lastmove and $lastmove->move eq 'score'){
+   #now decide whether marked to show marked stones, and whether to provide chain data for marking..
+   if ($game->status == Util::FINISHED()){
+      #show stones that were dead at finish?
+      #dont bother if it looks like a resign, etc
+      if ($lastmove and $lastmove->move eq 'think'){
+         $c->forward('provide_all_chains', [$lastmove->dead_groups]);
+         $c->stash->{should_score} = 0;
+      }
+   }
+   elsif ($lastmove and $lastmove->move eq 'think'){
       $c->forward('provide_all_chains', [$lastmove->dead_groups]);
       $c->stash->{should_score} = 1;
-      #$c->stash->{death_mask} = $dm; #is this used anymore (on client)?
-   }
-   elsif ($game->no_phases_are_okay()){ #everyone just passed..
-      #score by default, but no initial deads
-      $c->forward('provide_all_chains', ['']); #start empty
-      $c->stash->{should_score} = 1;
-      #$c->stash->{death_mask} = {}; #is this used anymore???
    }
    elsif ($c->forward('permission_to_move')){
       #no score by default, but it is an option
-      $c->forward('provide_all_chains', ['']); #start empty
-      $c->stash->{should_score} = 0;
+      $c->forward('provide_all_chains', ['']); #start with no deads
+      $c->stash->{should_score} = $game->no_phases_are_okay() ? 1 : 0;
    }
+   
    
    if ($rulemap->topology eq 'C20'){ #todo: ...use some day?
       $c->stash->{topo} = 'graph';
@@ -109,7 +110,7 @@ sub render: Private{
       $c->stash->{twist_ns} = $rulemap->twist_ns;
    }
    $c->forward ('get_game_phase_data');
-   $c->stash->{game_running} = 1 if $game->status==Util::RUNNING();
+   $c->stash->{game_running} = $game->status==Util::RUNNING() ?1:0;
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    
    $c->stash->{to_move_side} = $side;
@@ -578,7 +579,9 @@ sub allmoves : Chained('game') {
 #also provide list of groups marked as dead
 sub provide_all_chains : Private {
    my ($self, $c, $deads) = @_;
-   $deads ||= [];
+   $deads ||= '';
+   my @deads = split '_', $deads; #from dead_groups format in db
+   
    my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
    my ($delegates, $delegate_of_stone, $delegate_side) = $rulemap->all_chains($board);
    
@@ -591,7 +594,8 @@ sub provide_all_chains : Private {
    
    #initially. player can modify in page by clicking
    my %selected_chains = map {$_ => 0} keys %$delegate_side;
-   for (@$deads){
+   #die @$deads;
+   for (@deads){
       $selected_chains{$delegate_of_stone->{$_}} = 1;
    }
    $c->stash->{json_selected_chains} = to_json (\%selected_chains);

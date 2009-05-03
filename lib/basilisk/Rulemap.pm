@@ -88,6 +88,12 @@ sub evaluate_move{
    #node is returned to make this method easier to override for heisenGo
 }
 
+#this is perfectly clear.
+sub nodestrings_string_to_nodestrings_list{
+   my ($self, $nodes) = @_; #'4-4_3-5', to ('4_4','3_5')
+   my @nodestrings = split '_', $nodes;
+   return @nodestrings
+}
 sub nodestrings_to_list{
    my ($self, $nodes) = @_; #'4-4_3-5', etc
    my @nodestrings = split '_', $nodes;

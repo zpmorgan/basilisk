@@ -8,6 +8,8 @@
    var side = '[% side %]';
    var board_clickable = [% board_clickable %];
    
+   var game_running = [% game_running %];
+   
    [% IF provide_chains %]
       [%# chains = [% json_chains %];
       delegates = [% json_delegates %];

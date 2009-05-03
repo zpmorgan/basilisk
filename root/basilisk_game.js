@@ -93,7 +93,7 @@ function select_chain(node){
       return;
    var chain = delegates[delegate_node];
    
-   var imgfile;
+   var imgsrc;
    if (chain_selected[delegate_node]){
       chain_selected[delegate_node] = 0; // deselect
       imgsrc = img_base + '/' + delegate_side[delegate_node] + '.gif';
@@ -122,7 +122,6 @@ function select_chain(node){
    submit_but.style.display= '';
    submit_but.value= 'Submit selection';
 }
-
 
 
 function scroll (direction){
@@ -186,6 +185,18 @@ function scroll (direction){
 }
 
 
+//this gives a chain the square 'dead' images
+function mark_chain(delegate){
+   var chain = delegates[delegate]; //(associative)
+   var imgsrc = img_base + '/' + delegate_side[delegate] + 'd.gif';
+   for (n in chain){
+      //alert(n);
+      var img = document.getElementById('img ' + chain[n]);
+      img.setAttribute('src', imgsrc);
+   }
+}
+
+
 //using h,w,wraps_(..),twist_(..),scrolled_(..) 
 function render_board(){
    if (typeof (w) == "undefined") return;
@@ -214,6 +225,14 @@ function render_board(){
    }
    new_tbody.appendChild (board_letter_row (twist_ns ?'reverse' : 'forward'));
    board_table.appendChild(new_tbody);
+   
+   //now highlight whatever needs to be highlighted, such as initially selected as deads
+   if (!game_running  ||  !board_clickable  ||  scoring){
+      for (d in delegates){
+         if (chain_selected[d])
+            mark_chain(d);
+      }
+   }
 }
 
 function board_row (r, direction){
