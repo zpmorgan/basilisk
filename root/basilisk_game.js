@@ -85,6 +85,20 @@ function select_pass(){ //prepares same submit button as submit()
    document.getElementById ('mv_subm_but').value= 'Submit pass';
 }
 
+function setup_think_form(){
+   //adjust action for submit form:
+   var action = "";
+   for (d in delegates){
+      if (!chain_selected[d]) continue;
+      if (!action=='') action += '_'; //separator
+      action += d;
+   }
+   var submit_form = document.getElementById ('move_submit_form');
+   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/think/' + action);
+   var submit_but = document.getElementById ('mv_subm_but');
+   submit_but.style.display= '';
+   submit_but.value= 'Submit selection';
+}
 
 function select_chain(node){
    if (!chains_loaded) return null;
@@ -109,18 +123,7 @@ function select_chain(node){
       var img = document.getElementById('img ' + chain[n]);
       img.setAttribute('src', imgsrc);
    }
-   //adjust action for submit form:
-   var action = "";
-   for (d in delegates){
-      if (!chain_selected[d]) continue;
-      if (!action=='') action += '_'; //separator
-      action += d;
-   }
-   var submit_form = document.getElementById ('move_submit_form');
-   submit_form.setAttribute ('action', url_base +'/game/' + gameid + '/think/' + action);
-   var submit_but = document.getElementById ('mv_subm_but');
-   submit_but.style.display= '';
-   submit_but.value= 'Submit selection';
+   setup_think_form();
 }
 
 
@@ -341,21 +344,21 @@ function switch_mode (mode){
    var submitbutton = document.getElementById ('mv_subm_but');
    var mode_display = document.getElementById ('clicking_mode');
    if (mode=='score'){
-      if (scoring==1)
-         ;//return;
+      //redraw board with only stones clickable
+      scoring=1;
       document.getElementById ('move_mode_button').style.display= '';
       document.getElementById ('score_mode_button').style.display= 'none';
-      scoring=1;
       submitbutton.style.display= '';
+      submitbutton.value= 'Submit selection';
       space_clickable = false;
       stones_clickable = true;
       render_board();
       mode_display.innerHTML = "Currently scoring";
+      setup_think_form();
       return;
    }
    //else mode=='move'
-   if (scoring == 0)
-     ;// return;
+   //redraw board with only space clickable
    document.getElementById ('move_mode_button').style.display= 'none';
    document.getElementById ('score_mode_button').style.display= '';
    scoring=0;
@@ -439,7 +442,9 @@ $(document).ready(function() {
       space_clickable = 1;
    
    render_board();
-   
+   if (scoring){
+      setup_think_form();
+   }
    //dl & display move list
    $.getJSON ( url_base +"/game/"+ gameid +"/allmoves",
       function (data) {

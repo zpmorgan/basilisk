@@ -23,6 +23,7 @@ variations are supported:
    of moves may be described.  This feature is incomplete, and to initiate
    a game, for now the database must be modified using a script such as
 	insert-antizen.pl. This will improve with the invitation system.
+* Random elements: Inaccurate placement and inconsistent turns.
 
 The source is arranged with a model-view-controller paradigm. The model
 loads a DBIx::Class schema, which is in lib/basilisk/Schema. The view uses
@@ -30,7 +31,3 @@ Template::Toolkit and uses templates in the template directory.
 The controller comprises actions, which are grouped into relevant files
 in lib/basilisk/Controller. Actions may be chained based on the url path.
 Static files are in the 'root' directory.
-
-Known issues:
-* The scoring system has several issues. 
-* The rating system is inoperative.
