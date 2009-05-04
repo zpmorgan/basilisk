@@ -11,7 +11,7 @@ __PACKAGE__->config->{namespace} = '';
 sub players :Global{
    my ( $self, $c ) = @_;
    my $page = 0;
-   my $pagesize = 50;
+   my $pagesize = 100;
    my $players_rs;
    $c->model('DB')->schema->txn_do( sub{
       $players_rs = $c->model('DB::Player')->search({}, {rows=>$pagesize})->page($page);
