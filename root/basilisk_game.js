@@ -442,7 +442,7 @@ $(document).ready(function() {
       space_clickable = 1;
    
    render_board();
-   if (scoring){
+   if (stones_clickable){
       setup_think_form();
    }
    //dl & display move list
