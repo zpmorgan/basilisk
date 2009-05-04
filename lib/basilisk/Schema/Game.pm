@@ -1,4 +1,6 @@
 package basilisk::Schema::Game;
+use warnings;
+use strict;
 
 use base qw/DBIx::Class/;
 use basilisk::Util;
@@ -192,7 +194,7 @@ sub entities_of_side{
 sub side_of_phase{ 
    my ($self, $phasenum) = @_;
    my @phases = $self->phases;
-   return $phase[$phasenum][1];
+   return $phases[$phasenum][1];
 }
 
 sub captures{
