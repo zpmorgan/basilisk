@@ -45,7 +45,7 @@ elements:
            name: chance_rand_phase
            label: Chance of a random turn
            size: 1
-           default: 0
+           default: 1
            constraints:
             - type: Number
             - type: Range
@@ -55,7 +55,7 @@ elements:
            name: chance_rand_placement
            label: Chance of missing on placement
            size: 1
-           default: 0
+           default: 1
            constraints:
             - type: Number
             - type: Range
