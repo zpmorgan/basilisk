@@ -43,6 +43,12 @@ sub FIN_INTENT_FIN {1} #ready to score
 sub FIN_INTENT_SCORED {2}
 sub FIN_INTENT_DROP {3}
 
+our @schroedingo_symbols = qw/
+   ☉ ☽ ☿ ♀ ♂ ♃ ♄ ♅ ♆ ♇ ☊ ☋ ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓
+   ⤘ ⟲ ⟰ ❡ ❖ ✠ ⚧ ⚕ ♸ ⚓ ⚙ ♞ ♬ ♐ ♑ ☬ ☭ ☨ ⏣ ⏚
+   ∰ ⇼ ↯ ↻ ℵ ⅆ ₩ € ฿ ᴪ ᵩ ᵪ ᵟ ᴦ Ϡ ϡ ϰ ϼ ᴧ λ ξ π τ χ
+   ͼ ζ Ϟ Ω /;
+
 #todo: unused?
 our @acceptable_topo = qw/plane cylinder torus mobius klein/;
 
