@@ -6,7 +6,6 @@
    var wrap_ns = [% wrap_ns %];
    var wrap_ew = [% wrap_ew %];
    var twist_ns = [% twist_ns %];
-   var board_position = [% json_board_pos %];
    
 </script>
 

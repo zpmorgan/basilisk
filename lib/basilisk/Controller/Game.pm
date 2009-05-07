@@ -103,6 +103,7 @@ sub render: Private{
    }
    else{ #grid
       $c->stash->{json_board_pos} = $c->forward('json_board_pos');
+      $c->stash->{json_initial_board} = $c->forward('json_initial_board');
       $c->stash->{h} = $rulemap->h;
       $c->stash->{w} = $rulemap->w;
       $c->stash->{wrap_ns} = $rulemap->wrap_ns;
@@ -110,6 +111,7 @@ sub render: Private{
       $c->stash->{twist_ns} = $rulemap->twist_ns;
    }
    $c->forward ('get_game_phase_data');
+   $c->forward ('get_game_moves');
    $c->stash->{game_running} = $game->status==Util::RUNNING() ?1:0;
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    
@@ -403,7 +405,7 @@ sub permission_to_move : Private{
    #return 'strange' unless $entity == $p->entity;
    $c->stash->{p2g} = $p; #unused..
    $c->stash->{entity} = $entity;
-   $c->stash->{side} = $side;
+   $c->stash->{my_side} = $side;
    return 1
 }
 
@@ -476,7 +478,7 @@ sub detect_duplicate_position{
 #this wraps the rulemap method to set stash values and detect ko
 sub evaluate_move : Private{
    my ($self, $c, $node, $board) = @_;
-   my $side = $c->stash->{side};
+   my $side = $c->stash->{my_side};
    die $side unless $side =~ /^[bwr]$/;
    $c->stash->{eval_move_fail} = '';
    #find next board position:
@@ -539,9 +541,31 @@ sub json_board_pos :Private{
    my $json = to_json( $board );
    return $json
 }
+sub json_initial_board :Private{
+   my ($self, $c) = @_;
+   my $game = $c->stash->{game}; #TODO: only get visible
+   #TODO: send death_mask,territory_mask seperately
+   my $json = to_json( $game->initial_board );
+   return $json
+}
 
+
+#this is called by tests.
 sub allmoves : Chained('game') {
    my ( $self, $c) = @_;
+   
+   $c->forward ('get_game_moves');
+   my $moves = $c->stash->{moves};
+   
+   $c->response->content_type ('text/json');
+   $c->response->body (to_json (['success', $moves]));
+   $c->detach;
+}
+
+#called by render and allmoves
+sub get_game_moves : Private {
+   my ( $self, $c) = @_;
+   
    my $game = $c->stash->{game};
    my $pd = $c->stash->{ruleset}->phase_description;
    my @phases = map {[split '', $_]} split ' ', $pd;
@@ -571,10 +595,12 @@ sub allmoves : Chained('game') {
          pretty_node => $pretty_node,
       }
    }
-   
-   $c->response->content_type ('text/json');
-   $c->response->body (to_json (['success', \@moves]));
+   $c->stash->{moves} = \@moves;
+   $c->stash->{json_moves} = to_json (\@moves);
+   $c->stash->{num_moves} = scalar @moves;
 }
+
+
 
 #also provide list of groups marked as dead
 sub provide_all_chains : Private {
@@ -602,6 +628,7 @@ sub provide_all_chains : Private {
    
    $c->stash->{provide_chains} = 1
 }
+
 
 #for testing purposes
 sub chains : Chained('game'){

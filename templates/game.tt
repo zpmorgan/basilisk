@@ -1,14 +1,19 @@
 [%  INCLUDE header %]
 
-<script language="javascript" src="[%url_base%]/basilisk_game.js"></script>
+<script language="javascript" src="[%url_base%]/basilisk_game.js?"></script>
 
 <script language="javascript">
 //set a few game globals
    var gameid = [% gameid %];
-   var side = '[% side %]';
-   var board_clickable = [% board_clickable %];
+   var my_side = '[% side %]';
+   board_clickable = [% board_clickable %];
    
-   var game_running = [% game_running %];
+   game_running = [% game_running %];
+   board_position = [% json_board_pos %];
+   initial_board = [% json_initial_board %];
+   
+   moves = [% json_moves %];
+   num_moves = [% num_moves %];
    
    [% IF provide_chains %]
       [%# chains = [% json_chains %];
@@ -125,6 +130,12 @@
       <table id="moves_table"> 
          <tr class="headrow"><td> moves </td></tr>
          <tr><td> <SELECT id="moves_select" />  </td></tr>
+         <tr>
+            <input class="button" type="submit" value="<<" onClick="time_jump('bb');" />
+            <input class="button" type="submit" value="<" onClick="time_jump('b');" />
+            <input class="button" type="submit" value=">" onClick="time_jump('f');" />
+            <input class="button" type="submit" value=">>" onClick="time_jump('ff');" />
+         </tr>
       </table>
    </div>
  </td></tr>
