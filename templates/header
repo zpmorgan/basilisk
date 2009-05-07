@@ -41,6 +41,9 @@
  <tr><td>
    <img src="[% img_base %]/Baziliszkusz.jpg" width="100px">
  </tr></td>
+ <tr><td>
+   <a href="[%url_base%]/about">About</a>
+ </tr></td>
 
 [% IF logged_in %]
  <tr><td>
@@ -48,9 +51,6 @@
  </tr></td>
  <tr><td>
    <a href="[%url_base%]/userinfo">User info</a>
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/messages">Messages ([% unseen_count %])</a>
  </tr></td>
 [% ELSE %]
  <tr><td>
@@ -62,19 +62,22 @@
 [% END %]
 
  <tr><td>
-   <a href="[%url_base%]/games">Games</a>
- </tr></td>
- <tr><td>
    <a href="[%url_base%]/waiting_room">Waiting room</a>
  </tr></td>
  <tr><td>
-   <a href="[%url_base%]/invite">Invitations</a>
+   <a href="[%url_base%]/games">Games</a>
  </tr></td>
  <tr><td>
    <a href="[%url_base%]/players">Players</a>
  </tr></td>
 
 [% IF logged_in %]
+ <tr><td>
+   <a href="[%url_base%]/messages">Messages ([% unseen_count %])</a>
+ </tr></td>
+ <tr><td>
+   <a href="[%url_base%]/invite">Invitations</a>
+ </tr></td>
  <tr><td>
    <a href="[%url_base%]/logout">Log out</a>
  </tr></td>
