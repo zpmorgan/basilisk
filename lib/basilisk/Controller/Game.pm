@@ -625,18 +625,25 @@ sub deltas : Chained('game') Args(0){
    my ($self, $c) = @_;
    my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
    
-   my @positions = $game->search_related ('moves',
-      {},
-      {
-         join => 'position',
-         order_by => 'movenum DESC',
-         select => ['position', 'movenum'],
-      }
-   );
    my $initial_board = $game->initial_board;
    my $initial_delta = $rulemap->initial_delta($initial_board);
    my @deltas = ($initial_delta);
    
+   my @moves = $game->search_related ('moves',
+      {},
+      {
+         join => 'position',
+         order_by => 'movenum ASC',
+         select => ['position', 'movenum'],
+      }
+   );
+   my @positions = map {$_->get_column('position')} @moves;;
+   my @boards = map {Util::unpack_position ($_, $game->size)} @positions;
+   unshift @boards, $initial_board; #throw in game's initial position
+   
+   for (1 .. @boards-1){
+      push @deltas, $rulemap->delta (@boards[$_-1, $_]);
+   }
    $c->response->content_type ('text/json');
    $c->response->body (to_json (\@deltas));
    $c->detach

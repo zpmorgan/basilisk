@@ -455,12 +455,12 @@ sub determine_next_phase{
    die "I was given a bad list of choice phases: " . join',',@$choice_phases;
 }
 
-#compare initial position to a blank slate.
+#compare initial board to a blank slate.
 #this delta fits nicely in position 0 for 
 # a delta list that covers the game.
 sub initial_delta{
    my ($self, $initial_board) = @_;;
-   return [] unless $initial_board;
+   return {} unless $initial_board;
    
    my %delta;
    for my $node ($self->all_nodes){
@@ -473,4 +473,27 @@ sub initial_delta{
 }
 
 
+#compare initial earlier board to later board.
+sub delta{
+   my ($self, $board1, $board2) = @_;
+   
+   my %delta;
+   for my $node ($self->all_nodes){
+      my $fore = $self->stone_at_node($board1, $node); #0,w,b,etc
+      my $afte = $self->stone_at_node($board2, $node);
+      if ($fore ne $afte){
+         my $n = $self->node_to_string($node);
+         if (!$afte){
+            $delta{$n} = ['remove', {stone => $fore}];
+         }
+         elsif (!$fore){
+            $delta{$n} = ['add', {stone => $afte}];
+         }
+         else{
+            $delta{$n} = ['update', {stone => $fore}, {stone => $afte}];
+         }
+      }
+   }
+   return \%delta;
+}
 1;
