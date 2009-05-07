@@ -621,4 +621,26 @@ sub chains : Chained('game'){
    $c->detach
 }
 
+sub deltas : Chained('game') Args(0){
+   my ($self, $c) = @_;
+   my ($game, $board, $rulemap) = @{$c->stash}{ qw/game board rulemap/ };
+   
+   my @positions = $game->search_related ('moves',
+      {},
+      {
+         join => 'position',
+         order_by => 'movenum DESC',
+         select => ['position', 'movenum'],
+      }
+   );
+   my $initial_board = $game->initial_board;
+   my $initial_delta = $rulemap->initial_delta($initial_board);
+   my @deltas = ($initial_delta);
+   
+   $c->response->content_type ('text/json');
+   $c->response->body (to_json (\@deltas));
+   $c->detach
+}
+
+
 1;

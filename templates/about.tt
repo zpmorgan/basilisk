@@ -51,6 +51,7 @@ Games can be created using the waiting room or the invitation system.
 <h4>Waiting room</h4>
 The waiting room is only capable of initiating 2-player free-for-all games, but it is the interface recommended for those who do not have a specific opponent in mind. To create a waiting game, enter your desired game parameters in the form at the bottom of the page and hit 'create'. To join a waiting game, hit the 'INFO' field by the game you wish to join, and hit 'join'
 
+<p>
 <h4>Invitation</h4>
 <p>
 To start a game with more than 2 colors or players, it is necessary to send an invitation. An invitation is similar to a waiting room request, except that it has extra fields to identify the players who you wish to participate.

@@ -31,7 +31,21 @@ __PACKAGE__->add_columns(
     
     phase  => { data_type => 'INTEGER'}, #0, 1, etc
     move   => { data_type => 'TEXT'}, #pass, score, {node}, resign
-    #special_stuff => TEXT
+    #special_stuff => TEXT. or not.
+    
+    #delta:
+    # deltas are used to let users view the board at a previous move
+    # by adding/removing stones from the current position.
+    # A move delta just contains a keyed list of changes to the previous board position.
+    #Here's a delta example:
+    #  {
+    #    '2-2' => ['remove', {stone => 'w', glyph => '♅'}]
+    #  }
+    #if for whatever reason, you want to replace a healthy black stone with a diseased white stone:
+    #  {
+    #    '4-1' => ['update', {stone => 'b'}, {stone => 'w', sick => .65}]
+    #  }
+    # as sickness isn't mentioned in the 1st state, assume it's 0.
 );
 __PACKAGE__->set_primary_key('gid', 'movenum');
 __PACKAGE__->belongs_to(game => 'basilisk::Schema::Game', 'gid');

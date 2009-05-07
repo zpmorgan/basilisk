@@ -73,5 +73,9 @@ sub default_captures_string { #returns '0 0', or '0 0 0 0 0 0' for zen, etc
    my $s = join ' ', map {0} (1..$self->num_phases);
    return $s;
 }
+sub size{
+   my $self = shift;
+   return ($self->h, $self->w);
+}
 
 1

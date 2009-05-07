@@ -120,7 +120,7 @@ sub current_position{
    if ($initial_pos){
       return $initial_pos->position;
    }
-   return Util::empty_pos($self->h, $self->w);
+   return Util::empty_pos($self->size);
 }
 sub current_position_id{
    my $self = shift;
@@ -134,6 +134,19 @@ sub current_position_id{
 sub current_board{
    my $self = shift;
    return Util::unpack_position($self->current_position, $self->size);
+}
+sub initial_board{
+   my $self = shift;
+   my $initial_pos = $self->initial_pos;
+   if ($initial_pos){
+      return Util::unpack_position ($initial_pos->position, $self->size);
+   }
+   return Util::empty_board($self->size);
+}
+
+sub size{
+   my $self = shift;
+   return $self->ruleset->h
 }
 
 sub h{
