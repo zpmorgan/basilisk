@@ -86,4 +86,9 @@ sub message :Global Args(1) { #not mail msg. err msg.
    $c->stash->{template} = 'message.tt';
 }
 
+sub about :Global{
+   my ( $self, $c ) = @_;
+   #basically display a static page
+}
+
 1;

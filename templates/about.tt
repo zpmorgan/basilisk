@@ -1,0 +1,69 @@
+[%  INCLUDE header %]
+
+<div style="width:60%;text-align:left">
+<p>
+This is a correspondence game server for variants of Go.
+<p>
+Go is an ancient game of perfect information, shape, and intuition. Typical games of Go involve two players, as black and white, alternatively placing stones on a square, 19x19 board. By surrounding any number of the opponents stones completely, they are captured and removed from the board. The idea is to exert more influence on territory than your opponent, using threats of death, capture, or isolation
+<p>
+The objective of this server is to provide a maximally flexible system to support any combination of supported variant rules.
+
+<h2>Supported variations</h2>
+
+<h4>Topology</h4>
+   <img src="[%img_base%]/cylinder.png" style="float:right;width:150px">
+<p>
+This server provides the ability to eliminate borders by having them wrap to the opposite side. The resulting board will have the topology of a cylinder or torus. Sides can also wrap with a twist, producing the Möbius strip or Klein bottle.
+<p>
+Scrolling capabilities are provided. To scroll, use the green arrows beside the board.
+
+
+<h4>More than 2 sides or colors</h4>
+   <img src="[%img_base%]/3color.png" style="float:right">
+<p>
+The rules of Go can be extended to support more than 2 colors. For the most basic case, imagine that 3 players each have control of a single stone color, as black, white, or red. Each player moves in a simple cycle: black, white, and red. Chains (strongly connected stones) are still captured if all of their liberties (empty adjacent nodes) are lost. The player who makes the capture is still rewarded for it.
+<p>
+Games where each player has a unique color and moves only once in a cycle are called 'free-for-all' games. However, there are other schemes to base a game from:
+
+<ul>
+  <li> Rengo -- There are 2 teams, with one color each, controlled alternatively by 2 players. Rengo can be extended to support more teams and larger teams.</li>
+  <li> Zen -- Traditionally,3 players control 2 colors in a round-robin cycle of 6 phases; no player is tied to any color. Zen can be extended to support different numbers of players or colors, as long as the 2 numbers are relative primes.</li>
+  <li> Other -- Any cyclic pattern should work.</li>
+</ul>
+
+<h4>"HeisenGo"</h4>
+<p>
+HeisenGo is a variant in which 2 elements of uncertainty are introduced:
+
+<ol>
+  <li> random sequence of turns -- After each move, the following phase is determined randomly.</li>
+      <img src="[%img_base%]/randplace.png" style="float:right;">
+  <li> inaccurate placement of stones -- As each stone is placed, it has an equal chance of jumping to each adjacent node as remaining where it was played.</li>
+</ol>
+<img src="[%img_base%]/randseq.png">
+<p>
+The probability that each of these will take effect can be set as well.
+
+<h2>Game initiation</h2>
+<p>
+Games can be created using the waiting room or the invitation system.
+
+<h4>Waiting room</h4>
+The waiting room is only capable of initiating 2-player free-for-all games, but it is the interface recommended for those who do not have a specific opponent in mind. To create a waiting game, enter your desired game parameters in the form at the bottom of the page and hit 'create'. To join a waiting game, hit the 'INFO' field by the game you wish to join, and hit 'join'
+
+<h4>Invitation</h4>
+<p>
+To start a game with more than 2 colors or players, it is necessary to send an invitation. An invitation is similar to a waiting room request, except that it has extra fields to identify the players who you wish to participate.
+<p>
+A player's invitations are viewed from a link on their status page, where they can be accepted or rejected. For an invitation to transform into a game, every player must accept it. If any invitee rejects it, the invitation disappears from the invite pages of every invitee. An invite may be rejected by any invitee as long as it is open.
+<p>
+<h2>Games</h2>
+<p>
+At any time, a player may have several games where it is their turn to move. The player's status page has an overview of such games.
+<p>
+The game page contains a view of the board. If it is his turn to move, the player may click on any open position of the board. This will cause a stone to be displayed on the board, and a confirmation button will appear. The player may pass or resign this way as well. After confirming, if it is a valid move, the page will be reloaded with a new board position and the next player to move.
+<p>
+Scoring is done in a similar way, except that a set of existing stones are submitted rather than a move request.
+
+</div>
+[% INCLUDE footer %]
