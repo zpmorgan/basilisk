@@ -629,6 +629,8 @@ function render_moves_list (moves){
 
 //apply: if true, highlight. if false, unhighlight 
 function highlight_node (move, apply){
+   if (!move)
+      return;
    var node_pattern = /^\{([^{}]+)\}$/;
    var match_node = node_pattern.exec(move.move);
    if (!match_node) return; //something like 'pass' or 'resign', i guess
