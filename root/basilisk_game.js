@@ -390,6 +390,9 @@ function render_board(){
    new_tbody.appendChild (board_letter_row (twist_ns ?'reverse' : 'forward'));
    board_table.appendChild(new_tbody);
    
+   if (updates_from == 'begin')
+      return;
+   
    //now highlight whatever needs to be highlighted, such as initially selected as deads
    if (!game_running  ||  !board_clickable  ||  scoring){
       for (d in delegates){
