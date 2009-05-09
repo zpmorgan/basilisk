@@ -87,6 +87,8 @@ function time_jump (direction){
    }
    
    if (direction == "bb"){
+      if (shown_move==num_moves)
+         freeze_future();
       shown_move = 0;
       updates_from = 'begin';
       node_updates = {};
@@ -97,6 +99,7 @@ function time_jump (direction){
       updates_from = 'end';
       node_updates = {};
       render_board();
+      thaw_future();
    }
    else if (direction == "b"){
       if (shown_move==0)
