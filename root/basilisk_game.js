@@ -11,10 +11,10 @@ var node_modifiers; //highlight, etc
 
 var selectedNode;
 
-//these 3 suck:
-var selectedNode_original_cell;
-var Caleb; //var selectedNode_replacement_cell = too long. so Caleb.
-var cell_swap_set_up = 0;
+//This is handled totally different from the other deltas.
+//It's just a proposal. Freeze when you go from present to past.
+//Thaw when you go past to present
+var future_delta = {};
 
 var num_moves;
 var moves; //move history
@@ -28,6 +28,14 @@ var delegate_of_stone; //object: nodestring=>1stnode
 var chain_selected; //object: 1stnode=>bool
 
 
+
+
+
+//these 3 suck:
+var selectedNode_original_cell;
+var Caleb; //var selectedNode_replacement_cell = too long. so Caleb.
+var cell_swap_set_up = 0;
+//sucks:
 function setup_cell_swap_if_need_be(){
    if (cell_swap_set_up==1){return;} //only do this once
    cell_swap_set_up==1;
@@ -39,6 +47,7 @@ function setup_cell_swap_if_need_be(){
       Caleb.setAttribute('id', 'caleb_the_ripper');
       Caleb.appendChild(my_stone_img);
 }
+//sucks:
 function retire_caleb_clone(){
    if (selectedNode_original_cell){
       var caleb_clone = document.getElementById ('caleb_clone');
@@ -49,6 +58,9 @@ function retire_caleb_clone(){
    }
 }
 
+
+
+
 var shown_move;
 var deltas; //not necessary to view
 var deltas_loaded;
@@ -57,6 +69,8 @@ var node_updates = {}; //state of notable nodes at shown_move
 var updates_from = 'end'; //'begin' after a jump to the beginning.
 
 function time_jump (direction){
+   if (num_moves == 0)
+      return;
    if (loading)
       return;
    if (!deltas_loaded){
@@ -74,15 +88,21 @@ function time_jump (direction){
    
    if (direction == "bb"){
       shown_move = 0;
+      updates_from = 'begin';
+      node_updates = {};
       render_board();
    }
    else if (direction == "ff"){
       shown_move = num_moves;
+      updates_from = 'end';
+      node_updates = {};
       render_board();
    }
    else if (direction == "b"){
       if (shown_move==0)
          return;
+      if (shown_move==num_moves)
+         freeze_future();
       var delta = deltas[shown_move]; //reverse this one
       apply_delta (delta, 'reverse');
       shown_move--;
@@ -93,6 +113,38 @@ function time_jump (direction){
       var delta = deltas[shown_move+1];
       apply_delta (delta, 'forward');
       shown_move++;
+      if (shown_move==num_moves)
+         thaw_future();
+   }
+}
+
+var stored_button_display; //hide submit button while timetravelling 
+
+function freeze_future(){
+   stored_button_display = document.getElementById ('mv_subm_but').style.display;
+   document.getElementById ('mv_subm_but').style.display = 'none';
+   //remove lastmove highlight, as if it matters..
+   //highlight_node (moves[moves.length-1], false);
+   if (selectedNode){
+      retire_caleb_clone();//sucks 
+   }
+   else if (scoring){
+      for (n in chain_selected){
+         //unmark
+      }
+   }
+}
+function thaw_future(){
+   //restore submit button
+   document.getElementById ('mv_subm_but').style.display = stored_button_display;
+   highlight_node (moves[moves.length-1], true);
+   if (selectedNode){
+      select(selectedNode);
+   }
+   else if (scoring){
+      for (n in chain_selected){
+         //re-mark
+      }
    }
 }
 
@@ -136,7 +188,6 @@ function update_cell(node){
 $(document).ready(function() {
    if (moves.length){
       render_moves_list (moves);
-      highlight_node (moves[moves.length-1]);
       document.getElementById('moves_pecan').style.display= '';
    }
    else{
@@ -144,8 +195,13 @@ $(document).ready(function() {
    }
 });
 
+
+
 function select(node){
-   if (delegate_of_stone[node]){
+   if (shown_move != num_moves) //not in the present;
+      return;
+      
+   if (delegate_of_stone[node]){ //clicked on stone;
       select_chain(node);
       return;
    }
@@ -248,7 +304,7 @@ function scroll (direction){
             row = board_row (r, 'forward');
       }
       tbody.insertBefore (row, board.rows[1]);
-      highlight_node (moves[moves.length-1]);
+      highlight_node (moves[moves.length-1], true);
    }
    else if (direction=='down'){
       scrolled_ns ++;
@@ -265,7 +321,7 @@ function scroll (direction){
             row = board_row (r, 'forward');
       }
       tbody.insertBefore (row, board.rows[h]);
-      highlight_node (moves[moves.length-1]);
+      highlight_node (moves[moves.length-1], true);
    }
    else {
       if (direction=='left'){
@@ -352,18 +408,9 @@ function board_row (r, direction){
       c %= w;
       if (direction=='reverse')
          c = w-c-1;
-      var stone = board_position[r][c];
-      var img;
       
-      clickable = stones_clickable;
-      if (stone == 0){
-         img = select_empty_img(r,c);
-         clickable = space_clickable;
-      }
-      else
-         img = stone + '.gif';
       var node = r +'-'+ c;
-      row.appendChild (board_cell (img,node, clickable));
+      row.appendChild (node_cell (node));
       i ++;
    }
    row.appendChild (board_cell ('c'+num+'.gif',null, false));
@@ -375,6 +422,14 @@ function board_row (r, direction){
 function select_empty_img_from_nodestring(node){
    var co = /^(\d+)-(\d+)$/.exec (node);
    return select_empty_img(co[1],co[2]);
+}
+
+//convert node to coordinates, find initial stone or now stone. ignoring updates
+function stone_at_node (node){
+   var co = /^(\d+)-(\d+)$/.exec (node);
+   if (updates_from == 'end')
+      return board_position[co[1]][co[2]];
+   return initial_board[co[1]][co[2]];
 }
 
 //find dgs-style filename for empty cells
@@ -434,11 +489,39 @@ function board_letter_row (direction){
    row.appendChild (blank_cell.cloneNode(true));
    return row;
 }
-function board_cell (img_src, node, clickable){
+
+function board_cell (img_src){
    var cell  = document.createElement ('td');
    var img = document.createElement ('img');
    img.setAttribute ('src', img_base + "/" + img_src);
    cell.appendChild(img);
+   return cell;
+}
+
+function node_cell (node){
+   var side;
+   var imgsrc;
+   var updates = node_updates[node];
+   if (updates){
+      side = updates.stone
+   }
+   else { 
+      side = stone_at_node(node);
+   }
+   
+   if (side != 0){
+      clickable = stones_clickable;
+      imgsrc = img_base +'/'+ side + '.gif';
+   }
+   else{ //space
+      clickable = space_clickable;
+      imgsrc = img_base +'/'+ select_empty_img_from_nodestring(node);
+   }
+   
+   var cell  = document.createElement ('td');
+   var img = document.createElement ('img');
+   cell.appendChild(img);
+   img.setAttribute ('src', imgsrc);
    if (node){
       cell.setAttribute('id', 'cell_'+node);
       img.setAttribute('id', 'img_'+node);
@@ -447,6 +530,14 @@ function board_cell (img_src, node, clickable){
       cell.setAttribute('onClick', "select('" + node + "')");
    return cell;
 }
+
+function update_node_cell(node){
+   var cell = document.getElementById('cell_'+node);
+   var img = document.getElementById('img_'+node);
+   
+}
+
+
 
 function switch_mode (mode){
    var submitbutton = document.getElementById ('mv_subm_but');
@@ -530,16 +621,18 @@ function render_moves_list (moves){
    }
 }
 
-function highlight_node (move){
+//apply: if true, highlight. if false, unhighlight 
+function highlight_node (move, apply){
    var node_pattern = /^\{([^{}]+)\}$/;
    var match_node = node_pattern.exec(move.move);
    if (!match_node) return; //something like 'pass' or 'resign', i guess
    
    var img = document.getElementById ('img_' + match_node[1]);
    if (!img) return; //something wrong
-   var special_src = img_base +'/'+ move.side + 'm.gif';
+   var special_src = img_base +'/'+ move.side +   (apply ? 'm.gif' : '.gif');
    img.setAttribute('src', special_src);
 }
+
 
 $(document).ready(function() {
    if (!gameid) {return}//something wrong
@@ -552,6 +645,7 @@ $(document).ready(function() {
    shown_move = num_moves;
    
    render_board();
+   highlight_node (moves[moves.length-1], true);
    if (stones_clickable){
       setup_think_form();
    }

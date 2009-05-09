@@ -29,7 +29,7 @@
  <tr>
   <td align="left"><b>Basilisk Go Server</b></td>
 [% IF logged_in %]
-   <td align="right" style="A:link:#ffff22; A:visited:#aaeeaa;"> <a href="[%url_base%]/status"><b>Logged in as: [%username%] </b></a></td>
+   <td align="right"> <a href="[%url_base%]/status"><b>Logged in as: [%username%] </b></a></td>
 [% ELSE %]
    <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="[%url_base%]/login"><b>Log in</b></a> </td>
 [% END %]

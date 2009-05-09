@@ -1,11 +1,11 @@
 [%  INCLUDE header %]
 
-<script language="javascript" src="[%url_base%]/basilisk_game.js?"></script>
+<script language="javascript" src="[%url_base%]/basilisk_game.js"></script>
 
 <script language="javascript">
 //set a few game globals
    var gameid = [% gameid %];
-   var my_side = '[% side %]';
+   var my_side = '[% my_side or null %]';
    board_clickable = [% board_clickable %];
    
    game_running = [% game_running %];
@@ -36,7 +36,7 @@
 <div>
 
 [%# comment box: -%]
-<div style="float:right; align:center;">
+<div style="float:right;">
  <div class="wraps_comments">
   <table id="comments_table" class="comments">
    <tr class="headrow">

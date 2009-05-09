@@ -62,17 +62,11 @@ sub render: Private{
    my $lastmove = $game->last_move;
    my ($entity, $side) = $game->turn;
    
-   unless ($c->stash->{board_clickable}){ #default: determine level of interaction with game
-      if ($c->forward ('permission_to_move')){ #your turn
-         $c->stash->{board_clickable} = 1;
-           # my ($terr_mask, $terr_points) = $rulemap->find_territory_mask 
-           #                ($board, $deathmask);
-           # $c->stash->{territory_mask} = $terr_mask;
-           # $c->stash->{terr_points} = $terr_points;
-      }
-      else {
-         $c->stash->{board_clickable} = 0;
-      }
+   if ($c->forward ('permission_to_move')){ #your turn
+      $c->stash->{board_clickable} = 1;
+   }
+   else {
+      $c->stash->{board_clickable} = 0;
    }
    
    #now decide whether marked to show marked stones, and whether to provide chain data for marking..
@@ -373,6 +367,8 @@ sub invalid_request : Private{
 #perhaps return 'true' | 'false' | 'surrogate'
 sub permission_to_move : Private{
    my ($self, $c) = @_;
+   delete $c->stash->{entity};
+   delete $c->stash->{my_side};
    
    $c->stash->{whynot} = '';
    $c->stash->{whynot} = 'not logged in' unless $c->session->{logged_in};
