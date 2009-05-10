@@ -1,4 +1,4 @@
-package Util;
+package basilisk::Proverbs;
 use strict;
 use warnings;
 

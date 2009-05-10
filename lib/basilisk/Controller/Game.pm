@@ -3,11 +3,12 @@ package basilisk::Controller::Game;
 use strict;
 use warnings;
 use parent 'Catalyst::Controller';
-use basilisk::Util;
 use basilisk::Rulemap;
 use JSON;
 
-
+use basilisk::Util qw/unpack_position pack_board ensure_position_size /; 
+use basilisk::Constants qw{ GAME_RUNNING GAME_FINISHED GAME_PAUSED
+         FIN_INTENT_DROP FIN_INTENT_FIN FIN_INTENT_OKAY FIN_INTENT_SCORED};
 
 
 # /game
@@ -48,7 +49,7 @@ sub game : Chained('/') CaptureArgs(1){
    my $h = $game->h;
    my $w = $game->w;
    my $rulemap = $c->stash->{rulemap};
-   my $board = Util::unpack_position($pos_data, $h, $w);
+   my $board = unpack_position($pos_data, $h, $w);
    @{$c->stash}{qw/old_pos_data board/} = ($pos_data, $board); #put board data in stash
    @{$c->stash}{qw/entity side/} = $game->turn; #phase data in stash
 } #now c does chained actions:  move, pass, resign, think
@@ -70,7 +71,7 @@ sub render: Private{
    }
    
    #now decide whether marked to show marked stones, and whether to provide chain data for marking..
-   if ($game->status == Util::FINISHED()){
+   if ($game->status == GAME_FINISHED){
       #show stones that were dead at finish?
       #dont bother if it looks like a resign, etc
       if ($lastmove and $lastmove->move eq 'think'){
@@ -106,7 +107,7 @@ sub render: Private{
    }
    $c->forward ('get_game_phase_data');
    $c->forward ('get_game_moves');
-   $c->stash->{game_running} = $game->status==Util::RUNNING() ?1:0;
+   $c->stash->{game_running} = $game->status==GAME_RUNNING ?1:0;
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    
    $c->stash->{to_move_side} = $side;
@@ -151,8 +152,8 @@ sub move : Chained('game') Args(1){ #evaluate & do move:
    
    my $h = $c->stash->{game}->h;
    my $w = $c->stash->{game}->w;
-   my $new_pos_data = Util::pack_board ($newboard, $h, $w);
-   Util::ensure_position_size($new_pos_data, $h, $w); #sanity?
+   my $new_pos_data = pack_board ($newboard, $h, $w);
+   ensure_position_size($new_pos_data, $h, $w); #sanity?
    
    
    #perhaps txn wrong somehow. I think capture count can get messed up.
@@ -214,7 +215,7 @@ sub pass : Chained('game') { #evaluate & do pass: Args(0)
             captures => $game->captures,
             fin => $game->fin,
          });
-      $game->signal_fin_intent (Util::FIN_INTENT_FIN(), $pass_all);
+      $game->signal_fin_intent (FIN_INTENT_FIN, $pass_all);
       my $next_phases = $c->forward('phases_to_choose_from');
       my $nextphase = $rulemap->determine_next_phase($game->phase, $next_phases);
       $game->shift_phase($nextphase);
@@ -251,11 +252,11 @@ sub resign : PathPart('resign') Chained('game'){
             captures => $game->captures,
             fin => $game->fin,
          });
-      $game->signal_fin_intent (Util::FIN_INTENT_DROP(), $resign_all);
+      $game->signal_fin_intent (FIN_INTENT_DROP(), $resign_all);
       $game->clear_fin_intent (); #this upsets the balance, so reset _FIN and _SCORED
       my $winner = $game->winner_by_resignation;
       if (defined $winner){
-         $game->set_column ('status', Util::FINISHED());
+         $game->set_column ('status', GAME_FINISHED());
          $game->set_column ('result', $winner.'+resign');
          $game->update();
       }
@@ -318,14 +319,14 @@ sub think: PathPart('think') Chained('game'){
       unless ($equal_marks){
          $game->clear_fin_scored (); #if this upsets the balance, reset _SCORED to _FIN
       }
-      $game->signal_fin_intent (Util::FIN_INTENT_SCORED(), $think_all);
+      $game->signal_fin_intent (FIN_INTENT_SCORED(), $think_all);
       my $done = $game->done_thinking;
       if ($done){ #game's over
          my $score = $rulemap->compute_score($board, $game->captures, $new_death_mask);
          my @ordered_sides = $ruleset->sides;
          my $result = join ' ', map{"$_ ".$score->{$_}} @ordered_sides;
          #result should be something like 'b 4 w 12'
-         $game->set_column ('status', Util::FINISHED());
+         $game->set_column ('status', GAME_FINISHED());
          $game->set_column ('result', $result);
          $game->update();
          $c->stash->{msg} = 'Game finished successfully';
@@ -377,7 +378,7 @@ sub permission_to_move : Private{
    #return 0 if $c->stash->{whynot};
    
    my $game = $c->stash->{game};
-   unless ($game->status == Util::RUNNING()){
+   unless ($game->status == GAME_RUNNING()){
       $c->stash->{whynot} = 'Game is already finished!';
       return 0
    }
@@ -416,7 +417,7 @@ sub build_rulemap : Private{
    my @extra_roles;
    for my $rulerow (@extra_rules){
       my $rule = $rulerow->rule;
-      if (grep {$rule eq $_} @Util::acceptable_topo){
+      if (grep {$rule eq $_} @basilisk::Util::acceptable_topo){
          $topo = $rule;
       }
       elsif ($rule =~ /^heisengo/){
@@ -447,7 +448,7 @@ sub detect_duplicate_position{
    #todo, use ruleset...
    my $h = $game->h;
    my $w = $game->w;
-   my $newpos = Util::pack_board($newboard, $h, $w);
+   my $newpos = pack_board($newboard, $h, $w);
    
    #search position table for the same board state from the same game
    my @similar_moves = $game->search_related ( 'moves',
@@ -661,7 +662,7 @@ sub deltas : Chained('game') Args(0){
       }
    );
    my @positions = map {$_->get_column('position')} @moves;;
-   my @boards = map {Util::unpack_position ($_, $game->size)} @positions;
+   my @boards = map {unpack_position ($_, $game->size)} @positions;
    unshift @boards, $initial_board; #throw in game's initial position
    
    for (1 .. @boards-1){

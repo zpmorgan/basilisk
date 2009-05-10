@@ -1,8 +1,11 @@
 use strict;
 use warnings;
 use Test::More tests => 62;
-
 use lib qw(t/lib lib);
+
+use basilisk::Constants qw/GAME_FINISHED/;
+use basilisk::Util qw/board_from_text pack_board/;
+
 use b_schema;
 my $schema = b_schema->init_schema('populate');
 use b_mech;
@@ -24,7 +27,7 @@ sub game_phase{
 }
 sub game_finished{
    my $game = $schema->resultset('Game')->find({id=>$gid});
-   return  0 if $game->status != Util::FINISHED();
+   return  0 if $game->status != GAME_FINISHED;
    die "finished but no result!" unless $game->result;
    return $game->result;
 }
@@ -77,42 +80,26 @@ my @players = $schema->create_players (qw/lamp athame bag/);
 #test zen, supply an initial position, and end the game by scoring
 #let all stones live, except for the w stone at 1-1
 {
-   my $ruleset = $schema->resultset('Ruleset')->create({
-      h=>6,w=>6,
-      phase_description => '0b 1w 2b 0w 1b 2w',
-   }); #3|2-player zen
+   #3|2-player zen
+   my $game = $schema->create_game (6,6,'0b 1w 2b 0w 1b 2w',@players);
+   $gid = $game->id;
+   my $ruleset = $game->ruleset;
    
-   my $board = Util::board_from_text ( #give b 6, w 0
+   my $board = board_from_text ( #give b 6, w 0
    'bbbbbb
     0w0000
     bbbbbb
     ww00ww
     000000
     ww00ww', 6);
-   my $pos_data = Util::pack_board($board);
+   my $pos_data = pack_board($board);
    my $pos_row = $schema->resultset('Position')->create({
       ruleset => $ruleset->id,
       position => $pos_data,
    });
    
-   my $game = $ruleset->create_related('games',{
-      initial_position => $pos_row->id
-   });
-   $gid = $game->id;
-   
-   $game->create_related ('player_to_game', {
-      pid  => $players[0]->id, #lamp
-      entity => 0,
-   });
-   $game->create_related ('player_to_game', {
-      pid  => $players[1]->id, #athame
-      entity => 1,
-   });
-   $game->create_related ('player_to_game', {
-      pid  => $players[2]->id, #bag
-      entity => 2,
-   });
-   
+   $game->set_column ('initial_position', $pos_row->id);
+   $game->update;
    
    is (game_phase(), 0);
    #give lamp 1 ponnuki, have athame resign, have bag
@@ -162,7 +149,7 @@ my @players = $schema->create_players (qw/lamp athame bag/);
    $mech->content_contains("success", 'bag notified of mv success');
    #is (game_phase(), 0, 'score (agree) phases 2,5');
    is (game_fin(), '2 2 2 2 2 2');
-   ok (game_finished(), 'game status is FINISHED');
+   ok (game_finished(), 'GAME status is FINISHED');
 }
 
 #now do a team drop/recovery/surrogate thing

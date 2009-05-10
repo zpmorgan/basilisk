@@ -5,7 +5,7 @@ use warnings;
 use FindBin '$Bin';
 use lib "$Bin/../lib";
 use basilisk::Schema;
-use basilisk::Util;
+use basilisk::Util qw/pass_hash pack_board board_from_text/;
 
 my $dbfile = 'basilisk.db';
 unlink $dbfile if -e $dbfile;
@@ -23,15 +23,15 @@ $schema->deploy;
 my $player_rs = $schema->resultset('Player');
 my $row = $player_rs->create({
     name=>"plutocrat",
-    pass=> Util::pass_hash "s4p5i6k7e"
+    pass=> pass_hash "s4p5i6k7e"
 });
 $row = $player_rs->create({
     name=>"cannon",
-    pass=> Util::pass_hash "cannon"
+    pass=> pass_hash "cannon"
 });
 $row = $player_rs->create({
     name=>"georgia",
-    pass=> Util::pass_hash "georgia"
+    pass=> pass_hash "georgia"
 });
 
 #make empty vanilla game with cannon and georgia
@@ -76,7 +76,7 @@ b000000bw
 0000000wb
 00bwb00b0';
 my @board2 = map {[split '', $_]} split "\n",$board2;
-my $pos_data = Util::pack_board(\@board2);
+my $pos_data = pack_board(\@board2);
 my $pos_row = $schema->resultset('Position')->create({
    ruleset => $ruleset_2->id,
    position => $pos_data,
@@ -113,7 +113,7 @@ my $board3 =
  0 w 0 w b 0 w 0 0';
 my $pos_row3 = $schema->resultset('Position')->create({
    ruleset => $ruleset_2->id,
-   position => Util::pack_board (Util::board_from_text($board3, 9)),
+   position => pack_board (board_from_text($board3, 9)),
 });
 my $new_game_3 = $game_rs->create({
    ruleset => $ruleset_2->id,

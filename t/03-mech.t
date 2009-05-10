@@ -37,9 +37,7 @@ $mech->content_contains("Log in", "logging out");
 #Now, make sure that data modifications made in this test script
 # will show up on the web server
 
-$schema->resultset('Player')->create(
-        {name=> 'Bruyer',
-         pass=> Util::pass_hash ('Bruyer')});
+$schema->create_players ('Bruyer');
 is ($schema->resultset('Player')->count ({name => 'Bruyer'}), 1, 'inserted 1 more player');
 
 $mech->get_ok("/login");

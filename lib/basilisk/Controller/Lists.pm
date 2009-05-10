@@ -6,6 +6,7 @@ use parent 'Catalyst::Controller';
 use XML::Atom::SimpleFeed;
 __PACKAGE__->config->{namespace} = '';
 
+use basilisk::Constants qw{ GAME_RUNNING GAME_FINISHED GAME_PAUSED };
 
 #list of all registered players
 sub players :Global{
@@ -31,8 +32,8 @@ sub players :Global{
 
 my %game_cats = ( #this contains game search constraints
    all => {},
-   running => {status => Util::RUNNING()},
-   finished => {status => Util::FINISHED()},
+   running => {status => GAME_RUNNING},
+   finished => {status => GAME_FINISHED},
 );
 
 #todo: prefetch?
@@ -142,7 +143,7 @@ sub games_rss : Global{
       my $relevant_p2g = $p->search_related('player_to_game', {});
       my $games = $relevant_p2g->search_related ('game', 
       {
-         status => Util::RUNNING(),
+         status => GAME_RUNNING,
       },
       {
          join => ['ruleset'],
@@ -220,7 +221,7 @@ sub status :Global{
       }
    );
    my $games_rs = $p2g_rs->search_related ('game',
-      {status => Util::RUNNING()},
+      {status => GAME_RUNNING()},
       {
          join => 'ruleset',
          select => ['ENTITY', 'game.phase','game.id', 'ruleset.phase_description'],

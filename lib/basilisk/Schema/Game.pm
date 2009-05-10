@@ -3,20 +3,18 @@ use warnings;
 use strict;
 
 use base qw/DBIx::Class/;
-use basilisk::Util;
+use basilisk::Util qw/empty_pos unpack_position empty_board/;
 use List::MoreUtils qw(uniq);
 
-#values for status column
-sub RUNNING {1}
-sub FINISHED {2}
-sub PAUSED {3}
+use basilisk::Constants qw{ GAME_RUNNING GAME_FINISHED GAME_PAUSED 
+         FIN_INTENT_DROP FIN_INTENT_OKAY FIN_INTENT_FIN FIN_INTENT_SCORED};
 
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
     'id'             => { data_type => 'INTEGER', is_auto_increment => 1 },
     'ruleset'        => { data_type => 'INTEGER'},
-    'status'        => { data_type => 'INTEGER', default_value => 1 }, #1=util::running
+    'status'        => { data_type => 'INTEGER', default_value => GAME_RUNNING },
     'result'        => { data_type => 'TEXT', is_nullable => 1},
     #'num_moves'      => { data_type => 'INTEGER', default_value => 0 },
     'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
@@ -120,7 +118,7 @@ sub current_position{
    if ($initial_pos){
       return $initial_pos->position;
    }
-   return Util::empty_pos($self->size);
+   return empty_pos($self->size);
 }
 sub current_position_id{
    my $self = shift;
@@ -133,15 +131,15 @@ sub current_position_id{
 
 sub current_board{
    my $self = shift;
-   return Util::unpack_position($self->current_position, $self->size);
+   return unpack_position($self->current_position, $self->size);
 }
 sub initial_board{
    my $self = shift;
    my $initial_pos = $self->initial_pos;
    if ($initial_pos){
-      return Util::unpack_position ($initial_pos->position, $self->size);
+      return unpack_position ($initial_pos->position, $self->size);
    }
-   return Util::empty_board($self->size);
+   return empty_board($self->size);
 }
 
 sub size{
@@ -263,8 +261,8 @@ sub clear_fin_intent{
    
    my @fins = split ' ', $fin;
    for my $f (@fins){
-      unless ($f == Util::FIN_INTENT_DROP()){
-         $f = Util::FIN_INTENT_OKAY();
+      unless ($f == FIN_INTENT_DROP()){
+         $f = FIN_INTENT_OKAY();
       }
    }
    my $newfin = join ' ', @fins;
@@ -285,8 +283,8 @@ sub clear_fin_scored{
    
    my @fins = split ' ', $fin;
    for my $f (@fins){
-      if ($f == Util::FIN_INTENT_SCORED()){
-         $f = Util::FIN_INTENT_FIN();
+      if ($f == FIN_INTENT_SCORED()){
+         $f = FIN_INTENT_FIN();
       }
    }
    my $newfin = join ' ', @fins;
@@ -299,21 +297,21 @@ sub okay_phases{
    my ($self) = @_;
    my @fins = split ' ', $self->fin; #'0 0',etc
    my @phases = (0..$self->num_phases-1);
-   return grep {$fins[$_] == Util::FIN_INTENT_OKAY()} @phases
+   return grep {$fins[$_] == FIN_INTENT_OKAY()} @phases
 }
 #return all phases with FIN_INTENT_OKAY
 sub fin_phases{
    my ($self) = @_;
    my @fins = split ' ', $self->fin; #'0 0',etc
    my @phases = (0..$self->num_phases-1);
-   return grep {$fins[$_] == Util::FIN_INTENT_FIN()} @phases
+   return grep {$fins[$_] == FIN_INTENT_FIN()} @phases
 }
 #return all phases without FIN_INTENT_DROP
 sub active_phases{
    my ($self) = @_;
    my @fins = split ' ', $self->fin; #'0 0',etc
    my @phases = (0..$self->num_phases-1);
-   return grep {$fins[$_] != Util::FIN_INTENT_DROP()} @phases
+   return grep {$fins[$_] != FIN_INTENT_DROP()} @phases
 }
 
 #TODO: take basis into account?

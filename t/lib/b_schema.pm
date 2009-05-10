@@ -1,11 +1,14 @@
-package # hide from PAUSE
+package # hide from PAUSE?
     b_schema;
 
 #This creates & populates a basilisk.db for testing purposes
+#and returns a schema with player/game creation methods
 
 use strict;
 use warnings;
 use parent 'basilisk::Schema';
+
+use basilisk::Util qw/pass_hash/;
 
 #So cat doesn't print out all it's junk:
 $ENV{CATALYST_DEBUG}=0;
@@ -39,13 +42,8 @@ sub init_schema {
       #create 8 players
       $schema->resultset('Player')->create(
         {name=> $_,
-         pass=> Util::pass_hash ($_)}
+         pass=> pass_hash ($_)}
       ) for qw/foo bar baz a b c d e/;
-      
-     # my $evil_player = $schema->resultset('Player')->create({
-     #     name=>"Robert'; DROP TABLE Move;--",
-     #     pass=> Util::pass_hash "s4p5i6k7e"
-     # });
       
       my $new_ruleset = $schema->resultset('Ruleset')->create({h=>6,w=>6}); #default everything
       my $new_game = $new_ruleset->create_related( 'games', {});
@@ -70,7 +68,7 @@ sub create_players{
    for (@names){
       my $row = $self->resultset('Player')->create({
          name=> $_,
-         pass=> Util::pass_hash ($_),
+         pass=> pass_hash ($_),
       });
       push @rows, $row;
    }
@@ -79,6 +77,7 @@ sub create_players{
 
 sub create_game{
    my ($self, $h, $w, $pd, @players) = @_;
+   
    my $ruleset = $self->resultset('Ruleset')->create({
       h=>6,w=>6,
       phase_description => $pd,
@@ -94,5 +93,11 @@ sub create_game{
    }
    return $game
 }
+
+sub game{
+   my ($self, $gid) = @_;
+   return $self->resultset('Game')->find ({id => $gid})
+}
+
 
 1

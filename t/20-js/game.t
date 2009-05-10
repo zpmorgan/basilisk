@@ -6,11 +6,11 @@ my $schema = b_schema->init_schema('populate');
 
 eval "use Test::WWW::Selenium::Catalyst 'basilisk'";
 use Test::More;
-if $@{
+if ($@){
    plan skip_all => 'requires Test::WWW::Selenium::Catalyst';
    exit
 }
-plan tests => 5;
+plan tests => 4;
 
 
 my @players = $schema->create_players (qw/elwin viper/);

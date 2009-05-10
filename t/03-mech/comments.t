@@ -13,25 +13,8 @@ $mech->get_ok("/"); # no hostname needed
 is($mech->ct, "text/html", 'correct content type');
 
 
-#modify db
-my @players = map {
-   $schema->resultset('Player')->create( {
-      name=> $_,
-      pass=> Util::pass_hash ($_)
-   })}
-   (qw/Rat_King oscar blargles/);
-
-my $new_ruleset = $schema->resultset('Ruleset')->create({h=>6,w=>6}); #default everything
-my $game = $new_ruleset->create_related('games',{});
-$game->create_related ('player_to_game', {
-   pid  => $players[0]->id, #Rat_King
-   entity => 0,
-});
-$game->create_related ('player_to_game', {
-   pid  => $players[1]->id, #oscar
-   entity => 1,
-});
-
+my @players = $schema->create_players (qw/Rat_King oscar blargles/);
+my $game = $schema->create_game (6,6, '0b 1w', @players[0,1]);
 
 $mech->login_as('oscar');
 $mech->get_ok("/game/$game->id");

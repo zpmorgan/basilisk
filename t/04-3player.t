@@ -10,31 +10,9 @@ use b_mech;
 my $mech = b_mech->new;
 
 #modify db
-my @players = map {
-   $schema->resultset('Player')->create( {
-      name=> $_,
-      pass=> Util::pass_hash ($_)
-   })}
-   (qw/king bishop pawn/);
-
-my $new_ruleset = $schema->resultset('Ruleset')->create({
-   h=>6,w=>6,
-   phase_description => '0b 1w 2r',
-}); #3-player ffa
-my $game = $new_ruleset->create_related('games',{});
+my @players = $schema->create_players (qw/king bishop pawn/);
+my $game = $schema->create_game (6,6, '0b 1w 2r', @players);
 my $gid = $game->id;
-$game->create_related ('player_to_game', {
-   pid  => $players[0]->id, #king
-   entity => 0,
-});
-$game->create_related ('player_to_game', {
-   pid  => $players[1]->id, #bishop
-   entity => 1,
-});
-$game->create_related ('player_to_game', {
-   pid  => $players[2]->id, #pawn
-   entity => 2,
-});
 
 sub rx_side_on_board {
    my $side = shift;

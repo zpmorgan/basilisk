@@ -3,11 +3,13 @@ package basilisk::Controller::Invitation;
 use parent 'Catalyst::Controller::HTML::FormFu';
 use strict;
 use warnings;
-use basilisk::Util;
 use List::Util qw/max shuffle/;
 use List::MoreUtils qw/any/;
 
-
+use basilisk::Constants qw/MESSAGE_NOT_SEEN MESSAGE_SEEN
+         INVITE_ORDER_SPECIFIED INVITE_ORDER_RANDOM
+         INVITE_OPEN INVITE_ACCEPTED INVITE_REJECTED
+         INVITEE_ACCEPTED INVITEE_OPEN/;
 __PACKAGE__->config->{namespace} = '';
 
 
@@ -37,7 +39,7 @@ sub messages :Global{
          subject => $m->subject || '(no subject)',
          sayeth => $m->get_column('sayeth_name'),
          sayeth_id => $m->get_column('sayeth_id'),
-         unseen => $m->status == Util::MESSAGE_NOT_SEEN(),
+         unseen => $m->status == MESSAGE_NOT_SEEN,
          time => $m->time,
       };
    }
@@ -59,7 +61,7 @@ sub mail : Global Args(1){
       $c->stash->{msg} = "not your message $id";
       $c->detach('messages');
    }
-   $msg->set_column (status => Util::MESSAGE_SEEN());
+   $msg->set_column (status => MESSAGE_SEEN);
    $msg->update;
    
    $c->stash->{mail} = $msg;
@@ -104,9 +106,9 @@ sub invite : Global Form{
       my $ent_order = $c->req->param('ent_order');
       # determine whether ents are randomized
       if ($ent_order eq 'specified'){
-         $ent_order = Util::INVITE_ORDER_SPECIFIED();
+         $ent_order = INVITE_ORDER_SPECIFIED;
       } else { #random
-         $ent_order = Util::INVITE_ORDER_RANDOM();
+         $ent_order = INVITE_ORDER_RANDOM;
       }
       
       my @digits = $pd =~ /(\d)/g;
@@ -207,7 +209,7 @@ sub invite : Global Form{
                invite => $invite->id,
                player => $players[$_]->id,
                entity => $_,
-               status => $to_inviter ? Util::INVITEE_ACCEPTED() : Util::INVITEE_OPEN(),
+               status => $to_inviter ? INVITEE_ACCEPTED : INVITEE_OPEN,
             });
             next if $already_invited{$players[$_]->id}++;
             my $msg = $c->model('DB::Message')->create({
@@ -237,7 +239,7 @@ sub display_invites : Path('/invites'){
       player => $c->session->{userid},
    });
    my $my_invites = $my_invitees->search_related ('invite',{
-      'invite.status' => Util::INVITE_OPEN(),
+      'invite.status' => INVITE_OPEN,
    });
    
    my @invites_info;
@@ -263,7 +265,7 @@ sub accept_invite :Path('/invite/accept') Args(1){
       $c->stash->{msg} = "no such invite $inv_id";
       $c->detach ('display_invites')
    }
-   unless ($invite->status == Util::INVITE_OPEN()){
+   unless ($invite->status == INVITE_OPEN){
       $c->stash->{msg} = "invite $inv_id not open.";
       $c->detach ('display_invites')
    }
@@ -273,12 +275,12 @@ sub accept_invite :Path('/invite/accept') Args(1){
       player => $c->session->{userid},
    });
    for my $i (@my_invitees){
-      $i->set_column (status => Util::INVITEE_ACCEPTED());
+      $i->set_column (status => INVITEE_ACCEPTED);
       $i->update;
    }
    
    my $open_invitees = $invite->search_related ('invitees', {
-      status => Util::INVITEE_OPEN(),
+      status => INVITEE_OPEN,
    });
    if ($open_invitees->count({})){
       $c->stash->{msg} = "accepted invite $inv_id. invite is still open";
@@ -289,7 +291,7 @@ sub accept_invite :Path('/invite/accept') Args(1){
    my $ruleset = $invite->ruleset;
    my $gid;
    $c->model('DB')->schema->txn_do( sub{
-      $invite->set_column (status => Util::INVITE_ACCEPTED());
+      $invite->set_column (status => INVITE_ACCEPTED);
       $invite->update();
       
       my $game = $c->model('DB::Game')->create({
@@ -300,7 +302,7 @@ sub accept_invite :Path('/invite/accept') Args(1){
       
       # shuffle invitees if random order
       my @tees = $invite->search_related ('invitees',{},{order_by => 'entity DESC'});
-      if ($invite->ent_order == Util::INVITE_ORDER_RANDOM()){
+      if ($invite->ent_order == INVITE_ORDER_RANDOM){
          @tees = shuffle (@tees);
       }
       for (0..$#tees){
@@ -328,11 +330,11 @@ sub reject_invite :Path('invite/reject') Args(1){
       $c->stash->{msg} = "no such invite $inv_id";
       $c->detach ('display_invites')
    }
-   unless ($invite->status == Util::INVITE_OPEN()){
+   unless ($invite->status == INVITE_OPEN){
       $c->stash->{msg} = "invite $inv_id not open.";
       $c->detach ('display_invites')
    }
-   $invite->set_column (status => Util::INVITE_REJECTED());
+   $invite->set_column (status => INVITE_REJECTED);
    $invite->update;
       $c->stash->{msg} = "invite $inv_id rejected";
       $c->detach ('display_invites')

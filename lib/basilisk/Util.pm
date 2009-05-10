@@ -1,47 +1,12 @@
-package Util;
+package basilisk::Util;
 use strict;
 use warnings;
-use basilisk::Proverbs;
 
-# These are different on the span server:
-sub IMG_BASE{'/g'}
-sub URL_BASE{''}
-#sub IMG_BASE{'/basilisk/g'}
-#sub URL_BASE{'/basilisk/go'}
+use parent 'Exporter';
 
-# using 1 byte per intersection in storage, hopefully in the most natural order
-sub EMPTY{0}
-sub BLACK{'b'}
-sub WHITE{'w'}
+our @EXPORT_OK = qw (veryRandShuffle veryRand  random_proverb  pass_hash
+           board_from_text unpack_position empty_board empty_pos pack_board ensure_position_size);
 
-#values for game's status column
-sub RUNNING {1}
-sub FINISHED {2}
-sub PAUSED {3} #unused..
-
-sub INVITEE_OPEN {1}
-sub INVITEE_ACCEPTED {2}
-sub INVITEE_REJECTED {3}
-# not the same as: 
-sub INVITE_OPEN {1}
-sub INVITE_ACCEPTED {2}
-sub INVITE_REJECTED {3}
-
-sub INVITE_ORDER_SPECIFIED {1}
-sub INVITE_ORDER_RANDOM {2}
-
-sub WGAME_ORDER_RANDOM {1}
-sub WGAME_ORDER_PROPOSER_FIRST {2}
-sub WGAME_ORDER_PROPOSER_LAST {3}
-
-sub MESSAGE_NOT_SEEN {1}
-sub MESSAGE_SEEN {2}
-
-#these values are used lot directly. (without being called)
-sub FIN_INTENT_OKAY {0}
-sub FIN_INTENT_FIN {1} #ready to score
-sub FIN_INTENT_SCORED {2}
-sub FIN_INTENT_DROP {3}
 
 our @schroedingo_symbols = qw/
    ☉ ☽ ☿ ♀ ♂ ♃ ♄ ♅ ♆ ♇ ☊ ☋ ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓
@@ -49,23 +14,8 @@ our @schroedingo_symbols = qw/
    ∰ ⇼ ↯ ↻ ℵ ⅆ ₩ € ฿ ᴪ ᵩ ᵪ ᵟ ᴦ Ϡ ϡ ϰ ϼ ᴧ λ ξ π τ χ
    ͼ ζ Ϟ Ω /;
 
-#todo: unused?
+#todo: unuseful?
 our @acceptable_topo = qw/plane cylinder torus mobius klein/;
-
-sub wgame_order_str{
-   my $order = shift;
-   return 'random' if $order == Util::WGAME_ORDER_RANDOM();
-   return 'proposer first' if $order == Util::WGAME_ORDER_PROPOSER_FIRST();
-   return 'proposer first' if $order == Util::WGAME_ORDER_PROPOSER_LAST();
-   die $order;
-}
-
-sub invite_order_str{
-   my $order = shift;
-   return 'random' if $order == Util::INVITE_ORDER_RANDOM();
-   return 'specified' if $order == Util::INVITE_ORDER_SPECIFIED();
-   die $order;
-}
 
 
 #rect-only stuff--mv to rulemap::rect.
@@ -160,4 +110,18 @@ sub pass_hash{ #returns binary md5sum
    return $hash;
 }
 
+sub veryRand{
+   eval "use Math::Random::MT::Auto 'rand'";
+   return rand(shift)
+}
+
+sub veryRandShuffle{
+   eval "use Math::Random::MT::Auto 'shuffle'";
+   return shuffle(@_)
+}
+
+sub random_proverb{
+   require basilisk::Proverbs;
+   return basilisk::Proverbs::random_proverb();
+}
 1;

@@ -23,6 +23,7 @@ requires 'XML::Atom::SimpleFeed';
 requires 'Number::Tolerant';
 requires 'Catalyst::Controller::HTML::FormFu';
 requires 'Template::Plugin::DateTime';
+requires 'Math::Random::MT::Auto';
 
 catalyst;
 

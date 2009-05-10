@@ -1,10 +1,10 @@
 package basilisk::Controller::Root;
-use parent 'Catalyst::Controller::HTML::FormFu';
-
 use strict;
 use warnings;
-use basilisk::Util;
+use parent 'Catalyst::Controller::HTML::FormFu';
 
+use basilisk::Constants qw{IMG_BASE URL_BASE MESSAGE_NOT_SEEN};
+use basilisk::Util qw{random_proverb};
 
 
 # this is so the path doesn't need prefix /root/
@@ -56,8 +56,8 @@ sub default :Path {
 sub end : ActionClass('RenderView') {
    my ( $self, $c ) = @_;
    #set some tt vars for header
-   my $url_base = $c->stash->{url_base} = Util::URL_BASE();
-   my $img_base = $c->stash->{img_base} = Util::IMG_BASE();
+   my $url_base = $c->stash->{url_base} = URL_BASE;
+   my $img_base = $c->stash->{img_base} = IMG_BASE;
    
    if ($c->stash->{message}){ #TT can't do this at runtime?
       $c->stash->{message} =~ s/\[\%\s?url_base\s?\%\]/$url_base/;
@@ -73,10 +73,10 @@ sub end : ActionClass('RenderView') {
    $c->stash->{username} = $c->session->{logged_in} ? $c->session->{name} : 'you';
    $c->session->{num}++;
    $c->stash->{num} = $c->session->{num};
-   $c->stash->{rand_proverb} = \&Util::random_proverb;
+   $c->stash->{rand_proverb} = random_proverb();
    $c->stash->{unseen_count} = $c->model('DB::Message')->count ({
       heareth =>$c->session->{userid},
-      status => Util::MESSAGE_NOT_SEEN(),
+      status => MESSAGE_NOT_SEEN(),
    });
 }
 

@@ -3,10 +3,11 @@ use warnings;
 use Test::More tests => 6;
 use lib qw/lib/;
 use basilisk::Rulemap;
+use basilisk::Util qw/board_from_text/;
 
 {
    my $rulemap = new basilisk::Rulemap::Rect (h=>4,w=>4);
-   my $board = Util::board_from_text (
+   my $board = board_from_text (
       '0000
        0000
        0000
@@ -27,7 +28,7 @@ use basilisk::Rulemap;
 
 { #count territory & death masks
    my $rulemap = new basilisk::Rulemap::Rect (h=>4,w=>4, wrap_ns=>1);
-   my $board = Util::board_from_text (
+   my $board = board_from_text (
       '0b00
        b0b0
        0b00

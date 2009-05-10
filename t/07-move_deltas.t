@@ -2,8 +2,10 @@ use strict;
 use warnings;
 use JSON;
 use Test::More tests => 13;
-
 use lib qw(t/lib lib);
+
+use basilisk::Util qw/board_from_text pack_board/;
+
 use b_schema;
 my $schema = b_schema->init_schema('populate');
 use b_mech;
@@ -12,33 +14,14 @@ my $mech = b_mech->new;
 
 
 
-my @players = map {
-   $schema->resultset('Player')->create( {
-      name=> $_,
-      pass=> Util::pass_hash ($_)
-   })}
-   (qw/redstorm ellpack eggshells/);
-
+my @players = $schema->create_players (qw/redstorm ellpack eggshells/);
 
 
 #begin with an empty board, b and w,
 {
-   my $ruleset = $schema->resultset('Ruleset')->create({
-      h=>6,w=>6,
-      phase_description => '0b 1w',
-   }); #2-player normal
-   
-   my $game = $ruleset->create_related('games',{});
+   my $game = $schema->create_game (6,6, '0b 1w', @players[0,1]);
    my $gid = $game->id;
-   
-   $game->create_related ('player_to_game', {
-      pid  => $players[0]->id, #redstorm
-      entity => 0,
-   });
-   $game->create_related ('player_to_game', {
-      pid  => $players[1]->id, #ellpack
-      entity => 1,
-   });
+   my $ruleset = $game->ruleset;
    
    $mech->get_ok("/game/$gid/deltas");
    is($mech->ct, "text/json", 'correct content type');
@@ -50,14 +33,14 @@ my @players = map {
    #deltas are not cached yet
    #so game/deltas should give initial pos data
    #as first entry in response
-   my $board = Util::board_from_text ( 
+   my $board = board_from_text ( 
    '000000
     0ww000
     000000
     000000
     0b0000
     000000', 6);
-   my $pos_data = Util::pack_board($board);
+   my $pos_data = pack_board($board);
    my $pos_row = $schema->resultset('Position')->create({
       ruleset => $ruleset->id,
       position => $pos_data,
@@ -88,38 +71,25 @@ my @players = map {
 #move enough to make a capture,
 #and then check deltas
 {
-   my $ruleset = $schema->resultset('Ruleset')->create({
-      h=>6,w=>6,
-      phase_description => '0b 1w',
-   }); #2-player normal
+   my $game = $schema->create_game (6,6,'0b 1w', @players[0,1]);
+   my $gid = $game->id;
+   my $ruleset = $game->ruleset;
    
-   my $board = Util::board_from_text ( 
+   my $board = board_from_text ( 
    '000000
     000000
     000000
     000000
     000000
     00000b', 6);
-   my $pos_data = Util::pack_board($board);
+   my $pos_data = pack_board($board);
    my $pos_row = $schema->resultset('Position')->create({
       ruleset => $ruleset->id,
       position => $pos_data,
    });
    
-   my $game = $ruleset->create_related('games',{
-      initial_position => $pos_row->id
-   });
-   my $gid = $game->id;
-   
-   $game->create_related ('player_to_game', {
-      pid  => $players[0]->id, #redstorm
-      entity => 0,
-   });
-   $game->create_related ('player_to_game', {
-      pid  => $players[1]->id, #ellpack
-      entity => 1,
-   });
-   
+   $game->set_column('initial_position' => $pos_row->id);
+   $game->update;
    
    $mech->login_as('redstorm');
    $mech->get_ok("/game/$gid/move/0-1");

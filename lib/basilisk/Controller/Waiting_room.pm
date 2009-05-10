@@ -3,7 +3,10 @@ package basilisk::Controller::Waiting_room;
 use parent 'Catalyst::Controller::HTML::FormFu';
 use strict;
 use warnings;
-#__PACKAGE__->config->{namespace} = '';
+
+use basilisk::Constants qw/URL_BASE
+         WGAME_ORDER_PROPOSER_FIRST WGAME_ORDER_PROPOSER_LAST WGAME_ORDER_RANDOM
+         wgame_order_str/;
 
 
 sub default :Path {
@@ -18,7 +21,7 @@ sub waiting_room :Chained('/') PathPart CaptureArgs(0) Form{
    
    #1st define the form to add waiting games
    my $form = $self->form;
-   $form->action (Util::URL_BASE() .'/waiting_room/add');
+   $form->action (URL_BASE .'/waiting_room/add');
    my $gamecount = $form->element({ 
       type => 'Text', 
       name => 'quantity',
@@ -80,7 +83,7 @@ sub view : PathPart('view') Chained('waiting_room') Args(1) {
    $c->stash->{proposal_info}->{quantity} = $wgame->quantity;
    $c->stash->{proposal_info}->{proposer} = $wgame->proposer;
    $c->stash->{proposal_info}->{rules_desc} = $wgame->ruleset->rules_description;
-   $c->stash->{proposal_info}->{ent_order} = Util::wgame_order_str ($wgame->ent_order);
+   $c->stash->{proposal_info}->{ent_order} = wgame_order_str ($wgame->ent_order);
    
    $c->detach('render');
 }
@@ -96,10 +99,10 @@ sub join : PathPart Chained('waiting_room') Args(1) {
    my $ruleset_id = $wgame->ruleset;
    
    my ($b,$w) = ($wgame->proposer->id, $c->session->{userid});
-   if ($wgame->ent_order == Util::WGAME_ORDER_PROPOSER_LAST()){
+   if ($wgame->ent_order == WGAME_ORDER_PROPOSER_LAST){
       ($b,$w) = ($w,$b)
    }
-   elsif ($wgame->ent_order == Util::WGAME_ORDER_RANDOM()){
+   elsif ($wgame->ent_order == WGAME_ORDER_RANDOM){
       ($b,$w) = ($w,$b) if rand()<.5;
    }
    
@@ -152,11 +155,11 @@ sub add : PathPart Chained('waiting_room') {
       
       # determine who goes first (as black)
       if ($ent_order eq 'p_first'){
-         $ent_order = Util::WGAME_ORDER_PROPOSER_FIRST();
+         $ent_order = WGAME_ORDER_PROPOSER_FIRST;
       } elsif ($ent_order eq 'p_last'){
-         $ent_order = Util::WGAME_ORDER_PROPOSER_LAST();
+         $ent_order = WGAME_ORDER_PROPOSER_LAST;
       } else { #random
-         $ent_order = Util::WGAME_ORDER_RANDOM();
+         $ent_order = WGAME_ORDER_RANDOM;
       }
       
       my $desc = $w .'x'. $h; # description of interesting rules

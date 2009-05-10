@@ -1,12 +1,13 @@
 package basilisk::Schema::Message;
 use base qw/DBIx::Class/;
 
+use basilisk::Constants qw/MESSAGE_NOT_SEEN/;
     
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Message');
 __PACKAGE__->add_columns(
     'id'       => { data_type => 'INTEGER',  is_auto_increment => 1},
-    'status'   => { data_type => 'INTEGER', default_value => Util::MESSAGE_NOT_SEEN()},
+    'status'   => { data_type => 'INTEGER', default_value => MESSAGE_NOT_SEEN},
     'subject'  => { data_type => 'TEXT', is_nullable => 1},
     'message'  => { data_type => 'TEXT', is_nullable => 1},
     'sayeth'   => { data_type => 'INTEGER', is_nullable => 0},

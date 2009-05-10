@@ -1,7 +1,7 @@
 package basilisk::Schema::Invitee;
-use basilisk::Util;
 use base qw/DBIx::Class/;
 
+use basilisk::Constants qw/INVITEE_OPEN INVITEE_ACCEPTED/;
     
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Invitee');
@@ -11,7 +11,7 @@ __PACKAGE__->add_columns(
    player => { data_type => 'INTEGER'},
    
     #open, accepted, rejected ?,expired?
-   status => { data_type => 'INTEGER', default_value => Util::INVITEE_OPEN() },
+   status => { data_type => 'INTEGER', default_value => INVITEE_OPEN },
 );
 
 __PACKAGE__->set_primary_key ('invite', 'entity', 'player');
@@ -26,8 +26,8 @@ sub sqlt_deploy_hook {
 sub status_string{
    my $self = shift;
    my $s = $self->status;
-   return 'open' if $s == Util::INVITEE_OPEN();
-   return 'accepted' if $s == Util::INVITEE_ACCEPTED();
+   return 'open' if $s == INVITEE_OPEN;
+   return 'accepted' if $s == INVITEE_ACCEPTED;
    return 'rejected';
 };
 1

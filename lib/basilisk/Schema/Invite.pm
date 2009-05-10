@@ -1,21 +1,24 @@
 package basilisk::Schema::Invite;
-use basilisk::Util;
+#use basilisk::Util;
 use base qw/DBIx::Class/;
 
-    
+use basilisk::Constants qw/ INVITE_ORDER_RANDOM INVITE_ORDER_SPECIFIED
+         INVITE_OPEN INVITE_ACCEPTED INVITE_REJECTED
+         INVITEE_OPEN/;
+
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Invite');
 __PACKAGE__->add_columns(
    id      => { data_type => 'INTEGER', is_auto_increment => 1},
    ruleset => { data_type => 'INTEGER'},
-   ent_order    => { data_type => 'INTEGER', default_value => Util::INVITE_ORDER_RANDOM()},
+   ent_order    => { data_type => 'INTEGER', default_value => INVITE_ORDER_RANDOM},
    
    #msg     => { data_type => 'TEXT', is_nullable => 1},
    inviter => { data_type => 'INTEGER'},
    time    => { data_type => 'INTEGER'},
    
     #open, accepted, rejected ?,expired?
-   status  => { data_type => 'INTEGER', default_value => Util::INVITE_OPEN() },
+   status  => { data_type => 'INTEGER', default_value => INVITE_OPEN },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -31,21 +34,21 @@ sub sqlt_deploy_hook {
 #used by a template
 sub is_open{
    my $self = shift;
-   $self->status == Util::INVITEE_OPEN();
+   $self->status == INVITEE_OPEN;
 }
 
 sub status_string{
    my $self = shift;
    my $s = $self->status;
-   return 'open' if $s == Util::INVITE_OPEN();
-   return 'accepted' if $s == Util::INVITE_ACCEPTED();
+   return 'open' if $s == INVITE_OPEN;
+   return 'accepted' if $s == INVITE_ACCEPTED;
    return 'rejected';
 };
 sub ent_order_str{
    my $self = shift;
    my $o = $self->ent_order;
-   return 'random' if $o == Util::INVITE_ORDER_RANDOM();
-   return 'specified' if $o == Util::INVITE_ORDER_SPECIFIED();
+   return 'random' if $o == INVITE_ORDER_RANDOM;
+   return 'specified' if $o == INVITE_ORDER_SPECIFIED;
    die $o
 };
 

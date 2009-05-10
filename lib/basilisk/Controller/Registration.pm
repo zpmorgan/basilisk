@@ -4,6 +4,8 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller::HTML::FormFu';
 
+use basilisk::Util qw/pass_hash/;
+
 __PACKAGE__->config->{namespace} = '';
 
 sub login :Global FormConfig('login'){
@@ -26,7 +28,7 @@ sub login :Global FormConfig('login'){
    #form valid..
    my $username = $c->req->param('username');
    my $passwd = $c->req->param('passwd');
-   $passwd = Util::pass_hash $passwd;
+   $passwd = pass_hash $passwd;
    my $player = $c->model('DB::Player')->find ({name => $username});
    unless ($player){
       $c->stash->{msg} = "no such username $username";
@@ -72,8 +74,8 @@ sub register :Global FormConfig {
    my $username = $req->param('username');
    my $passwd = $req->param('passwd');
    my $passwd2 = $req->param('passwd2');
-   $passwd = Util::pass_hash $passwd;
-   $passwd2= Util::pass_hash $passwd2;
+   $passwd = pass_hash $passwd;
+   $passwd2= pass_hash $passwd2;
    
    my $err = '';
    $err .= "Require letter in name.  " unless ($username =~ /[a-zA-Z]/);

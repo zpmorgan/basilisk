@@ -1,10 +1,11 @@
 use strict;
 use warnings;
-use Test::More tests => 5;
+use Test::More tests => 6;
 use lib qw/lib/;
-use basilisk::Util;
+use_ok ('basilisk::Util',
+   qw/unpack_position empty_pos board_from_text pack_board empty_board/);
 
-my $board1 = Util::board_from_text (
+my $board1 = board_from_text (
    '0000
     0000
     0000
@@ -13,7 +14,7 @@ my $board2 = [ map {[0,0,0,0]} (1..4) ];
 is_deeply ($board1, $board2, 'board_from_text test');
 
 
-my $board3 = Util::board_from_text (
+my $board3 = board_from_text (
    'b0b0
     00ww
     ww00
@@ -26,9 +27,9 @@ my $board4 = [
 is_deeply ($board3, $board4, 'board_from_text test2');
 
 
-is (0 x 16, Util::empty_pos(4), 'empty position(packed)');
-is_deeply ($board1, Util::empty_board(4), 'empty board');
+is (0 x 16, empty_pos(4), 'empty position(packed)');
+is_deeply ($board1, empty_board(4), 'empty board');
 
-my $board5 = Util::unpack_position(Util::pack_board($board4), 4);
+my $board5 = unpack_position(pack_board($board4), 4);
 is_deeply ($board4, $board5, 'board-data packing & unpacking test');
 

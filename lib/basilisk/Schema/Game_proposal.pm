@@ -1,6 +1,6 @@
 package basilisk::Schema::Game_proposal;
 
-#use basilisk::Util;
+use basilisk::Constants qw/WGAME_ORDER_RANDOM/;
 
 #games are created elsewhere, since creation data depends heavily on the ruleset used
 
@@ -13,7 +13,7 @@ __PACKAGE__->add_columns(
     quantity  => { data_type => 'INTEGER', default_value => 1},
     ruleset   => { data_type => 'INTEGER'},
     proposer  => { data_type => 'INTEGER'},
-    ent_order     => { data_type => 'INTEGER', default_value => Util::WGAME_ORDER_RANDOM()},
+    ent_order     => { data_type => 'INTEGER', default_value => WGAME_ORDER_RANDOM},
 );
 
 __PACKAGE__->set_primary_key('id');
