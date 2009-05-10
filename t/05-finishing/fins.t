@@ -30,35 +30,11 @@ sub game_finished{
 }
    
    
-my @players = map {
-   $schema->resultset('Player')->create( {
-      name=> $_,
-      pass=> Util::pass_hash ($_)
-   })}
-   (qw/lamp athame bag/);
-
+my @players = $schema->create_players (qw/lamp athame bag/);
 
 {
-   my $ruleset = $schema->resultset('Ruleset')->create({
-      h=>6,w=>6,
-      phase_description => '0b 1w 2r',
-   }); #3-player ffa
-   
-   my $game = $ruleset->create_related('games',{});
+   my $game = $schema->create_game (6,6,'0b 1w 2r',@players);
    $gid = $game->id;
-   
-   $game->create_related ('player_to_game', {
-      pid  => $players[0]->id, #lamp
-      entity => 0,
-   });
-   $game->create_related ('player_to_game', {
-      pid  => $players[1]->id, #athame
-      entity => 1,
-   });
-   $game->create_related ('player_to_game', {
-      pid  => $players[2]->id, #bag
-      entity => 2,
-   });
    
    $mech->login_as('lamp');
    $mech->get_ok("/game/".$game->id."/move/2-2");

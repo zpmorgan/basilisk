@@ -76,4 +76,23 @@ sub create_players{
    }
    return @rows;
 }
+
+sub create_game{
+   my ($self, $h, $w, $pd, @players) = @_;
+   my $ruleset = $self->resultset('Ruleset')->create({
+      h=>6,w=>6,
+      phase_description => $pd,
+   });
+   
+   my $game = $ruleset->create_related('games',{});
+   
+   for (0..$#players){
+      $game->create_related ('player_to_game', {
+         pid  => $players[$_]->id,
+         entity => $_,
+      });
+   }
+   return $game
+}
+
 1
