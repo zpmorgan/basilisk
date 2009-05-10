@@ -146,7 +146,7 @@ sub initial_board{
 
 sub size{
    my $self = shift;
-   return $self->ruleset->h
+   return $self->ruleset->size
 }
 
 sub h{
