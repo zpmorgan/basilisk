@@ -171,7 +171,7 @@ sub games_rss : Global{
    });
    my $feed = XML::Atom::SimpleFeed->new( #TODO: make this a View?
       title   => "$player's Basilisk",
-      link    => 'http://span.uncg.edu/basilisk/go',
+      link    => 'http://www.basiliskgo.com',
     #  link    => { rel => 'self', href => 'http://example.org/atom', },
     #  updated => '2003-12-13T18:30:02Z',
       author  => 'basilisk',
@@ -186,7 +186,7 @@ sub games_rss : Global{
                   :  "$player!";
       $feed->add_entry(
          title     => $opponent,
-         link      => 'http://span.uncg.edu/basilisk/go/game/'.$gid,
+         link      => 'http://www.basiliskgo.com/game/'.$gid,
       );
    }
    $c->response->content_type ('text/xml');
