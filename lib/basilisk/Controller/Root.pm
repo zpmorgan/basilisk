@@ -30,6 +30,7 @@ sub index :Path Args(0) FormConfig('login'){
 # 404
 sub default :Path {
    my ( $self, $c ) = @_;
+   die $c->config->{name};
    my $req = $c->request;
    my @info; # = '<div align="left">';
    push @info, "base: " . $req->base;
