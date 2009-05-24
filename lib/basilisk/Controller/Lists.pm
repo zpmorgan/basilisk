@@ -170,7 +170,7 @@ sub games_rss : Global{
       #$c->stash->{template} = 'games_rss.tt'
    });
    my $feed = XML::Atom::SimpleFeed->new( #TODO: make this a View?
-      title   => "$player's Basilisk",
+      title   => $player . "'s Basilisk",
       link    => 'http://www.basiliskgo.com',
     #  link    => { rel => 'self', href => 'http://example.org/atom', },
     #  updated => '2003-12-13T18:30:02Z',

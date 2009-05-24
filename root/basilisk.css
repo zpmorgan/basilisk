@@ -136,6 +136,16 @@ td.rules_col{
    width:300px;
 }
 
+div.randslide{ 
+   width:12ex;
+}
+
+table.control_panel{}
+
+table.control_panel td{
+   border-width: 0px;
+}
+
  /*</STYLE>*/
  
 

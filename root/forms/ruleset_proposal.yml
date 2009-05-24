@@ -1,65 +1,146 @@
 ---
 elements:
-   - type: Fieldset
-     elements:
-      - type: Select
-        name: topology
-        label: Topology
-        options:
-          - [ 'plane', 'Plane' ]
-          - [ 'cylinder', 'Cylinder' ]
-          - [ 'torus', 'Torus' ]
-          - [ 'mobius', 'Möbius strip' ]
-          - [ 'klein', 'Klein bottle' ]
-      - type: Select
-        name: h
-        label: Height
-        value_range:
-          - ""
-          - 2
-          - 25
-        default: 13
-      - type: Select
-        name: w
-        label: Width
-        value_range:
-          - ""
-          - 2
-          - 25
-        default: 13
-      - type: Select #add other options depending on invite or wgame
-        name: ent_order
-        id: ent_order
-        label: First player
-        options:
-          - ['random', 'random']
-        default: 'random'
-      - type: Checkbox   #Randomness variant
-        name: heisengo
-        id: heisengo_checkbox
-        label: HeisenGo
-      - type: Fieldset
-        id: heisengo_fields
-        elements:
-         - type: Text
-           name: chance_rand_phase
-           label: Chance of a random turn
-           size: 1
-           default: 1
-           constraints:
-            - type: Number
-            - type: Range
-              min: 0
-              max: 1
-         - type: Text
-           name: chance_rand_placement
-           label: Chance of missing on placement
-           size: 1
-           default: 1
-           constraints:
-            - type: Number
-            - type: Range
-              min: 0
-              max: 1
-           
-       
+   - label: Topology
+     name: topology
+     type: Select
+     options:
+       - [ 'plane', 'Plane' ]
+       - [ 'cylinder', 'Cylinder' ]
+       - [ 'torus', 'Torus' ]
+       - [ 'mobius', 'Möbius strip' ]
+       - [ 'klein', 'Klein bottle' ]
+   - label: Height
+     name: h
+     type: Select
+     value_range:
+       - ""
+       - 2
+       - 25
+     default: 13
+   - label: Width
+     name: w
+     type: Select
+     value_range:
+       - ""
+       - 2
+       - 25
+     default: 13
+     
+   - type: Checkbox   #Randomness variant
+     name: heisengo
+     id: heisengo_checkbox
+     label: HeisenGo
+   - type: Checkbox   #Randomness variant
+     name: planckgo
+     id: planckgo_checkbox
+     label: PlanckGo
+   - type: Checkbox   #Randomness variant
+     name: schroedingo
+     id: schroedingo_checkbox
+     label: SchroedinGo
+     
+   - type: Hidden
+     name: hg_chance
+     id: hg_chance
+     default: 0
+     constraints:
+      - type: Number
+      - type: Range
+        min: 0
+        max: 1
+   - type: Hidden
+     name: pg_chance
+     id: pg_chance
+     default: 0
+     constraints:
+      - type: Number
+      - type: Range
+        min: 0
+        max: 1
+     
+   - type: Select
+     name: handicap
+     label: Handicap
+     value_range:
+       - 0
+       - 2
+       - 9
+     default: 0
+   - type: Text
+     name: komi
+     label: Komi
+     size: 4
+     default: 0.5
+   - type: Select
+     name: ko_rule
+     label: Ko rule
+     options:
+       - [ 'situational', 'Situational' ]
+       - [ 'positional', 'Positional' ]
+       - [ 'none', 'None' ]
+     default: situational
+     
+     
+   - type: Select
+     name: pd
+     label: Game cycle
+     options:
+       - [ "0b 1w",    '2-player' ]
+       - [ '0b 1w 2r', '3-player FFA' ]
+       - [ '0b 1w 2b 0w 1b 2w', '3-player zen' ]
+       - [ '0b 1w 2b 3w', '4-player rengo' ]
+       - [ 'other', 'Other' ]
+   - type: Text
+     name: other_cycle
+     label: Other cycle
+     size: 8
+   - type: Text
+     name: entity0
+     label: Entity 0
+     constraints:
+       - Required
+   - type: Text
+     name: entity1
+     label: Entity 1
+     constraints:
+       - Required
+   - type: Text
+     name: entity2
+     label: Entity 2
+   - type: Text
+     name: entity3
+     label: Entity 3
+     
+   - type: Select
+     name: initial
+     label: Initial player
+     id: invite_initial
+     options:
+       - [ 'random', 'random' ]
+       - [ 'specified', 'specified' ]
+   - type: Select
+     name: initial
+     label: Initial player
+     id: waiting_initial
+     options:
+       - [ 'random', 'random' ]
+       - [ 'me', 'Me' ]
+       - [ 'opponent', 'Opponent' ]
+     
+   - label: Quantity
+     name: quantity
+     type: Select
+     value_range:
+       - 1
+       - 9
+     default: 1
+   - label: Message
+     name: message
+     type: Text
+     size: 15
+
+   - type: Submit
+     name: submit
+     value: Submit invitation
+     
+     

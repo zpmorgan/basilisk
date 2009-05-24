@@ -1,8 +1,16 @@
-[%  INCLUDE header %]
+[%  INCLUDE header include_ui=1 %]
+
+
+<div style="align:center">
+
+
+[% INCLUDE proposal_gui %]
 
 
 <script type="text/javascript" src="[%url_base%]/proposal_forms.js"></script>
 
+
+[%#
 <script type="text/javascript">
    //add option for entity order
    $(document).ready(function() {
@@ -12,11 +20,12 @@
       Sego_Lily.add (option1, null);
    });
 </script>
+%]
 
 
-
-[% form %]
 <br>
 <h4><a href="[%url_base%]/invites"> View your invitations </a></h4>
+
+</div> [% #centerer %]
 
 [% INCLUDE footer %]

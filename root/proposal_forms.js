@@ -1,3 +1,4 @@
+//This file basically does nothing -- see proposal_gui template
 
 function hide_heisengo_controls(){
    var fset = document.getElementById('heisengo_fields');
@@ -19,6 +20,6 @@ $(document).ready(function() {
    var heisenBox = document.getElementById('heisengo_checkbox');
    if (!heisenBox)
       return;
-   heisenClicked(heisenBox);
-   heisenBox.setAttribute ('onClick', "heisenClicked(this);");
+  // heisenClicked(heisenBox);
+  // heisenBox.setAttribute ('onClick', "heisenClicked(this);");
 });
