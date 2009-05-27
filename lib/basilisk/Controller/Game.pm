@@ -43,7 +43,8 @@ sub game : Chained('/') CaptureArgs(1){
       $c->go ('invalid_request', ["no game with id $gameid"]);
    }
    $c->stash->{ruleset} = $game->ruleset;
-   $c->forward('build_rulemap');
+   $c->forward('build_rulemap') || die $c->error;
+   die $c->error if $c->error;
    
    my $pos_data = $game->current_position;
    my $h = $game->h;
@@ -434,6 +435,7 @@ sub build_rulemap : Private{
       topology => $topo,
       phase_description => $pd,
    );
+   
    for (@extra_roles){
       $rulemap->apply_rule_role ($_);
    }

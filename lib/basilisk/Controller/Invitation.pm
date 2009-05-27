@@ -72,6 +72,18 @@ sub mail : Global Args(1){
 }
 
 
+#TODO: make this common to both invites and waiting room
+#as a schema::ruleset method..
+sub ruleset_from_query{
+   my ($schema, $req) = @_;
+   my $h = $req->param('h');
+   my $w = $req->param('w');
+   my $topo = $req->param('topology');
+   my $pd = $req->param('phase_description');
+   my $heisen = $req->param('heisengo');
+   
+}
+
 sub invite : Global Form{
    my ($self, $c) = @_;
    $c->detach('login') unless $c->session->{logged_in};
@@ -83,11 +95,6 @@ sub invite : Global Form{
    my $ent0 = $form->get_field({name => 'entity0'});
    $ent0->default ($c->session->{name});
    
-   $form->element({ 
-      type => 'Submit', 
-      name => 'submit',
-      value => 'Submit invitation',
-   });
    $form->process;
    $c->stash->{form} = $form;
    
@@ -101,9 +108,9 @@ sub invite : Global Form{
       if ($pd eq 'other'){
          $pd = $req->param('other');
       }
-      my $msg = $req->param('msg'); #todo: put in form
+      my $msg = $req->param('message'); #'hello have game'
       
-      my $ent_order = $c->req->param('ent_order');
+      my $ent_order = $c->req->param('invite_initial');
       # determine whether ents are randomized
       if ($ent_order eq 'specified'){
          $ent_order = INVITE_ORDER_SPECIFIED;
@@ -117,7 +124,7 @@ sub invite : Global Form{
       #seemingly valid pd
       for my $i (0..$max_entity){
          unless (any {$i == $_} @digits){
-            $c->stash->{msg} = "you must represent all entities: $i @digits";
+            $c->stash->{msg} = "cycle description must represent all entities: $i @digits";
             $c->detach();
          }
       }

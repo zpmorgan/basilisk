@@ -9,6 +9,10 @@ elements:
        - [ 'torus', 'Torus' ]
        - [ 'mobius', 'Möbius strip' ]
        - [ 'klein', 'Klein bottle' ]
+     constraints:
+      - type: AutoSet
+        message: Please, a valid topology...
+       
    - label: Height
      name: h
      type: Select
@@ -82,13 +86,17 @@ elements:
      
      
    - type: Select
-     name: pd
+     name: phase_description
      label: Game cycle
      options:
        - [ "0b 1w",    '2-player' ]
        - [ '0b 1w 2r', '3-player FFA' ]
        - [ '0b 1w 2b 0w 1b 2w', '3-player zen' ]
        - [ '0b 1w 2b 3w', '4-player rengo' ]
+       - [ '0b 0w 1w 1r 2r 2b', '3-player perverse (efficient)' ]
+       - [ '0b 1b 2w 0w 1r 2r', '3-player perverse' ]
+       - [ '0b 1w 2r 1b 2w 0r', '3-player skewed perverse' ]
+       - [ '0b 1w 2r 2r 1w 0b', '3-player skewed FFA' ]
        - [ 'other', 'Other' ]
    - type: Text
      name: other_cycle
