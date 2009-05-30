@@ -19,19 +19,7 @@ sub default :Path {
 sub waiting_room :Chained('/') PathPart CaptureArgs(0) Form{
    my ( $self, $c ) = @_;
    
-   #1st define the form to add waiting games
    my $form = $self->form;
-   $form->action (URL_BASE .'/waiting_room/add');
-   my $gamecount = $form->element({ 
-      type => 'Text', 
-      name => 'quantity',
-      label => 'Quantity',
-      default  => 1,
-      size  => 1,
-   });
-   $gamecount->constraint('Integer');
-   $gamecount->constraint('Required');
-   $gamecount->constraint ({type=> 'Range', min => 1, max => 9});
    $form->load_config_file('ruleset_proposal.yml');
    $form->process;
    $c->stash->{form} = $form;
@@ -132,17 +120,16 @@ sub add_waiting_game: Private{
    my $req = $c->request;
    my $form = $c->stash->{form}; #already validated by formfu
    my $ruleset;
+   
+   my $player = $c->model('DB::Player')->find ({id => $c->session->{userid}});
+   my $other_games_count = $player->count_related ('proposed_games',{});
+   if ($other_games_count >= 5){
+      $c->detach('render',['an arbitrary limit (5) has been reached.']);
+   }
+   
    $c->model('DB')->schema->txn_do(  sub{
-      my $player = $c->model('DB::Player')->find ({id => $c->session->{userid}});
-      my $other_games_count = $player->count_related ('proposed_games',{});
-      if ($other_games_count >= 5){
-         $c->detach('render',['an arbitrary limit (5) has been reached.']);
-      }
-      
-      
-      my $ruleset = $c->forward('ruleset_from_form');
+      my $ruleset = $c->forward ('Game_proposal', 'ruleset_from_form', ['wroom']);
       die $c->stash->{err} unless $ruleset;
-      
       
       my $msg = $req->param('message');
       my $ent_order = $req->param('waiting_initial');

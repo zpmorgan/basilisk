@@ -21,7 +21,7 @@ sub apply{
 #next phase may be random.
 around 'determine_next_phase' => sub {
    my ($orig, $self, $phase, $okay_phases) = @_;
-   if (rand() < $self->chance_random_turn){
+   if (rand() < $self->planckChance){
       return $self->random_phase($okay_phases);
    }
    return $orig->($self, $phase, $okay_phases);

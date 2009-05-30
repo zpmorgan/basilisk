@@ -85,7 +85,7 @@ sub invite : Global Form{
    
    if ($form->submitted_and_valid){
      $c->model('DB')->schema->txn_do(  sub{
-      my $ruleset = $c->forward ('Game_proposal', 'ruleset_from_form');
+      my $ruleset = $c->forward ('Game_proposal', 'ruleset_from_form', ['imvite']);
       die $c->stash->{err} unless $ruleset;
       
       my $msg = $req->param('message');

@@ -107,13 +107,9 @@ elements:
    - type: Text
      name: entity0
      label: Entity 0
-     constraints:
-       - Required
    - type: Text
      name: entity1
      label: Entity 1
-     constraints:
-       - Required
    - type: Text
      name: entity2
      label: Entity 2

@@ -26,7 +26,7 @@ sub apply{
 #find adjacent nodes, and perhaps try moving there randomly
 around 'evaluate_move' => sub{
    my ($orig, $self,  $board, $node, $side) = @_;
-   if (rand() > $self->chance_random_placement){
+   if (rand() > $self->heisenChance){
       return $orig->($self,$board, $node, $side);
    }
    
