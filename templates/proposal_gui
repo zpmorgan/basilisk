@@ -1,0 +1,113 @@
+
+[%# this is a tabbed jquery interface for ruleset selection. %]
+
+
+<style type="text/css">
+   #slider { margin: 10px; }
+</style>
+
+[% IF form.has_errors %]
+   Submission has the following errors:
+   <ul>
+   [% FOREACH err= form.get_errors %]
+      <li> [% err.message %] </li>
+   [% END %]
+   </ul>
+[% END %]
+
+
+[% form.start %]
+[%#<form action="" method="post">%]
+
+<div id="tabs" style="width:650px; height:225px">
+   <ul style="height:44px;">
+      <li><a href="#fragment-General"><span> General </span></a></li>
+      <li><a href="#fragment-Players"><span> Players </span></a></li>
+      <li><a href="#fragment-Random"><span> Randomness </span></a></li>
+   </ul>
+    
+   <div id="fragment-General">
+      <fieldset style="float:left; width:300px">
+         [% form.get_all_element(name => 'h') %]
+         [% form.get_all_element(name => 'w') %]
+         [% form.get_all_element(name => 'topology') %]
+      </fieldset>
+      <fieldset style="float:right; width:300px">
+         [% form.get_all_element(name => 'handicap') %]
+         [% form.get_all_element(name => 'komi') %]
+         [% form.get_all_element(name => 'ko_rule') %]
+      </fieldset>
+   </div>
+    
+   <div id="fragment-Players">
+      <fieldset style="float:left; width:300px">
+         [% IF  proposal_type == 'invite' %]
+            [% form.get_all_element(name => 'phase_description') %]
+            [% form.get_all_element(name => 'other_cycle') %]
+            [% form.get_all_element(id => 'invite_initial') %]
+         [% ELSE %]
+            [% form.get_all_element(id => 'waiting_initial') %]
+         [% END %]
+      </fieldset>
+      <fieldset style="float:right; width:300px">
+         [% IF proposal_type == 'invite' %]
+            [% form.get_all_element(name => 'entity0') %]
+            [% form.get_all_element(name => 'entity1') %]
+            [% form.get_all_element(name => 'entity2') %]
+            [% form.get_all_element(name => 'entity3') %]
+         [% ELSE %]
+            [% form.get_all_element(name => 'quantity') %]
+         [% END %]
+         [% form.get_all_element(name => 'message') %]
+      </fieldset>
+   </div>
+   
+   <div id="fragment-Random">
+   <table style="float:left" class="control_panel">
+      <tr>
+         <td>
+            [% form.get_all_element(name => 'heisengo') %]
+         </td><td>
+            <span id="hg_value_label">0%</span>
+         </td><td>
+            <div id="hg_slider" class="randslide"></div>
+         </td>
+      </tr>
+      
+      <tr>
+         <td>
+            [% form.get_all_element(name => 'schroedingo') %]
+         </td>
+      </tr>
+      
+      <tr>
+         <td>
+            [% form.get_all_element(name => 'planckgo') %]
+         </td><td>
+            <span id="pg_value_label">0%</span>
+         </td><td>
+            <div id="pg_slider" class="randslide"></div>
+         </td>
+      </tr>
+   </table>
+   
+   <table style="float:right" class="control_panel">
+      <div id="dialog" title="Dialog Title">
+         <table id="select cloud!">
+         <tr><td>
+            Cloud alpha
+         </td><td>
+            Cloud batoo
+         </td></tr>
+         </table>
+      </div>
+   </table>
+   </div>
+</div>
+
+[% form.get_all_element(name => 'hg_chance') %]
+[% form.get_all_element(name => 'pg_chance') %]
+[% form.get_all_element(name => 'submit') %]
+
+[% form.end #</form> %]
+

@@ -10,6 +10,7 @@ use basilisk::Util qw/unpack_position pack_board ensure_position_size /;
 use basilisk::Constants qw{ GAME_RUNNING GAME_FINISHED GAME_PAUSED
          FIN_INTENT_DROP FIN_INTENT_FIN FIN_INTENT_OKAY FIN_INTENT_SCORED};
 
+#__PACKAGE__->config->{namespace} = '';
 
 # /game
 sub default :Path {
@@ -30,8 +31,7 @@ sub default :Path {
 
 # /game/14/move/4-4
 # /game/14/pass
-# /game/14/dead/10-9/3-3_4-5_19-19 #or s/dead/alive/
-sub game : Chained('/') CaptureArgs(1){ 
+sub game : Chained('/') PathPart('game') CaptureArgs(1){ 
    my ( $self, $c, $gameid) = @_;
    unless ($gameid ){
       $c->go ('invalid_request', ['please supply a game id']);
@@ -43,9 +43,8 @@ sub game : Chained('/') CaptureArgs(1){
       $c->go ('invalid_request', ["no game with id $gameid"]);
    }
    $c->stash->{ruleset} = $game->ruleset;
-   $c->forward('build_rulemap') || die $c->error;
-   die $c->error if $c->error;
    
+   $c->forward('build_rulemap');
    my $pos_data = $game->current_position;
    my $h = $game->h;
    my $w = $game->w;
@@ -413,18 +412,10 @@ sub build_rulemap : Private{
    my $game = $c->stash->{game};
    my $ruleset = $game->ruleset;
    my $pd = $ruleset->phase_description;
-   my $topo = 'plane';
-   my @extra_rules = $ruleset->extra_rules;
-   my @extra_roles;
-   for my $rulerow (@extra_rules){
-      my $rule = $rulerow->rule;
-      if (grep {$rule eq $_} @basilisk::Util::acceptable_topo){
-         $topo = $rule;
-      }
-      elsif ($rule =~ /^heisengo/){
-         push @extra_roles, $rule;
-      }
-   }
+   
+   my $rules = from_json $ruleset->other_rules;
+   my $topo = $rules->{topo};
+   
    my $rulemap = new basilisk::Rulemap::Rect(
       h => $game->h,
       w => $game->w,
@@ -435,9 +426,14 @@ sub build_rulemap : Private{
       topology => $topo,
       phase_description => $pd,
    );
-   
-   for (@extra_roles){
-      $rulemap->apply_rule_role ($_);
+   if ($rules->{heisengo}){
+      $rulemap->apply_rule_role ('heisengo', $rules->{heisengo});
+   }
+   if ($rules->{planckgo}){
+      $rulemap->apply_rule_role ('planckgo', $rules->{planckgo});
+   }
+   if ($rules->{schroedingo}){
+      $rulemap->apply_rule_role ('schroedingo');
    }
    $c->stash->{rulemap} = $rulemap;
 }

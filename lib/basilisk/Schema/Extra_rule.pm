@@ -6,7 +6,7 @@ __PACKAGE__->table('Extra_rule');
 __PACKAGE__->add_columns(
     'ruleset'    => { data_type => 'INTEGER'},
     'rule'       => { data_type => 'TEXT'},
-    'priority'   => { data_type => 'INTEGER', is_nullable => 1}, #unused!
+    'priority'   => { data_type => 'INTEGER', is_nullable => 1}, #unused! (?)
 );
     #boolean rules: 
     #'wrap_ns' OR 'twist_ns'

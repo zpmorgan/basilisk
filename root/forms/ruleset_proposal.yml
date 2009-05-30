@@ -38,7 +38,7 @@ elements:
      name: planckgo
      id: planckgo_checkbox
      label: PlanckGo
-   - type: Checkbox   #Randomness variant
+   - type: Checkbox   #another cheesy physicist-name variant
      name: schroedingo
      id: schroedingo_checkbox
      label: SchroedinGo
@@ -48,6 +48,7 @@ elements:
      id: hg_chance
      default: 0
      constraints:
+      - type: Required
       - type: Number
       - type: Range
         min: 0
@@ -57,6 +58,7 @@ elements:
      id: pg_chance
      default: 0
      constraints:
+      - type: Required
       - type: Number
       - type: Range
         min: 0

@@ -1,9 +1,9 @@
-[%  INCLUDE header %]
+[%  INCLUDE header include_ui=1 %]
 
 <script type="text/javascript" src="[%url_base%]/proposal_forms.js"></script>
 
 <script type="text/javascript">
-   //add options for entity order
+   //add options for entity order. Silly.
    $(document).ready(function() {
       var Sego_Lily = document.getElementById('ent_order');
       if(!Sego_Lily)
@@ -78,9 +78,10 @@ Info on proposal [%proposal_info.id%]:<br>
 
 [% ELSIF logged_in #proposal form: %]
 
-   Submit a public proposal:
-   [%form.render%]
-
+   <div style="align:center">
+   [% INCLUDE proposal_gui  proposal_type='waiting' %]
+   </div>
+   
 [% END %]
 
 

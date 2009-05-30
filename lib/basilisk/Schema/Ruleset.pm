@@ -1,6 +1,8 @@
 package basilisk::Schema::Ruleset;
 use List::Util;
 use base qw/DBIx::Class/;
+use basilisk::Util qw/cycle_desc to_percent/;
+use JSON;
 
 # Each game could has a 'phase' to determine who's turn it is 
 # Each ruleset has a 'phase description' to describe the recurring sequence of turns
@@ -27,6 +29,8 @@ __PACKAGE__->add_columns(
     'rules_description' => { data_type => 'TEXT', is_nullable => 1 }, #just for humans to read
     #for machines to read & shift phase: #like '0b 1w 2r'
     'phase_description' => { data_type => 'TEXT', default_value => '0b 1w'},
+    #replacing extra_rules table:
+    'other_rules' => { data_type => 'TEXT', is_nullable => 1}, #json, {topo:torus},etc.
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (positions => 'basilisk::Schema::Position', 'ruleset');
@@ -78,4 +82,110 @@ sub size{
    return ($self->h, $self->w);
 }
 
+#dont update, just return it
+sub generate_rules_description_from_extra_rules{
+   my $self = shift;
+   my $h = $self->h;
+   my $w = $self->w;
+   my $topo;
+   my ($heisenChance, $planckChance);
+   my $schroedingo;
+   my $pd = $self->phase_description;
+   my $cycle = cycle_desc($pd);
+   
+   my @extra_rules = $self->extra_rules;
+   
+   for my $rulerow (@extra_rules){
+      my $rule = $rulerow->rule;
+      if (grep {$rule eq $_} @basilisk::Util::acceptable_topo){
+         $topo = $rule;
+      }
+      elsif ($rule =~ /^heisengo ([\.\d]+)/){
+         $heisenChance = $1;
+      }
+      elsif ($rule =~ /^planckgo ([\.\d]+)/){
+         $planckChance = $1;
+      }
+      elsif ($rule eq 'schroedingo'){
+         $planckChance = $1;
+      }
+   }
+   my $desc = $h . 'x' . $w;
+   $desc .= ", $topo" if $topo;
+   if ($heisenChance){
+      $desc .= ', HeisenGo';
+      $desc .= '(' . to_percent($heisenChance) . ')' if $heisenChance != 1;
+   }
+   if ($planckChance){
+      $desc .= ', PlanckGo';
+      $desc .= '(' . to_percent($planckChance) . ')' if $planckChance != 1;
+   }
+   if ($schroedingo){
+      $desc .= ', SchroedinGo';
+   }
+   return $desc;
+}
+
+
+#from other_rules column
+#dont update, just return it
+sub generate_rules_description{
+   my $self = shift;
+   my $rules = from_json ($self->other_rules);
+   my $h = $self->h;
+   my $w = $self->w;
+   my $topo = $rules->{topo};
+   my $heisenChance = $rules->{heisengo};
+   my $planckChance = $rules->{planckgo};
+   my $schroedingo = $rules->{schroedingo};
+   my $pd = $self->phase_description;
+   my $cycle = cycle_desc($pd);
+   
+   my @extra_rules = $self->extra_rules;
+   
+   my $desc = $h . 'x' . $w;
+   $desc .= ", $topo" if $topo ne 'plane';
+   if ($heisenChance){
+      $desc .= ', HeisenGo';
+      $desc .= '(' . to_percent($heisenChance) . ')' if $heisenChance != 1;
+   }
+   if ($planckChance){
+      $desc .= ', PlanckGo';
+      $desc .= '(' . to_percent($planckChance) . ')' if $planckChance != 1;
+   }
+   if ($schroedingo){
+      $desc .= ', SchroedinGo';
+   }
+   return $desc;
+}
+
+
+#either update or just return
+sub generate_other_rules{
+   my ($self,$command) = @_;
+   die "'update' or just 'return'" unless $command;
+   my @extra_rules = $self->extra_rules;
+   my $rules = {topo => 'plane'};
+   
+   for my $rulerow (@extra_rules){
+      my $rule = $rulerow->rule;
+      if (grep {$rule eq $_} @basilisk::Util::acceptable_topo){
+         $rules->{topo} = $rule;
+      }
+      elsif ($rule =~ /^heisengo (\S+),(\S+)$/){
+         $rules->{heisengo} = $1;
+         $rules->{planckgo} = $2;
+      }
+      elsif ($rule =~ /^planckgo (\S+)$/){ #this wont occur..
+         $rules->{planckgo} = $2;
+      }
+      elsif ($rule eq 'schroedingo'){ #this wont occur..
+         $rules->{schroedingo} = 1;
+      }
+   }
+   return $rules if ($command ne 'update');
+   $self->set_column('other_rules', to_json($rules));
+   $self->update;
+   return $rules;
+}
 1

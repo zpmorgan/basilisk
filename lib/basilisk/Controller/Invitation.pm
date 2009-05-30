@@ -65,24 +65,9 @@ sub mail : Global Args(1){
    $msg->update;
    
    $c->stash->{mail} = $msg;
-  #$c->stash->{from} = $msg->sayeth;
-  # $c->stash->{status_means} = \&tee_status_means;
-  # $c->stash->{subject} = $msg->subject;
-  # $c->stash->{invite} = $msg->invite;
 }
 
 
-#TODO: make this common to both invites and waiting room
-#as a schema::ruleset method..
-sub ruleset_from_query{
-   my ($schema, $req) = @_;
-   my $h = $req->param('h');
-   my $w = $req->param('w');
-   my $topo = $req->param('topology');
-   my $pd = $req->param('phase_description');
-   my $heisen = $req->param('heisengo');
-   
-}
 
 sub invite : Global Form{
    my ($self, $c) = @_;
@@ -90,7 +75,7 @@ sub invite : Global Form{
    my $req = $c->request;
    my $form = $self->form;
    $form->load_config_file('ruleset_proposal.yml');
-   $form->load_config_file('cycle_proposal.yml');
+  # $form->load_config_file('cycle_proposal.yml');
    
    my $ent0 = $form->get_field({name => 'entity0'});
    $ent0->default ($c->session->{name});
@@ -99,144 +84,61 @@ sub invite : Global Form{
    $c->stash->{form} = $form;
    
    if ($form->submitted_and_valid){
-      my $h = $req->param('h');
-      my $w = $req->param('w');
-      my $topo = $req->param('topology');
-      my $pd = $req->param('pd');
-      my $heisen = $req->param('heisengo');
-      my ($random_phase, $random_place);
-      if ($pd eq 'other'){
-         $pd = $req->param('other');
-      }
-      my $msg = $req->param('message'); #'hello have game'
+     $c->model('DB')->schema->txn_do(  sub{
+      my $ruleset = $c->forward ('Game_proposal', 'ruleset_from_form');
+      die $c->stash->{err} unless $ruleset;
       
-      my $ent_order = $c->req->param('invite_initial');
+      my $msg = $req->param('message');
+      my $ent_order = $req->param('invite_initial');
       # determine whether ents are randomized
       if ($ent_order eq 'specified'){
          $ent_order = INVITE_ORDER_SPECIFIED;
       } else { #random
          $ent_order = INVITE_ORDER_RANDOM;
       }
-      
-      my @digits = $pd =~ /(\d)/g;
-      my $max_entity =  max(@digits);
-      
-      #seemingly valid pd
-      for my $i (0..$max_entity){
-         unless (any {$i == $_} @digits){
-            $c->stash->{msg} = "cycle description must represent all entities: $i @digits";
-            $c->detach();
-         }
-      }
-      
-      my $desc = $w .'x'. $h; # description of interesting rules
-      $desc .= ", $topo" unless $topo eq 'plane';  #planes are not interesting
-      
-      unless ($pd eq '0b 1w'){ #irregular
-         if ($pd eq '0b 1w 2r'){
-            $desc .= ', 3-FFA';
-         } elsif ($pd eq '0b 1w 2b 3w'){
-            $desc .= ', rengo';
-         } elsif ($pd eq '0b 1w 2b 0w 1b 2w'){
-            $desc .= ', zen';
-         } else{
-            $desc .= ", cycle[$pd]";
-         }
-      }
-      
-      #this is pretty much duplicated in Waiting_room.pm...
-      if ($heisen){
-         $random_phase = $c->req->param('chance_rand_phase') || 0;
-         $random_place = $c->req->param('chance_rand_placement') || 0;
-         if ($random_phase or $random_place){
-            $desc .= ", HeisenGo: ";
-         }
-         if ($random_phase == 1) {
-            $desc .= "random squence of turns";
-         }
-         elsif ($random_phase) {
-            $desc .= "turns " . int($random_phase*100) . "% random";
-         }
-            $desc .= ", " if $random_phase and $random_place;
-         if ($random_place == 1) {
-            $desc .= "inaccurate placement of stones";
-         }
-         elsif ($random_place) {
-            $desc .= "stone placement " . int($random_place*100) . "% inaccurate";
-         }
-      }
-      
-      my @players; #with dupes
-      for my $entnum (0..$max_entity){
-         my $pname = $req->param("entity".$entnum);
-         die "entity".$entnum." required" unless $pname;
-         my $player = $c->model('DB::Player')->find ({name=>$pname});
-         die "no such player $pname" unless $player;
-         push @players, $player;
-      }
-      die "You should include yourself."
-         unless any {$_->id == $c->session->{userid}} @players;
-      
-      $c->model('DB')->schema->txn_do(  sub{
-         my $new_ruleset = $c->model('DB::Ruleset')->create ({ 
-            h => $c->req->param('h'),
-            w => $c->req->param('w'),
-            rules_description => $desc,
-            phase_description => $pd,
-         });
-         unless ($topo eq 'plane'){
-            $new_ruleset->create_related ('extra_rules', {
-               rule => $topo,
-               priority => 1, #this should go
-            });
-         }
-         if ($heisen){
-            #chop off decimal places less than .01
-            my $rph = int($random_phase*100)/100;
-            my $rpl = int($random_place*100)/100;
-            my $heisenRule = "heisengo $rph,$rpl";
-            $new_ruleset->create_related ('extra_rules', {
-               rule => $heisenRule,
-               priority => 2, #this should go?
-            });
-         }
-         my $invite = $c->model('DB::Invite')->create({
-            ruleset => $new_ruleset->id,
-            inviter => $c->session->{userid},
-            time => time,
-            ent_order => $ent_order,
-         });
-         
-         my %already_invited = ($c->session->{userid} => 1);
-         for (0..$max_entity){ 
-            my $to_inviter = $c->session->{userid} == $players[$_]->id;
-            #one invitee for every entity, even if there are 2 of the same player
-            #one message sent to each player, minus the proposer
-            my $invitee = $c->model('DB::Invitee')->create({
-               invite => $invite->id,
-               player => $players[$_]->id,
-               entity => $_,
-               status => $to_inviter ? INVITEE_ACCEPTED : INVITEE_OPEN,
-            });
-            next if $already_invited{$players[$_]->id}++;
-            my $msg = $c->model('DB::Message')->create({
-               subject => "Game invitation from " . $c->session->{name},
-               invite => $invite->id,
-               sayeth => $c->session->{userid},
-               heareth=> $players[$_]->id,
-               time => time,
-               message => $msg,
-            });
-         }
+      my $invite = $c->model('DB::Invite')->create({
+         ruleset => $ruleset->id,
+         inviter => $c->session->{userid},
+         time => time,
+         ent_order => $ent_order,
       });
-      if ($@) { # Transaction failed
+      
+      my $max_entity = $c->stash->{invite_max_entity};
+      die unless defined $max_entity;
+      
+      my @players = @{$c->stash->{invite_players}};
+      my %already_invited = ($c->session->{userid} => 1); #aka seen
+      for (0..$max_entity){
+         my $to_inviter = $c->session->{userid} == $players[$_]->id;
+         #one invitee for every entity, even if there are 2 of the same player
+         #one message sent to each player, minus the proposer
+         $invite->create_related ('invitees',{
+            player => $players[$_]->id,
+            entity => $_,
+            status => $to_inviter ? INVITEE_ACCEPTED : INVITEE_OPEN,
+         });
+         next if $already_invited{$players[$_]->id}++;
+         my $msg = $c->model('DB::Message')->create({
+            subject => "Game invitation from " . $c->session->{name},
+            invite => $invite->id,
+            sayeth => $c->session->{userid},
+            heareth=> $players[$_]->id,
+            time => time,
+            message => $msg,
+         });
+      }
+     }); #/txn
+     if ($@) { # Transaction failed
          die "Failure: $@";
-      }
-      else{
+     }
+     else{
          $c->stash->{msg} = 'invite submitted.';
-      }
+     }
    }
 }
+
+
+
 
 sub display_invites : Path('/invites'){
    my ($self, $c) = @_;
@@ -307,9 +209,9 @@ sub accept_invite :Path('/invite/accept') Args(1){
       });
       $gid = $game->id;
       
-      # shuffle invitees if random order
       my @tees = $invite->search_related ('invitees',{},{order_by => 'entity DESC'});
       if ($invite->ent_order == INVITE_ORDER_RANDOM){
+         # shuffle invitees if random order
          @tees = shuffle (@tees);
       }
       for (0..$#tees){

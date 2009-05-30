@@ -32,15 +32,12 @@ sub waiting_room :Chained('/') PathPart CaptureArgs(0) Form{
    $gamecount->constraint('Integer');
    $gamecount->constraint('Required');
    $gamecount->constraint ({type=> 'Range', min => 1, max => 9});
-   #the other fields:
    $form->load_config_file('ruleset_proposal.yml');
-   my $sbmt = $form->element({ 
-      type => 'Submit', 
-      name => 'submit',
-      value => 'Submit waiting game',
-   });
    $form->process;
    $c->stash->{form} = $form;
+   if ($form->submitted_and_valid) {
+      $c->forward('add_waiting_game');
+   }
 }
 
 sub render: Private{
@@ -130,6 +127,44 @@ sub join : PathPart Chained('waiting_room') Args(1) {
    $c->detach('render');
 }
 
+sub add_waiting_game: Private{
+   my ($self, $c) = @_;
+   my $req = $c->request;
+   my $form = $c->stash->{form}; #already validated by formfu
+   my $ruleset;
+   $c->model('DB')->schema->txn_do(  sub{
+      my $player = $c->model('DB::Player')->find ({id => $c->session->{userid}});
+      my $other_games_count = $player->count_related ('proposed_games',{});
+      if ($other_games_count >= 5){
+         $c->detach('render',['an arbitrary limit (5) has been reached.']);
+      }
+      
+      
+      my $ruleset = $c->forward('ruleset_from_form');
+      die $c->stash->{err} unless $ruleset;
+      
+      
+      my $msg = $req->param('message');
+      my $ent_order = $req->param('waiting_initial');
+      # determine whether ents are randomized
+      if ($ent_order eq 'random'){
+         $ent_order = WGAME_ORDER_RANDOM;
+      } elsif ($ent_order eq 'me'){
+         $ent_order = WGAME_ORDER_PROPOSER_FIRST;
+      } else { #'opponent'
+         $ent_order = WGAME_ORDER_PROPOSER_LAST;
+      }
+      
+      my $proposal = $player->create_related ('proposed_games',{
+         quantity => $c->req->param('quantity'),
+         ruleset => $ruleset->id,
+         ent_order => $ent_order,
+      });
+      $c->stash->{msg} = 'proposal '.$proposal->id.' added';
+   });
+}
+
+#This is to be removed.
 sub add : PathPart Chained('waiting_room') {
    my ($self, $c) = @_;
    unless ($c->session->{logged_in}){

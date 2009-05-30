@@ -5,6 +5,7 @@ use Moose;
 
 use basilisk::Rulemap::Rect;
 use basilisk::Rulemap::Heisengo;
+use basilisk::Rulemap::Planckgo;
 use basilisk::Util;
 use List::MoreUtils qw/all/;
 
@@ -45,10 +46,14 @@ has phase_description => (
 
 # to be extended to fog, atom, etc
 sub apply_rule_role{
-   my ($self, $rule) = @_;
+   my ($self, $rule, $param) = @_;
    if ($rule =~ /^heisengo/){
-      basilisk::Rulemap::Heisengo::apply ($self, $rule);
+      basilisk::Rulemap::Heisengo::apply ($self, $param);
    }
+   elsif ($rule =~ /^planckgo/){
+      basilisk::Rulemap::Planckgo::apply ($self, $param);
+   }
+   else {die $rule} 
 }
 
 

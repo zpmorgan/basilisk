@@ -5,8 +5,9 @@ use warnings;
 use parent 'Exporter';
 
 our @EXPORT_OK = qw (veryRandShuffle veryRand  random_proverb  pass_hash
-           board_from_text unpack_position empty_board empty_pos pack_board ensure_position_size);
-
+           board_from_text unpack_position empty_board empty_pos pack_board ensure_position_size
+           cycle_desc to_percent
+);
 
 our @schroedingo_symbols = qw/
    ☉ ☽ ☿ ♀ ♂ ♃ ♄ ♅ ♆ ♇ ☊ ☋ ♈ ♉ ♊ ♋ ♌ ♍ ♎ ♏ ♐ ♑ ♒ ♓
@@ -124,4 +125,28 @@ sub random_proverb{
    require basilisk::Proverbs;
    return basilisk::Proverbs::random_proverb();
 }
+
+my %cycle_descs = (
+   '0b 1w' => '2-FFA',
+   '0b 1w 2r' => '3-FFA',
+   '0b 1w 2b 3w' => 'rengo',
+   '0b 1w 2b 0w 1b 2w' => 'zen',
+   '0b 0w 1w 1r 2r 2b' => '3-player perverse (efficient)', #haha
+   '0b 1b 2w 0w 1r 2r' => '3-player perverse',
+   '0b 1w 2r 1b 2w 0r' => '3-player skewed perverse',
+   '0b 1w 2r 2r 1w 0b' => '3-player skewed FFA', 
+);
+
+sub cycle_desc{
+   my $pd = shift;
+   return $cycle_descs{$pd};
+}
+
+sub to_percent{
+   my $val = shift;
+   my $perc = $val * 100;
+   $perc = $1 if $perc =~ /^(\d*\.\d)/; #dont be too precise..
+   return $perc . '%'; 
+}
+
 1;

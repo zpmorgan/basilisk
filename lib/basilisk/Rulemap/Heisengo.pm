@@ -10,37 +10,17 @@ has chance_random_turn => (
    default => '0'
 );
 
-has chance_random_placement => (
+has heisenChance => (
    is => 'rw',
    isa => 'Num',
    default => '0'
 );
 
 
-
 sub apply{
-   my ($rulemap, $rule) = @_;
+   my ($rulemap, $param) = @_;
    __PACKAGE__->meta->apply ($rulemap);
-   
-   $rule =~ /^heisengo (.*)$/;
-   my ($randturn, $randplace) = split ',', $1;
-   $rulemap->chance_random_turn ($randturn);
-   $rulemap->chance_random_placement ($randplace);
-}
-
-#next phase may be random.
-around 'determine_next_phase' => sub {
-   my ($orig, $self, $phase, $okay_phases) = @_;
-   if (rand() < $self->chance_random_turn){
-      return $self->random_phase($okay_phases);
-   }
-   return $orig->($self, $phase, $okay_phases);
-};
-
-sub random_phase{
-   my ($self, $okay_phases) = @_;
-#   my @phases = split ' ', $self->phase_description;
-   return $okay_phases->[int rand(@$okay_phases)]
+   $rulemap->heisenChance ($param);
 }
 
 #find adjacent nodes, and perhaps try moving there randomly

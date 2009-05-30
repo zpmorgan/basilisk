@@ -1,0 +1,75 @@
+package basilisk::Controller::Game_proposal;
+#This file contains only private parts.
+
+use parent 'Catalyst::Controller';
+use strict;
+use warnings;
+use List::Util qw/max/;
+use List::MoreUtils qw/any/;
+use JSON;
+
+
+#this is common to both invites and waiting room
+#returns the ruleset row...
+#Should always be nested in a db transaction
+sub ruleset_from_form: Private{
+   my ($self, $c) = @_;
+   my $req = $c->request;
+   my $h = $req->param('h');
+   my $w = $req->param('w');
+   my $topo = $req->param('topology');
+   my ($heisengo,$planckgo,$schroedingo) = @{$req->parameters}{qw/heisengo planckgo schroedingo/};
+   my ($heisenChance, $planckChance) = @{$req->parameters}{qw/hg_chance pg_chance/};
+   
+   my $pd = $req->param('phase_description');
+   if ($pd eq 'other'){
+      $pd = $req->param('other');
+   }
+   my $msg = $req->param('message'); #'hello have game'
+   
+   #verify phases
+   my @digits = $pd =~ /(\d)/g;
+   my $max_entity =  max(@digits);
+   for my $i (0..$max_entity){
+      unless (any {$i == $_} @digits){
+         $c->stash->{err} = "cycle description must represent all entities: $i @digits";
+         return 0;
+      }
+   }
+   $c->stash->{invite_max_entity} = $max_entity;
+   
+   # make sure these players actually exist.
+   my @players;
+   for my $entnum (0..$max_entity){
+      my $pname = $req->param("entity".$entnum);
+      die "entity".$entnum." required" unless $pname;
+      my $player = $c->model('DB::Player')->find ({name=>$pname});
+      die "no such player $pname" unless $player;
+      push @players, $player;
+   }
+   die "You should include yourself."
+      unless any {$_->id == $c->session->{userid}} @players;
+   $c->stash->{invite_players} = \@players;
+   
+   my $rules = {
+      topo => $topo,
+   };
+   $rules->{heisengo} = $heisenChance if $heisengo;
+   $rules->{planckgo} = $planckChance if $planckgo;
+   $rules->{schroedingo} = 1 if $schroedingo;
+   
+   my $ruleset;
+   $ruleset = $c->model('DB::Ruleset')->create ({ 
+      h => $c->req->param('h'),
+      w => $c->req->param('w'),
+      rules_description => 'FOOBEANS',
+      phase_description => $pd,
+      other_rules => to_json($rules),
+   });
+   
+   my $new_desc = $ruleset->generate_rules_description();
+   $ruleset->set_column('rules_description', $new_desc);
+   $ruleset->update();
+   return $ruleset;
+}
+2
