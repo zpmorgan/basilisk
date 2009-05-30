@@ -31,6 +31,7 @@ __PACKAGE__->add_columns(
     'phase_description' => { data_type => 'TEXT', default_value => '0b 1w'},
     #replacing extra_rules table:
     'other_rules' => { data_type => 'TEXT', is_nullable => 1}, #json, {topo:torus},etc.
+    'komi' => { data_type => 'INTEGER', default_value => 0},
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many (positions => 'basilisk::Schema::Position', 'ruleset');

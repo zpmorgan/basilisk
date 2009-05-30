@@ -43,6 +43,11 @@ has phase_description => (
    isa => 'Str',
    default => '0b 1w'
 );
+has komi => (
+   is => 'ro',
+   isa => 'Num',
+   default => '0'
+);
 
 # to be extended to fog, atom, etc
 sub apply_rule_role{
@@ -433,8 +438,8 @@ sub compute_score{
       }
    }
    
-   if ($type eq 'ffa' and @phases == 2){
-      #$side_score{w} += 6.5 worry about these later. it's a big small concern.
+   if ($self->phase_description eq '0b 1w'){
+      $side_score{w} += $self->komi;
    }
    
    if ($type eq 'ffa' or $type eq 'zen' or $type eq 'team'){

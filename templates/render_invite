@@ -24,6 +24,10 @@
       <td> [% invite.ruleset.rules_description %] </td>
    </tr>
    <tr>
+      <td> Komi </td>
+      <td> [% invite.ruleset.komi %] </td>
+   </tr>
+   <tr>
       <td> Ordering </td>
       <td> [% invite.ent_order_str() %] </td>
    </tr>

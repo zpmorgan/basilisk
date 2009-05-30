@@ -178,6 +178,11 @@
    <tr>
       <td colspan="4"> rules: <b>[% rules_description %]</b> </td>
    </tr>
+   [% IF komi %]
+      <tr>
+         <td colspan="4"> komi: <b>[% komi %]</b> </td>
+      </tr>
+   [% END %]
 </table>
 </div>
 </div>

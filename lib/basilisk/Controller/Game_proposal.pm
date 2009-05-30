@@ -20,6 +20,7 @@ sub ruleset_from_form: Private{
    my $topo = $req->param('topology');
    my ($heisengo,$planckgo,$schroedingo) = @{$req->parameters}{qw/heisengo planckgo schroedingo/};
    my ($heisenChance, $planckChance) = @{$req->parameters}{qw/hg_chance pg_chance/};
+   my $komi = $req->param('komi');
    
    my $msg = $req->param('message'); #'hello have game'
    my $pd = '0b 1w';
@@ -40,6 +41,9 @@ sub ruleset_from_form: Private{
          }
       }
       $c->stash->{invite_max_entity} = $max_entity;
+      if ($max_entity>1 and $komi){
+         die "sorry, komi is only applied to 2player games."
+      }
       
       #now make sure these players actually exist.
       my @players;
@@ -64,10 +68,11 @@ sub ruleset_from_form: Private{
    
    my $ruleset;
    $ruleset = $c->model('DB::Ruleset')->create ({ 
-      h => $c->req->param('h'),
-      w => $c->req->param('w'),
+      h => $h,
+      w => $w,
       rules_description => 'FOOBEANS',
       phase_description => $pd,
+      komi => $komi // 0,
       other_rules => to_json($rules),
    });
    

@@ -85,7 +85,7 @@ sub invite : Global Form{
    
    if ($form->submitted_and_valid){
      $c->model('DB')->schema->txn_do(  sub{
-      my $ruleset = $c->forward ('Game_proposal', 'ruleset_from_form', ['imvite']);
+      my $ruleset = $c->forward ('Game_proposal', 'ruleset_from_form', ['invite']);
       die $c->stash->{err} unless $ruleset;
       
       my $msg = $req->param('message');
@@ -151,16 +151,15 @@ sub display_invites : Path('/invites'){
       'invite.status' => INVITE_OPEN,
    });
    
-   my @invites_info;
+   #remove dupes
+   my %seen_inv;
+   my @invites;
    for my $i ($my_invites->all) {
-      push @invites_info, {
-         row => $i,
-         rules => $i->ruleset->rules_description,
-      };
+      next if $seen_inv{$i->id};
+      $seen_inv{$i->id} = 1;
+      push @invites, $i
    }
-  # $c->stash->{invites_info} = \@invites_info;
-   $c->stash->{invites} = [$my_invites->all];
-  # $c->stash->{status_means} = \&tee_status_means; #translate status codes
+   $c->stash->{invites} = \@invites;
    $c->stash->{template} = 'list_invites.tt'
 }
 

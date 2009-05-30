@@ -113,7 +113,9 @@ sub render: Private{
    $c->stash->{to_move_side} = $side;
    $c->stash->{to_move_player} = $c->stash->{game}->player_name_to_move_next;
    $c->stash->{result} = $game->result;
+   
    $c->stash->{rules_description} = $c->stash->{ruleset}->rules_description;
+   $c->stash->{komi} = $c->stash->{ruleset}->komi;
    
    my $comments = $c->forward(qw/basilisk::Controller::Comments all_comments/);
    $c->stash->{json_comments} = to_json ($comments);
@@ -425,6 +427,7 @@ sub build_rulemap : Private{
       twist_ns => ($topo eq 'klein' or $topo eq 'mobius') ?1:0,
       topology => $topo,
       phase_description => $pd,
+      komi => $ruleset->komi,
    );
    if ($rules->{heisengo}){
       $rulemap->apply_rule_role ('heisengo', $rules->{heisengo});
