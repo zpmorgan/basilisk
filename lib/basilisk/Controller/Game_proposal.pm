@@ -42,8 +42,10 @@ sub ruleset_from_form: Private{
          }
       }
       $c->stash->{invite_max_entity} = $max_entity;
-      if ($max_entity>1 and $komi){
-         die "sorry, komi is only applied to 2player games."
+      
+      if ($max_entity>1 and $komi){ 
+         $komi=0;
+         #die "sorry, komi is only applied to 2player games."
       }
       
       #now make sure these players actually exist.

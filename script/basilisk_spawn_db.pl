@@ -62,8 +62,7 @@ $p2g_rs->create({
 my $ruleset_2 = $ruleset_rs->create({
    h => 9,
    w => 9,
- #  wrap_ns => 1,
- #  wrap_ew => 1, #need extra_rule entries for these
+ # other_rules => {topo: foo}
 });
 my $board2 = 
 '000w00000

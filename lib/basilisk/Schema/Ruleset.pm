@@ -84,6 +84,7 @@ sub size{
 }
 
 #dont update, just return it
+#unused
 sub generate_rules_description_from_extra_rules{
    my $self = shift;
    my $h = $self->h;
