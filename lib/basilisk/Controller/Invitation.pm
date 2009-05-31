@@ -89,7 +89,7 @@ sub invite : Global Form{
       die $c->stash->{err} unless $ruleset;
       
       my $msg = $req->param('message');
-      my $ent_order = $req->param('invite_initial');
+      my $ent_order = $req->param('initial');
       # determine whether ents are randomized
       if ($ent_order eq 'specified'){
          $ent_order = INVITE_ORDER_SPECIFIED;

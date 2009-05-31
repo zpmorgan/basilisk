@@ -17,13 +17,13 @@ my @players = $schema->create_players qw/stinky_pete exactly_man pointy_haired_c
 
 $mech->login_as('stinky_pete');
 $mech->get_ok("/invite");
-$mech->content_like (qr/topology.*pd.*entity0/s, "/invite probably has movecycle controls");
+$mech->content_like (qr/topology.*phase_de.*entity0/s, "/invite probably has movecycle controls");
 
 
-$mech->form_with_fields( qw/topology pd entity0/ );
+$mech->form_with_fields( qw/topology phase_description entity0/ );
 $mech->submit_form_ok(
         {fields => {
-            pd => '0b 1w',
+            phase_description => '0b 1w',
             entity0 => 'exactly_man',
             entity1 => 'stinky_pete',
             topology => 'plane',

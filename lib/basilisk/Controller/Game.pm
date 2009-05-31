@@ -415,8 +415,8 @@ sub build_rulemap : Private{
    my $ruleset = $game->ruleset;
    my $pd = $ruleset->phase_description;
    
-   my $rules = from_json $ruleset->other_rules;
-   my $topo = $rules->{topo};
+   my $rules = from_json ($ruleset->other_rules // '{}');
+   my $topo = $rules->{topo} // 'plane';
    
    my $ko_rule = $rules->{ko_rule} // 'situational';
    

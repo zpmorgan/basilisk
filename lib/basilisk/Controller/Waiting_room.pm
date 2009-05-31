@@ -134,7 +134,7 @@ sub add_waiting_game: Private{
       die $c->stash->{err} unless $ruleset;
       
       my $msg = $req->param('message');
-      my $ent_order = $req->param('waiting_initial');
+      my $ent_order = $req->param('initial');
       # determine whether ents are randomized
       if ($ent_order eq 'random'){
          $ent_order = WGAME_ORDER_RANDOM;

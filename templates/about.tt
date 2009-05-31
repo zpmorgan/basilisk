@@ -31,14 +31,14 @@ Games where each player has a unique color and moves only once in a cycle are ca
   <li> Other -- Any cyclic pattern should work.</li>
 </ul>
 
-<h4>"HeisenGo"</h4>
+<h4>Randomness</h4>
 <p>
-HeisenGo is a variant in which 2 elements of uncertainty are introduced:
+The nature of computers allows for elements of uncertainty:
 
 <ol>
-  <li> random sequence of turns -- After each move, the following phase is determined randomly.</li>
+  <li> "HeisenGo": random sequence of turns -- After each move, the following phase is determined randomly.</li>
       <img src="[%img_base%]/randplace.png" style="float:right;">
-  <li> inaccurate placement of stones -- As each stone is placed, it has an equal chance of jumping to each adjacent node as remaining where it was played.</li>
+  <li> "PlanckGo": inaccurate placement of stones -- As each stone is placed, it has an equal chance of jumping to each adjacent node as remaining where it was played.</li>
 </ol>
 <img src="[%img_base%]/randseq.png">
 <p>
