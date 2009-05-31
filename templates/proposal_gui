@@ -33,7 +33,9 @@
          [% form.get_all_element(name => 'topology') %]
       </fieldset>
       <fieldset style="float:right; width:300px">
+         [% IF TODO %]
          [% form.get_all_element(name => 'handicap') %]
+         [% END %]
          [% form.get_all_element(name => 'komi') %]
          [% form.get_all_element(name => 'ko_rule') %]
       </fieldset>
@@ -73,13 +75,13 @@
             <div id="hg_slider" class="randslide"></div>
          </td>
       </tr>
-      
+      [% IF TODO %]
       <tr>
          <td>
             [% form.get_all_element(name => 'schroedingo') %]
          </td>
       </tr>
-      
+      [% END %]
       <tr>
          <td>
             [% form.get_all_element(name => 'planckgo') %]
@@ -91,6 +93,7 @@
       </tr>
    </table>
    
+   [% IF TODO %]
    <table style="float:right" class="control_panel">
       <div id="dialog" title="Dialog Title">
          <table id="select cloud!">
@@ -102,6 +105,7 @@
          </table>
       </div>
    </table>
+   [% END %]
    </div>
 </div>
 
