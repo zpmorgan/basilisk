@@ -21,6 +21,7 @@ sub waiting_room :Chained('/') PathPart CaptureArgs(0) Form{
    
    my $form = $self->form;
    $form->load_config_file('ruleset_proposal.yml');
+   $form->action ($c->uri_for(''));
    $form->process;
    $c->stash->{form} = $form;
    if ($form->submitted_and_valid) {

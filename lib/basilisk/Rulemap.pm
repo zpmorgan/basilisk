@@ -48,6 +48,11 @@ has komi => (
    isa => 'Num',
    default => '0'
 );
+has ko_rule => (
+   is => 'ro',
+   isa => 'Str',
+   default => 'situational',
+);
 
 # to be extended to fog, atom, etc
 sub apply_rule_role{

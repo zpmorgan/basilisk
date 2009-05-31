@@ -418,6 +418,8 @@ sub build_rulemap : Private{
    my $rules = from_json $ruleset->other_rules;
    my $topo = $rules->{topo};
    
+   my $ko_rule = $rules->{ko_rule} // 'situational';
+   
    my $rulemap = new basilisk::Rulemap::Rect(
       h => $game->h,
       w => $game->w,
@@ -428,6 +430,7 @@ sub build_rulemap : Private{
       topology => $topo,
       phase_description => $pd,
       komi => $ruleset->komi,
+      ko_rule => $ko_rule,
    );
    if ($rules->{heisengo}){
       $rulemap->apply_rule_role ('heisengo', $rules->{heisengo});
@@ -443,10 +446,12 @@ sub build_rulemap : Private{
 
 #todo: situational vs positional as an option.. Would anyone care?
 #situational is default now.
-sub detect_duplicate_position{
-   my ($c, $newboard) = @_;
+sub detect_duplicate_position: Private{
+   my ($self, $c, $newboard) = @_;
+   my $ko_rule = $c->stash->{rulemap}->ko_rule;
+   return if $ko_rule eq 'none';
+   
    my $game = $c->stash->{game};
-   #todo, use ruleset...
    my $h = $game->h;
    my $w = $game->w;
    my $newpos = pack_board($newboard, $h, $w);
@@ -464,13 +469,16 @@ sub detect_duplicate_position{
    for my $mv (@similar_moves){
       #situational superko: compare side AND position
       my $side = $game->side_of_phase($mv->phase);
-      next unless $side eq $now_side;
+      if ($ko_rule eq 'situational'){
+         next if $side ne $now_side;
+      }
       #And another position comparison..sqlite seems to get false positives..
       next unless $mv->get_column('oldpos') eq $newpos;
       $c->stash->{oldmove} = $mv;
       return 1
    }
    #no dupes..
+   return 0;
 }
 
 #this wraps the rulemap method to set stash values and detect ko
@@ -486,7 +494,7 @@ sub evaluate_move : Private{
       $c->stash->{eval_move_fail} = $err;
       return
    }
-   if (detect_duplicate_position($c, $newboard)){
+   if ($c->forward('detect_duplicate_position', [$newboard])){
       $c->stash->{eval_move_fail} = 'Ko error: this is a repeating position from move '.$c->stash->{oldmove}->movenum;
       return;
    }

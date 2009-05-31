@@ -21,6 +21,7 @@ sub ruleset_from_form: Private{
    my ($heisengo,$planckgo,$schroedingo) = @{$req->parameters}{qw/heisengo planckgo schroedingo/};
    my ($heisenChance, $planckChance) = @{$req->parameters}{qw/hg_chance pg_chance/};
    my $komi = $req->param('komi');
+   my $ko_rule = $req->param('ko_rule');
    
    my $msg = $req->param('message'); #'hello have game'
    my $pd = '0b 1w';
@@ -65,6 +66,7 @@ sub ruleset_from_form: Private{
    $rules->{heisengo} = $heisenChance if $heisengo;
    $rules->{planckgo} = $planckChance if $planckgo;
    $rules->{schroedingo} = 1 if $schroedingo;
+   $rules->{ko_rule} = $ko_rule if $ko_rule ne 'situational';
    
    my $ruleset;
    $ruleset = $c->model('DB::Ruleset')->create ({ 

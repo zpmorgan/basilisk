@@ -157,6 +157,9 @@ sub generate_rules_description{
    if ($schroedingo){
       $desc .= ', SchroedinGo';
    }
+   if ($rules->{ko_rule}){
+      $desc .= '. Ko rule: ' . $rules->{ko_rule}
+   }
    return $desc;
 }
 
