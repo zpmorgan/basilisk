@@ -135,11 +135,13 @@ my %cycle_descs = (
    '0b 1b 2w 0w 1r 2r' => '3-player perverse',
    '0b 1w 2r 1b 2w 0r' => '3-player skewed perverse',
    '0b 1w 2r 2r 1w 0b' => '3-player skewed FFA', 
+   '0b 1w 0r 1b 0w 1r' => 'inverted zen',
 );
 
 sub cycle_desc{
    my $pd = shift;
-   return $cycle_descs{$pd};
+   return $cycle_descs{$pd} if $cycle_descs{$pd};
+   return "cycle: ($pd)"; #TODO: try harder with basis & aberrations
 }
 
 sub to_percent{

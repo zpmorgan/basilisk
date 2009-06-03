@@ -147,6 +147,9 @@ sub generate_rules_description{
    
    my $desc = $h . 'x' . $w;
    $desc .= ", $topo" if $topo ne 'plane';
+   if ($cycle ne '2-FFA'){
+      $desc .= ", $cycle";
+   }
    if ($heisenChance){
       $desc .= ', HeisenGo';
       $desc .= '(' . to_percent($heisenChance) . ')' if $heisenChance != 1;
