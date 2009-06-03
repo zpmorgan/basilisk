@@ -133,7 +133,7 @@ sub generate_rules_description_from_extra_rules{
 #dont update, just return it
 sub generate_rules_description{
    my $self = shift;
-   my $rules = from_json ($self->other_rules);
+   my $rules = from_json ($self->other_rules // '{}');
    my $h = $self->h;
    my $w = $self->w;
    my $topo = $rules->{topo};
