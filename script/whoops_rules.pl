@@ -28,8 +28,9 @@ for my $ruleset ($rulesets->search({id => {'<=' => 101}})->all){
    my $planckChance = $rules->{heisengo};
    my $heisenChance = $rules->{planckgo};
    $rules->{heisengo} = $heisenChance;
-   $rules->{heisengo} = $planckChance;
-   $ruleset->set_column (other_rules => to_json('rules'));
+   $rules->{planckgo} = $planckChance;
+   $ruleset->set_column (other_rules => to_json($rules));
+   $ruleset->update;
 }
 
 
