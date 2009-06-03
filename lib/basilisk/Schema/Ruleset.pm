@@ -178,8 +178,8 @@ sub generate_other_rules{
          $rules->{topo} = $rule;
       }
       elsif ($rule =~ /^heisengo (\S+),(\S+)$/){
-         $rules->{heisengo} = $1;
-         $rules->{planckgo} = $2;
+         $rules->{heisengo} = $2;
+         $rules->{planckgo} = $1;
       }
       elsif ($rule =~ /^planckgo (\S+)$/){ #this wont occur..
          $rules->{planckgo} = $2;
