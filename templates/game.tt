@@ -4,8 +4,8 @@
 
 <script language="javascript">
 //set a few game globals
-   var gameid = [% gameid %];
-   var my_side = '[% my_side or null %]';
+   gameid = [% gameid %];
+   my_side = '[% my_side or null %]';
    board_clickable = [% board_clickable %];
    
    game_running = [% game_running %];
@@ -16,7 +16,6 @@
    num_moves = [% num_moves %];
    
    [% IF provide_chains %]
-      [%# chains = [% json_chains %];
       delegates = [% json_delegates %];
       delegate_of_stone = [% json_delegate_of_stone %];
       delegate_side = [% json_delegate_side %];

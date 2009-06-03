@@ -1,6 +1,19 @@
 
+var gameid;
+var my_side; //if applicable. todo: rethink
+
+//rect vars:
 var scrolled_ew = 0;
 var scrolled_ns = 0; //up is -
+//set these in templates/game/rectboard:
+var w;
+var h;
+var wrap_ns;
+var wrap_ew;
+var twist_ns;
+
+
+
 var board_clickable;
 var stones_clickable = 0; //determined by mode: score or move or (view?)
 var space_clickable = 0;
@@ -64,22 +77,22 @@ function retire_caleb_clone(){
 var shown_move;
 var deltas; //not necessary to view
 var deltas_loaded;
-var loading=0;
+var deltas_loading=0;
 var node_updates = {}; //state of notable nodes at shown_move
 var updates_from = 'end'; //'begin' after a jump to the beginning.
 
 function time_jump (direction){
    if (num_moves == 0)
       return;
-   if (loading)
+   if (deltas_loading)
       return;
    if (!deltas_loaded){
-      loading=1;
+      deltas_loading=1;
       $.getJSON(url_base + "/game/" + gameid + "/deltas", 
          function(data){
             deltas = data;
             deltas_loaded = 1;
-            loading=0;
+            deltas_loading=0;
             time_jump(direction);
          }
       );

@@ -1,34 +1,14 @@
 
 <script language="javascript">
    //set a few rectangular game globals
-   var w = [% w %];
-   var h = [% h %];
-   var wrap_ns = [% wrap_ns %];
-   var wrap_ew = [% wrap_ew %];
-   var twist_ns = [% twist_ns %];
-   
+   w = [% w %];
+   h = [% h %];
+   wrap_ns = [% wrap_ns %];
+   wrap_ew = [% wrap_ew %];
+   twist_ns = [% twist_ns %];
 </script>
 
-
-
-[% MACRO coordinate_letter_row BLOCK %]
- [% reverse = base AND twist_ns %]
-  <tr>
-   <td><img src="[%img_base%]/blank.gif" width="31" height="25"> </td>
-   [% c=0; WHILE c < w -%]
-     [% IF reverse; letter = c_letter(w-c- 1); ELSE; letter = c_letter(c); END -%]
-     <td> <img src="[%img_base%]/c[% letter %].gif"> </td>
-    [% c=c+1; -%]
-   [% END -%]
-   <td><img src="[%img_base%]/blank.gif" width="31" height="25"> </td>
-  </tr>
-[% END %]
-
-[% MACRO row_number_cell(row) BLOCK -%]
-  <td><img src="[%img_base%]/c[% h +1 - row %].gif"></td>
-[% END %]
-
-
+[% #okay, here put the board in between a few scrolling buttons.  %]
 
 <table class="scrolled_board_view">
  <tr> <td>
@@ -45,9 +25,9 @@
    </td>
   
   <td>
-<table id="board" class="Goban" style="background-image: url([%img_base%]/wood.gif);">
-   [%##### BOARD #####%]
-</table>
+      <table id="board" class="Goban" style="background-image: url([%img_base%]/wood.gif);">
+         [%##### BOARD #####%]
+      </table>
   </td>
 
 [%# resuming controls %]
