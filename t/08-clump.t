@@ -25,5 +25,26 @@ my @players = $schema->create_players (qw/ Izar Shaula Lesath /);
    $mech->login_as ('Izar');
    $mech->get_ok("/game/$gid/move/1-1");
    $mech->content_contains('move is success');
-   #is ($schema->player_to_move($game), 'Shaula'
+   isa_ok ($game, "DBIx::Class::Row");
+   $game = $game->get_from_storage({});
+   is ($game->player_to_move->name, 'Shaula');
+   
+   $mech->login_as ('Shaula');
+   $mech->get_ok("/game/$gid/move/2-2_nw");
+   is ($game->player_to_move->name, 'Izar');
+   my $board = board_from_text (
+      'b0w000
+       0ww000
+       www000
+       000000
+       000000
+       000000', 6);
 }
+
+
+
+
+
+
+
+

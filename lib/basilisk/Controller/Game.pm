@@ -111,7 +111,7 @@ sub render: Private{
    $c->stash->{title} = "Game " . $c->stash->{gameid}.", move " . $game->num_moves;
    
    $c->stash->{to_move_side} = $side;
-   $c->stash->{to_move_player} = $c->stash->{game}->player_name_to_move_next;
+   $c->stash->{to_move_player} = $c->stash->{game}->player_to_move->name;
    $c->stash->{result} = $game->result;
    
    $c->stash->{rules_description} = $c->stash->{ruleset}->rules_description;
