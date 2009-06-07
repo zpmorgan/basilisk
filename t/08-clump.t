@@ -25,8 +25,7 @@ my @players = $schema->create_players (qw/ Izar Shaula Lesath /);
    $mech->login_as ('Izar');
    $mech->get_ok("/game/$gid/move/1-1");
    $mech->content_contains('move is success');
-   isa_ok ($game, "DBIx::Class::Row");
-   $game = $game->get_from_storage({});
+   $game = $game->get_from_storage();
    is ($game->player_to_move->name, 'Shaula');
    
    $mech->login_as ('Shaula');

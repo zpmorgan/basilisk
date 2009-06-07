@@ -23,7 +23,11 @@ Here are your waiting games:
 [% FOR game IN waiting_games %]
    <tr>
       <td> <a href="[%url_base%]/game/[% game.id %]"> [% game.id %] </a> </td>
-      <td> [% game.opponent %] </td>
+      <td> 
+      [% FOR opponent IN game.opponent %]
+         [% opponent.name %]
+      [% END %]
+      </td>
    </tr>
 [% END %]
 </table>
