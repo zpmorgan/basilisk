@@ -2,7 +2,7 @@ package basilisk::Schema::Player;
 use warnings;
 use strict;
 use basilisk::Constants qw/GAME_RUNNING/;
-use List::MoreUtils qw(uniq any indexes);
+use List::MoreUtils qw(uniq any all indexes);
 
 use base qw/DBIx::Class/;
 #use Glicko2;
@@ -59,70 +59,70 @@ sub games_to_move{
    {
       join => {'game' => [{'player_to_game' => 'player'}, 'ruleset']},
       select => [
-         'player.name', 'player.id', 
-         'me.entity', 'me.gid',
-         'phase', #from game
+         'player.name', 'player.id', 'player_to_game.entity',
+         'game.id', 'phase', #from game
          'phase_description', #from ruleset
-         #'player_2.id AS p2id','player_2.name AS p2name',
+         'perturbation', #from game
       ],
-      as => [qw/name pid entity   gid phase pd/],
+      as => [qw/name pid entity   gid phase pd perturbation/],
    });
-   #die ${$omniquery->as_query};
-   #die $omniquery->next->get_columns;
    my %games;
    for my $game ($omniquery->all()){
       my $gid = $game->gid;
       next if $games{$gid};
-      #die $game->get_columns;
       $games{$gid} = {
-         #row => $game,
          id => $gid,
          pd => $game->get_column('pd'),
          phase => $game->get_column('phase'),
          players => {},
+         perturbation => ($game->get_column('perturbation') or $gid),
       };
    }
+   my %seen_ent; #if user has 2+ entities in the same game, rows for that game are repeated 
    for my $p2g ($omniquery->all()){
       my $gid = $p2g->gid;
       next unless $games{$gid};
       
-      my $pid = $p2g->get_column('pid');
-      my $pname = $p2g->get_column('name');
-      my $entity = $p2g->get_column('entity');
+      my ($pid, $pname, $entity) = @{{$p2g->get_columns}}{qw/pid name entity/};
       my ($phase,$pd) = @{{$p2g->get_columns}}{qw/phase pd/};
-      die ($phase,$pd);
+      next if $seen_ent{"$gid $entity"}++;
+      
       my @sides = sides_of_entity ($pd, $entity);
       my @phases = phases_of_entity ($pd, $entity);
-      
-      unless ($pid == $self->id or $all_turnwise){
-         #delete game info from %games, if it's someone else's turn
+      if ($pid != $self->id){
+         next if $all_turnwise;
          if (any {$_ == $phase} @phases){
             delete $games{$gid};
             next;
          }
       }
       
-      $games{$gid}->{players}->{$pid} = {
+      $games{$gid}->{players}->{$entity} = {
          id => $pid,
          name => $pname,
          entity => $entity,
          sides => \@sides,
       };
    }
-   #die join ',',map {$_->{id}} @games;
-   return values %games;
+   #oldest first? sure.
+   my @games = sort {$a->{perturbation} <=> $b->{perturbation}} values %games;
+   #see if user == all opponents.
+   for my $game(@games){
+      if (all {$_->{id} == $self->id} values %{$game->{players}}) {
+         $game->{only_self} = 1
+      }  
+   }
+   return @games;
 }
 
 
 sub sides_of_entity{ 
    my ($pd, $ent) = @_;
-   #my $pd = $self->phase_description;
    my @sides =  $pd =~ /$ent([bwr])/g; 
    return uniq @sides;
 }
 sub phases_of_entity{ 
    my ($pd, $ent) = @_;
-   #my $pd = $self->phase_description;
    my @phases = split ' ', $pd;
    return indexes {$_ =~ /$ent/} @phases;
 }

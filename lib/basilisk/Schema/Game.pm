@@ -12,16 +12,15 @@ use basilisk::Constants qw{ GAME_RUNNING GAME_FINISHED GAME_PAUSED
 __PACKAGE__->load_components(qw/PK::Auto Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
-    'id'             => { data_type => 'INTEGER', is_auto_increment => 1 },
-    'ruleset'        => { data_type => 'INTEGER'},
-    'status'        => { data_type => 'INTEGER', default_value => GAME_RUNNING },
-    'result'        => { data_type => 'TEXT', is_nullable => 1},
-    #'num_moves'      => { data_type => 'INTEGER', default_value => 0 },
-    'initial_position' => { data_type => 'INTEGER', is_nullable => 1 },
-    #phase-- rule description is in ruleset
-    'phase' => { data_type => 'INTEGER', default_value => 0 },
+    id               => { data_type => 'INTEGER', is_auto_increment => 1 },
+    ruleset          => { data_type => 'INTEGER'},
+    status           => { data_type => 'INTEGER', default_value => GAME_RUNNING },
+    result           => { data_type => 'TEXT', is_nullable => 1},
+    initial_position => { data_type => 'INTEGER', is_nullable => 1 },
+    #phase-- phase_description is in ruleset
+    phase => { data_type => 'INTEGER', default_value => 0 },
     #to sort by most recently active, this stores a time.
-    #'perturbation' => { data_type => 'INTEGER', default_value => 0 },
+    perturbation => { data_type => 'INTEGER', default_value => 0 },
 );
 
 __PACKAGE__->set_primary_key('id');
@@ -66,6 +65,7 @@ sub shift_phase{
       $phase = ($self->phase + 1) % $self->ruleset->num_phases
    }
    $self->set_column('phase', $phase);
+   $self->set_column('perturbation', time());
    $self->update;
 }
 sub turn{ #return 'who' and 'what'
@@ -87,7 +87,7 @@ sub num_phases{
 sub last_move{
    my $self = shift;
    my $mvnum = $self->num_moves;
-   return $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
+   return $self->search_related ('moves', {}, {order_by => 'movenum DESC'})->first;
 }
 sub last_move_string{ 
    my $c = shift;
@@ -217,7 +217,7 @@ sub side_of_phase{
 
 sub captures{
    my ($self, $move) = @_;
-   my $last_move = $self->find_related ('moves', {}, {order_by => 'movenum DESC'});
+   my $last_move = $self->search_related ('moves', {}, {order_by => 'movenum DESC'})->first;
    return $last_move->captures if $last_move;
    return join ' ', map {'0'} (1..$self->num_phases); # normally '0 0';
 }
