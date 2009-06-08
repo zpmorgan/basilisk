@@ -18,14 +18,30 @@ And here's your status:<br>
 <br>
 <br>
 
+[% MACRO opponent (p) BLOCK %]
+   [% FOR side IN p.sides %]
+      <img width="11" src="[%img_base%]/[%side%].gif"/>
+   [% END %]
+   <a href="[%url_base%]/userinfo/[% p.id %]"> [% p.name %] </a>
+[% END %]
+
 Here are your waiting games:
 <table>
 [% FOR game IN waiting_games %]
    <tr>
       <td> <a href="[%url_base%]/game/[% game.id %]"> [% game.id %] </a> </td>
-      <td> 
-      [% FOR opponent IN game.opponent %]
-         [% opponent.name %]
+      <td>
+      [% IF game.only_self; opponent(game.players.0) %]
+      [% ELSE; FOR p IN game.players.values %]
+         [% IF p.id != userid %]
+            [% opponent(p) %]
+      [% END; END; END %]
+      </td> 
+      <td>
+      [% IF game.perturbation %]
+         [% #USE date = DateTime(from_epoch = game.perturbation) %]
+         [% USE date %]
+         [% date.format(game.perturbation) %]
       [% END %]
       </td>
    </tr>
