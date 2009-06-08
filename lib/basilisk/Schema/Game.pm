@@ -28,7 +28,8 @@ __PACKAGE__->add_columns(
 #BEGIN
 #UPDATE Game SET num_moves = (SELECT COUNT (*) FROM Move WHERE gid = new.gid) WHERE id=new.gid;
 #END;
-
+#To reset it in every row:
+#update Game set number_of_moves=(SELECT COUNT (*) FROM Move WHERE gid = id);
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid');

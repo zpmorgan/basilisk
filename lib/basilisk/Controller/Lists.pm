@@ -151,9 +151,9 @@ sub games_rss : Global{
       my $moves = $game->{number_moves};
       my $title = "$gid: ";
       if ($game->{only_self}){
-         $title .= $c->session->{name} . '!'
+         $title .= $playername . '!'
       } else {
-         $title .= join ', ', grep {$_ ne $c->session->{name}} map {$_->{name}} @{$game->players};
+         $title .= join ', ', grep {$_ ne $playername} map {$_->{name}} values %{$game->{players}};
       }
       $feed->add_entry(
          title     => $title,
