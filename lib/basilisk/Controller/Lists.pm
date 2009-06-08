@@ -204,6 +204,18 @@ sub entity_to_move{
 sub status :Global{
    my ( $self, $c ) = @_;
    $c->detach('login') unless $c->session->{logged_in};
+   my $player = $c->model('DB::Player')->find({name => $c->session->{name}});
+   
+   my @games = $player->games_to_move;
+   $c->stash->{waiting_games} = \@games;
+   $c->stash->{'template'} = 'status.tt';
+   
+   
+}
+#show list of games where it's the player's turn
+sub status_FOO :Global{
+   my ( $self, $c ) = @_;
+   $c->detach('login') unless $c->session->{logged_in};
    my @games;
    my $pname = $c->session->{name};
    $c->stash->{title} = $pname . '\'s status';

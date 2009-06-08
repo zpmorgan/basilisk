@@ -36,6 +36,45 @@ sub grant_rating{ #initially, before any games, player must have rating
 }
 sub update_rating{
    my $self = shift;
+}
+
+#used for status page, and rss feed.
+#return game id, your side...,
+#opponents in game, with sides,
+#Time of last move is important for both, I think.
+sub games_to_move {
+   my $self = shift;
+   my $name = $self->name;
+   
+   my $relevant_p2g = $self->search_related('player_to_game', 
+   {
+   },{
+      select => ['entity as my_entity'],
+      as => ['entity'],
+   });
+   my $games = $relevant_p2g->search_related ('game', 
+   {
+      status => GAME_RUNNING,
+      phase => 'p2g.entity',
+   },
+   {
+      join => ['ruleset', 'player_to_game'],
+      select => ['me.entity as entity', 'phase', 'game.id as gid', 'ruleset.phase_description as pd'],
+      as =>     ['entity', 'phase', 'gid', 'pd'],
+   });
+   my @opponents = $games->search_related('player_to_game',
+   {
+      'player.name' => {'!=', $name}
+   }, {
+      join => 'player',
+      select => ['player.name as name', 'game.id as gid', 'player.id as pid', 'me.entity'],
+   });
+   my @games;
+   for my $game ($games->all()){
+      push @games, {
+         $game->id,
+      };
+   }
    
 }
 
