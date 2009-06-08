@@ -62,9 +62,9 @@ sub games_to_move{
          'player.name', 'player.id', 'player_to_game.entity',
          'game.id', 'phase', #from game
          'phase_description', #from ruleset
-         'perturbation', #from game
+         'perturbation', 'number_of_moves', #from game
       ],
-      as => [qw/name pid entity   gid phase pd perturbation/],
+      as => [qw/name pid entity   gid phase pd perturbation number_moves/],
    });
    my %games;
    for my $game ($omniquery->all()){
@@ -76,6 +76,7 @@ sub games_to_move{
          phase => $game->get_column('phase'),
          players => {},
          perturbation => ($game->get_column('perturbation') or $gid),
+         number_moves => $game->get_column('number_moves'),
       };
    }
    my %seen_ent; #if user has 2+ entities in the same game, rows for that game are repeated 

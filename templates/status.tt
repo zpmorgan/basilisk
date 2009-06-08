@@ -27,7 +27,14 @@ And here's your status:<br>
 
 Here are your waiting games:
 <table>
-[% FOR game IN waiting_games %]
+  <tr class="headrow">
+    <td> # </td>
+    <td> Players </td>
+    <td> last move </td>
+    <td> moves </td>
+  <tr>
+  
+  [% FOR game IN waiting_games %]
    <tr>
       <td> <a href="[%url_base%]/game/[% game.id %]"> [% game.id %] </a> </td>
       <td>
@@ -44,8 +51,9 @@ Here are your waiting games:
          [% date.format(game.perturbation) %]
       [% END %]
       </td>
+      <td> [% game.number_moves %] </td>
    </tr>
-[% END %]
+  [% END %]
 </table>
 
 [% INCLUDE footer %]

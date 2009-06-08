@@ -21,7 +21,13 @@ __PACKAGE__->add_columns(
     phase => { data_type => 'INTEGER', default_value => 0 },
     #to sort by most recently active, this stores a time.
     perturbation => { data_type => 'INTEGER', default_value => 0 },
+    #use a trigger in db after new moves
+    number_of_moves => { data_type => 'INTEGER', default_value => 0 },
 );
+#Here's the num_moves trigger:
+#BEGIN
+#UPDATE Game SET num_moves = (SELECT COUNT (*) FROM Move WHERE gid = new.gid) WHERE id=new.gid;
+#END;
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');

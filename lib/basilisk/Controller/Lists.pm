@@ -131,73 +131,39 @@ sub games : Global{
    $c->stash->{template} = 'all_games.tt';
 }
 
-
-#All waiting games
 sub games_rss : Global{
-   my ( $self, $c, $player) = @_;
-   my @games;
-   my %opponents;
-   $c->model('DB')->schema->txn_do( sub{
-      my $p = $c->model('DB::Player')->find ({name=>$player});
-      return 'nosuchplayer' unless $p;
-      my $relevant_p2g = $p->search_related('player_to_game', {});
-      my $games = $relevant_p2g->search_related ('game', 
-      {
-         status => GAME_RUNNING,
-      },
-      {
-         join => ['ruleset'],
-         select => ['entity', 'phase', 'game.id', 'ruleset.phase_description'],
-         as =>     ['entity', 'phase', 'gid', 'pd'],
-      });
-      #find opponents:
-      my @all_p2g = $games->search_related ('player_to_game',
-         {},
-         {
-            join => ['player'],
-            select => ['game.id', 'player.name'],
-            as => ['gid', 'name'],
-         }
-      );
-      for (@all_p2g){ # opponents per game
-         my $opponent_name = $_->get_column ('name');
-         next if $opponent_name eq $player;
-         my $gid = $_->get_column ('gid');
-         push @{$opponents{$gid}}, $opponent_name;
-      }
-      @games = grep {entity_to_move ($_->get_column('pd'), $_->phase) == $_->get_column('entity')} $games->all;
-      #$c->stash->{games} = \@games;
-      #$c->stash->{template} = 'games_rss.tt'
-   });
+   my ( $self, $c, $playername) = @_;
+   my $player = $c->model('DB::Player')->find({name => $playername});
+   my @games = $player->games_to_move;
+   
    my $feed = XML::Atom::SimpleFeed->new( #TODO: make this a View?
-      title   => $player . "'s Basilisk",
-      link    => 'http://www.basiliskgo.com',
+      title   => $player->name . "'s Basilisk",
+      link    => $c->uri_for(""),
     #  link    => { rel => 'self', href => 'http://example.org/atom', },
     #  updated => '2003-12-13T18:30:02Z',
       author  => 'basilisk',
       id      => 'urn:uuid:d090fc40-0f95-11de-b50f-0002a5d5c51b',
    );
-   my %seen_games;
-   for (@games){
-      my $gid = $_->get_column('gid');
-      next if $seen_games{$gid}++;
-      my $opponent = $opponents{$gid} 
-                  ?  join (', ', @{$opponents{$gid}}) 
-                  :  "$player!";
+   
+   #my %seen_games;
+   for my $game (@games){
+      my $gid = $game->{id};
+      my $moves = $game->{number_moves};
+      my $title = "$gid: ";
+      if ($game->{only_self}){
+         $title .= $c->session->{name} . '!'
+      } else {
+         $title .= join ', ', grep {$_ ne $c->session->{name}} map {$_->{name}} @{$game->players};
+      }
       $feed->add_entry(
-         title     => $opponent,
-         link      => 'http://www.basiliskgo.com/game/'.$gid,
+         title     => $title,
+         link      => $c->uri_for("game/$gid"),
+         id        => "basilisk game $gid move $moves",
       );
    }
+   
    $c->response->content_type ('text/xml');
    $c->response->body ($feed->as_string);
-   #doesnt use a template
-}
-sub entity_to_move{
-   my ($pd, $phase) = @_;
-   my $p = (split ' ', $pd)[$phase];
-   $p =~ /(\d)/;
-   return $1;
 }
 
 #show list of games where it's the player's turn
