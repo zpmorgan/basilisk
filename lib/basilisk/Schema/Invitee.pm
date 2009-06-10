@@ -3,7 +3,7 @@ use base qw/DBIx::Class/;
 
 use basilisk::Constants qw/INVITEE_OPEN INVITEE_ACCEPTED/;
     
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Invitee');
 __PACKAGE__->add_columns(
    invite => { data_type => 'INTEGER'},

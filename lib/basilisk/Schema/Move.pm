@@ -1,7 +1,7 @@
 package basilisk::Schema::Move;
 use base qw/DBIx::Class/;
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Move');
 __PACKAGE__->add_columns(
     gid         => { data_type => 'INTEGER'},

@@ -16,7 +16,7 @@ use JSON;
 #  0 and 1 are the 'entities', mapped to 'entity' col in p2g table
 # Idea: entities could be something other than players, such as 'random' or 'consensus'
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Ruleset');
 __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },

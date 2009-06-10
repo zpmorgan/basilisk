@@ -8,7 +8,7 @@ use base qw/DBIx::Class/;
 #about 1500 from chess becomes 0 in glicko2, 1700 =>1.1513
 #maybe players with established ratings could serve as anchors to the bgs go ratings
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Rating');
 __PACKAGE__->add_columns(
     id     => { data_type => 'INTEGER', is_auto_increment => 1 },

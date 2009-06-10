@@ -1,7 +1,7 @@
 package basilisk::Schema::Position;
 use base qw/DBIx::Class/;
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Position');
 __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1},

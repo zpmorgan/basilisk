@@ -1,7 +1,9 @@
 package basilisk::Schema::Extra_rule;
 use base qw/DBIx::Class/;
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+#TODO: delete this file & table
+
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Extra_rule');
 __PACKAGE__->add_columns(
     'ruleset'    => { data_type => 'INTEGER'},

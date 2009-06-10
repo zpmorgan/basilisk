@@ -6,7 +6,7 @@ use basilisk::Constants qw/WGAME_ORDER_RANDOM/;
 
 use base qw/DBIx::Class/;
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Game_proposal');
 __PACKAGE__->add_columns(
     id        => { data_type => 'INTEGER', is_auto_increment => 1 },

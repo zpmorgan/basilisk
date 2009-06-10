@@ -9,7 +9,7 @@ use List::MoreUtils qw(uniq);
 use basilisk::Constants qw{ GAME_RUNNING GAME_FINISHED GAME_PAUSED 
          FIN_INTENT_DROP FIN_INTENT_OKAY FIN_INTENT_FIN FIN_INTENT_SCORED};
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
     id               => { data_type => 'INTEGER', is_auto_increment => 1 },

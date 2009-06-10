@@ -6,7 +6,7 @@ use basilisk::Constants qw/ INVITE_ORDER_RANDOM INVITE_ORDER_SPECIFIED
          INVITE_OPEN INVITE_ACCEPTED INVITE_REJECTED
          INVITEE_OPEN/;
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Invite');
 __PACKAGE__->add_columns(
    id      => { data_type => 'INTEGER', is_auto_increment => 1},

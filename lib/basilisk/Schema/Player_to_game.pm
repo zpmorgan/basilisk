@@ -1,7 +1,7 @@
 package basilisk::Schema::Player_to_game;
 use base qw/DBIx::Class/;
 
-__PACKAGE__->load_components(qw/PK::Auto Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Player_to_game');
 __PACKAGE__->add_columns(
     'pid'            => { data_type => 'INTEGER'},
