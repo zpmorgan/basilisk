@@ -1,10 +1,10 @@
 package basilisk::Rulemap::Graph;
-use Mouse;
+use Moose;
 extends 'basilisk::Rulemap';
 
-#TODO: perhaps subclasses fpr polyhedra, streetmaps, lattice, & custom
-# nodes are represented as an integer, from 0 to num_nodes-1.
-# boards are lists of ints representing color: 0=empty,1=b,2=w
+#TODO: perhaps subclasses for polyhedra, streetmaps, lattice, & custom
+# nodes are represented as an integer,
+
 
 sub all_node_coordinates{ #only for graph
    my $self = shift;
@@ -30,7 +30,7 @@ sub graph_stone_at_node{
    return $board->[$node]
 }
 
-#going by the picture in wikipedia..
+#going by the picture in wikipedia.. lol, not used
 #coordinates from 0 to 1
 sub build_20_fullerene{
    my @nodes; #really has planar coordinates (x,y)
