@@ -22,6 +22,7 @@ __PACKAGE__->add_columns(
     'id'            => { data_type => 'INTEGER', is_auto_increment => 1 },
     'h'          => { data_type => 'INTEGER', default_value => '19'},
     'w'          => { data_type => 'INTEGER', default_value => '19'},
+    'streetmap'  => { data_type => 'INTEGER', is_nullable => 1 },
     'handicap'       => { data_type => 'INTEGER', default_value => '0'},
     'initial_time'   => { data_type => 'INTEGER', default_value => '0'},
     'byo'            => { data_type => 'INTEGER', default_value => '0'},
@@ -38,6 +39,7 @@ __PACKAGE__->has_many (positions => 'basilisk::Schema::Position', 'ruleset');
 __PACKAGE__->has_many (games => 'basilisk::Schema::Game', 'ruleset');
 __PACKAGE__->has_many (proposed_games => 'basilisk::Schema::Game_proposal', 'ruleset');
 __PACKAGE__->has_many (extra_rules => 'basilisk::Schema::Extra_rule', 'ruleset');
+__PACKAGE__->has_one (streetmap => 'basilisk::Schema::Streetmap');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;
@@ -81,51 +83,6 @@ sub default_captures_string { #returns '0 0', or '0 0 0 0 0 0' for zen, etc
 sub size{
    my $self = shift;
    return ($self->h, $self->w);
-}
-
-#dont update, just return it
-#unused
-sub generate_rules_description_from_extra_rules{
-   my $self = shift;
-   my $h = $self->h;
-   my $w = $self->w;
-   my $topo;
-   my ($heisenChance, $planckChance);
-   my $schroedingo;
-   my $pd = $self->phase_description;
-   my $cycle = cycle_desc($pd);
-   
-   my @extra_rules = $self->extra_rules;
-   
-   for my $rulerow (@extra_rules){
-      my $rule = $rulerow->rule;
-      if (grep {$rule eq $_} @basilisk::Util::acceptable_topo){
-         $topo = $rule;
-      }
-      elsif ($rule =~ /^heisengo ([\.\d]+)/){
-         $heisenChance = $1;
-      }
-      elsif ($rule =~ /^planckgo ([\.\d]+)/){
-         $planckChance = $1;
-      }
-      elsif ($rule eq 'schroedingo'){
-         $planckChance = $1;
-      }
-   }
-   my $desc = $h . 'x' . $w;
-   $desc .= ", $topo" if $topo;
-   if ($heisenChance){
-      $desc .= ', HeisenGo';
-      $desc .= '(' . to_percent($heisenChance) . ')' if $heisenChance != 1;
-   }
-   if ($planckChance){
-      $desc .= ', PlanckGo';
-      $desc .= '(' . to_percent($planckChance) . ')' if $planckChance != 1;
-   }
-   if ($schroedingo){
-      $desc .= ', SchroedinGo';
-   }
-   return $desc;
 }
 
 

@@ -96,6 +96,13 @@ sub render: Private{
       $c->stash->{edges} = $rulemap->node_adjacency_list;
       $c->stash->{stones} = $board;
    }
+   elsif ($rulemap->topology =~ /^map (\d+)$/){ #streetmap
+      $c->stash->{topo} = 'streetmap';
+      #perhaps these will be accessed directly through the rulemap:
+      #$c->stash->{nodes} = $rulemap->all_node_coordinates;
+      #$c->stash->{edges} = $rulemap->node_adjacency_list;
+      #$c->stash->{stones} = $board;
+   }
    else{ #grid
       $c->stash->{json_board_pos} = $c->forward('json_board_pos');
       $c->stash->{json_initial_board} = $c->forward('json_initial_board');

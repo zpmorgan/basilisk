@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="OpenStreetMap server">
+  <bounds minlat="22.98516" minlon="120.19324" maxlat="22.98874" maxlon="120.19922"/>
+  <node id="296968896" lat="22.9862714" lon="120.1974545" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:52Z"/>
+  <node id="296968910" lat="22.9862641" lon="120.1964389" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:53Z"/>
+  <node id="296968914" lat="22.9863313" lon="120.1954545" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:54Z"/>
+  <node id="296968959" lat="22.9853767" lon="120.1975166" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:52:02Z"/>
+  <node id="296968963" lat="22.9853767" lon="120.1965066" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:52:03Z"/>
+  <node id="265766585" lat="22.9874025" lon="120.1974168" version="1" changeset="482421" user="LouisLiu" uid="32607" visible="true" timestamp="2008-05-19T18:40:09Z">
+    <tag k="created_by" v="JOSM"/>
+  </node>
+  <node id="265766596" lat="22.9874843" lon="120.1951543" version="1" changeset="482421" user="LouisLiu" uid="32607" visible="true" timestamp="2008-05-19T18:40:10Z">
+    <tag k="created_by" v="JOSM"/>
+  </node>
+  <node id="296967350" lat="22.9874644" lon="120.1965193" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:18Z"/>
+  <node id="296967373" lat="22.988642" lon="120.1949704" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:24Z"/>
+  <node id="296967374" lat="22.9875213" lon="120.1949104" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:25Z"/>
+  <node id="296968874" lat="22.9885189" lon="120.1965305" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:46Z"/>
+  <node id="296968877" lat="22.9884675" lon="120.1974539" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:47Z"/>
+  <node id="296968892" lat="22.9863838" lon="120.1983159" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:51Z"/>
+  <node id="296968970" lat="22.9854319" lon="120.1982794" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:52:04Z"/>
+  <node id="256013460" lat="22.9905335" lon="120.1978393" version="5" changeset="740362" user="LouisLiu" uid="32607" visible="true" timestamp="2009-03-05T19:32:56Z">
+    <tag k="created_by" v="JOSM"/>
+  </node>
+  <node id="256013469" lat="22.9816759" lon="120.1975254" version="2" changeset="471106" user="LouisLiu" uid="32607" visible="true" timestamp="2008-05-18T07:21:23Z">
+    <tag k="created_by" v="JOSM"/>
+  </node>
+  <node id="256013465" lat="22.9891579" lon="120.1975053" version="3" changeset="2083950" user="LouisLiu" uid="32607" visible="true" timestamp="2009-08-09T11:45:30Z"/>
+  <node id="265765987" lat="22.9890616" lon="120.1870446" version="1" changeset="482421" user="LouisLiu" uid="32607" visible="true" timestamp="2008-05-19T18:38:11Z">
+    <tag k="created_by" v="JOSM"/>
+  </node>
+  <node id="265766494" lat="22.9856872" lon="120.2057388" version="2" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:53:21Z">
+    <tag k="created_by" v="JOSM"/>
+  </node>
+  <node id="265766597" lat="22.9897741" lon="120.181075" version="1" changeset="482421" user="LouisLiu" uid="32607" visible="true" timestamp="2008-05-19T18:40:11Z">
+    <tag k="created_by" v="JOSM"/>
+  </node>
+  <node id="296967340" lat="23.0013572" lon="120.2004968" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:14Z"/>
+  <node id="296967343" lat="22.992998" lon="120.1974335" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:15Z"/>
+  <node id="296967344" lat="22.9907538" lon="120.1968804" version="2" changeset="740362" user="LouisLiu" uid="32607" visible="true" timestamp="2009-03-05T19:32:54Z"/>
+  <node id="296967346" lat="22.9816772" lon="120.1965947" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:17Z"/>
+  <node id="296967351" lat="22.9880864" lon="120.2017598" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:19Z"/>
+  <node id="296967355" lat="22.9726761" lon="120.1977917" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:20Z"/>
+  <node id="296967363" lat="22.9980573" lon="120.1977346" version="2" changeset="686093" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-23T17:02:08Z"/>
+  <node id="296967370" lat="22.993225" lon="120.1961712" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:22Z"/>
+  <node id="296967371" lat="22.9909836" lon="120.1956109" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:23Z"/>
+  <node id="296967376" lat="22.9816873" lon="120.1950704" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:26Z"/>
+  <node id="296967388" lat="22.9749782" lon="120.1976866" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:47:29Z"/>
+  <node id="296967368" lat="22.9951265" lon="120.1965873" version="2" changeset="2596126" user="LouisLiu" uid="32607" visible="true" timestamp="2009-09-23T15:38:16Z"/>
+  <node id="296968630" lat="22.9850536" lon="120.2041332" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:15Z"/>
+  <node id="296968634" lat="22.9859637" lon="120.2042447" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:16Z"/>
+  <node id="296968654" lat="22.982584" lon="120.1974966" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:20Z"/>
+  <node id="296968658" lat="22.9825504" lon="120.1966133" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:21Z"/>
+  <node id="296968736" lat="22.9814794" lon="120.1974986" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:32Z"/>
+  <node id="296968811" lat="22.9814563" lon="120.1950471" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:42Z"/>
+  <node id="296968820" lat="22.9814955" lon="120.1966037" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:43Z"/>
+  <node id="296968831" lat="22.9852758" lon="120.2000831" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:44Z"/>
+  <node id="296968845" lat="22.9862569" lon="120.2003055" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:44Z"/>
+  <node id="296968881" lat="22.9882191" lon="120.2002084" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:48Z"/>
+  <node id="296968885" lat="22.9859771" lon="120.204088" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:49Z"/>
+  <node id="296968889" lat="22.9863613" lon="120.2017317" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:50Z"/>
+  <node id="296968917" lat="22.9863484" lon="120.1999645" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:54Z"/>
+  <node id="296968923" lat="22.9861096" lon="120.2030455" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:56Z"/>
+  <node id="296968929" lat="22.9827048" lon="120.2044365" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:57Z"/>
+  <node id="296968934" lat="22.9841027" lon="120.2047006" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:58Z"/>
+  <node id="296968938" lat="22.9845066" lon="120.2044987" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:51:58Z"/>
+  <node id="296968943" lat="22.9849415" lon="120.2045919" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:52:00Z"/>
+  <node id="296968947" lat="22.9850983" lon="120.2039662" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:52:01Z"/>
+  <node id="296968955" lat="22.9853051" lon="120.2017395" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T16:52:02Z"/>
+  <node id="296972742" lat="22.9834028" lon="120.2045512" version="1" changeset="633860" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-14T17:02:13Z"/>
+  <node id="296972735" lat="22.9898704" lon="120.1976309" version="2" changeset="2083950" user="LouisLiu" uid="32607" visible="true" timestamp="2009-08-09T11:45:30Z"/>
+  <node id="299305872" lat="23.0001008" lon="120.200085" version="1" changeset="686093" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-23T17:01:00Z"/>
+  <node id="299305942" lat="22.9975872" lon="120.1990919" version="1" changeset="686093" user="LouisLiu" uid="32607" visible="true" timestamp="2008-09-23T17:01:09Z"/>
+  <node id="355961464" lat="22.9880598" lon="120.1920012" version="1" changeset="740362" user="LouisLiu" uid="32607" visible="true" timestamp="2009-03-05T19:31:33Z"/>
+  <node id="506230551" lat="22.9916328" lon="120.1957732" version="1" changeset="2596126" user="LouisLiu" uid="32607" visible="true" timestamp="2009-09-23T15:38:10Z"/>
+  <node id="506230564" lat="22.9948046" lon="120.1980864" version="1" changeset="2596126" user="LouisLiu" uid="32607" visible="true" timestamp="2009-09-23T15:38:10Z"/>
+  <node id="506230565" lat="23.0005374" lon="120.1987972" version="1" changeset="2596126" user="LouisLiu" uid="32607" visible="true" timestamp="2009-09-23T15:38:10Z"/>
+  <node id="506230638" lat="23.0021268" lon="120.2002734" version="1" changeset="2596126" user="LouisLiu" uid="32607" visible="true" timestamp="2009-09-23T15:38:14Z"/>
+  <node id="506230639" lat="23.0022681" lon="120.1999798" version="1" changeset="2596126" user="LouisLiu" uid="32607" visible="true" timestamp="2009-09-23T15:38:14Z"/>
+  <node id="520061465" lat="22.9800231" lon="120.1975407" version="1" changeset="2736265" user="theonlytruth" uid="67931" visible="true" timestamp="2009-10-04T13:56:59Z"/>
+  <node id="520059199" lat="22.9833575" lon="120.1975021" version="1" changeset="2736265" user="theonlytruth" uid="67931" visible="true" timestamp="2009-10-04T13:56:08Z"/>
+  <node id="520059224" lat="22.9833579" lon="120.1965828" version="1" changeset="2736265" user="theonlytruth" uid="67931" visible="true" timestamp="2009-10-04T13:56:09Z"/>
+  <node id="520059451" lat="22.9840529" lon="120.1965548" version="1" changeset="2736265" user="theonlytruth" uid="67931" visible="true" timestamp="2009-10-04T13:56:14Z"/>
+  <node id="529941991" lat="22.9782553" lon="120.1952033" version="1" changeset="2836868" user="LouisLiu" uid="32607" visible="true" timestamp="2009-10-13T15:48:14Z"/>
+  <node id="529941992" lat="22.9781027" lon="120.1952108" version="1" changeset="2836868" user="LouisLiu" uid="32607" visible="true" timestamp="2009-10-13T15:48:14Z"/>
+  <node id="529941993" lat="22.9798198" lon="120.1975466" version="1" changeset="2836868" user="LouisLiu" uid="32607" visible="true" timestamp="2009-10-13T15:48:14Z"/>
+  <node id="529942011" lat="22.9922535" lon="120.1959284" version="1" changeset="2836868" user="LouisLiu" uid="32607" visible="true" timestamp="2009-10-13T15:48:15Z"/>
+  <way id="24452792" visible="true" timestamp="2009-03-05T19:33:43Z" version="3" changeset="740362" user="LouisLiu" uid="32607">
+    <nd ref="265766585"/>
+    <nd ref="296967350"/>
+    <nd ref="265766596"/>
+    <nd ref="296967374"/>
+    <nd ref="355961464"/>
+    <nd ref="265765987"/>
+    <nd ref="265766597"/>
+    <tag k="created_by" v="JOSM"/>
+    <tag k="highway" v="tertiary"/>
+  </way>
+  <way id="27067517" visible="true" timestamp="2009-10-13T15:48:25Z" version="3" changeset="2836868" user="LouisLiu" uid="32607">
+    <nd ref="506230565"/>
+    <nd ref="296967363"/>
+    <nd ref="296967368"/>
+    <nd ref="296967370"/>
+    <nd ref="529942011"/>
+    <nd ref="506230551"/>
+    <nd ref="296967371"/>
+    <nd ref="296967373"/>
+    <nd ref="296967374"/>
+    <nd ref="296967376"/>
+    <nd ref="296968811"/>
+    <nd ref="529941991"/>
+    <nd ref="529941992"/>
+    <tag k="highway" v="road"/>
+  </way>
+  <way id="27067576" visible="true" timestamp="2008-09-14T16:52:51Z" version="1" changeset="633860" user="LouisLiu" uid="32607">
+    <nd ref="296967351"/>
+    <nd ref="296968881"/>
+    <nd ref="296968877"/>
+    <nd ref="296968874"/>
+    <nd ref="296967373"/>
+    <tag k="highway" v="road"/>
+  </way>
+  <way id="27067577" visible="true" timestamp="2008-09-14T16:52:52Z" version="1" changeset="633860" user="LouisLiu" uid="32607">
+    <nd ref="265766494"/>
+    <nd ref="296968634"/>
+    <nd ref="296968885"/>
+    <nd ref="296968923"/>
+    <nd ref="296968889"/>
+    <nd ref="296968845"/>
+    <nd ref="296968917"/>
+    <nd ref="296968892"/>
+    <nd ref="296968896"/>
+    <nd ref="296968910"/>
+    <nd ref="296968914"/>
+    <tag k="highway" v="road"/>
+  </way>
+  <way id="27067579" visible="true" timestamp="2008-09-14T17:02:44Z" version="2" changeset="633860" user="LouisLiu" uid="32607">
+    <nd ref="296968929"/>
+    <nd ref="296972742"/>
+    <nd ref="296968934"/>
+    <nd ref="296968938"/>
+    <nd ref="296968943"/>
+    <nd ref="296968630"/>
+    <nd ref="296968947"/>
+    <nd ref="296968955"/>
+    <nd ref="296968831"/>
+    <nd ref="296968970"/>
+    <nd ref="296968959"/>
+    <nd ref="296968963"/>
+    <tag k="highway" v="road"/>
+  </way>
+  <way id="27067516" visible="true" timestamp="2009-10-04T13:56:58Z" version="4" changeset="2736265" user="theonlytruth" uid="67931">
+    <nd ref="506230639"/>
+    <nd ref="506230638"/>
+    <nd ref="296967340"/>
+    <nd ref="299305872"/>
+    <nd ref="299305942"/>
+    <nd ref="506230564"/>
+    <nd ref="296967343"/>
+    <nd ref="296967344"/>
+    <nd ref="296968874"/>
+    <nd ref="296967350"/>
+    <nd ref="296968910"/>
+    <nd ref="296968963"/>
+    <nd ref="520059451"/>
+    <nd ref="520059224"/>
+    <nd ref="296968658"/>
+    <nd ref="296967346"/>
+    <nd ref="296968820"/>
+    <tag k="highway" v="road"/>
+  </way>
+  <way id="38755025" visible="true" timestamp="2009-10-13T15:48:26Z" version="3" changeset="2836868" user="LouisLiu" uid="32607">
+    <nd ref="256013460"/>
+    <nd ref="296972735"/>
+    <nd ref="256013465"/>
+    <nd ref="296968877"/>
+    <nd ref="265766585"/>
+    <nd ref="296968896"/>
+    <nd ref="296968959"/>
+    <nd ref="520059199"/>
+    <nd ref="296968654"/>
+    <nd ref="256013469"/>
+    <nd ref="296968736"/>
+    <nd ref="520061465"/>
+    <nd ref="529941993"/>
+    <nd ref="296967388"/>
+    <nd ref="296967355"/>
+    <tag k="name" v="Simen Rd. Section 1"/>
+    <tag k="name:zh" v="西門路一段"/>
+    <tag k="highway" v="tertiary"/>
+  </way>
+</osm>
