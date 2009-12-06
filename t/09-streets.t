@@ -1,6 +1,6 @@
 use strict;
 use warnings;
-use Test::More tests => 7;
+use Test::More tests => 8;
 use lib qw|t/lib lib|;
 use basilisk::Rulemap::Streets;
 use basilisk::Streets;
@@ -22,11 +22,13 @@ my $streets = basilisk::Streets->new(
 $streets->fetch;
 is (ref $streets->{data}{way}, 'ARRAY', 'ways read in an array');
 is (ref $streets->{data}{node}, 'HASH', 'nodes read in a hash');
+ok (exists $streets->{data}{node}{296968914}{id}, 'node ids are included in the hashes in {data}{node}');
+ok (exists $streets->{data}{node}{296968914}, 'specific node included');
 is ($streets->{data}{way}->[0]{nd}[0], 265766585, 'ValueAttr behaves correctly for one node...');
 is (values %{$streets->{data}{node}}, 70, 'correct number of initial nodes = 70');
 
 
 $streets->process;
 
-is (values %{$streets->{data}{node}}, 70, 'correct number of processed nodes = 10');
+is (values %{$streets->{data}{node}}, 10, 'correct number of processed nodes = 10');
 

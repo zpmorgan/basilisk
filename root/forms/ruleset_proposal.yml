@@ -9,6 +9,7 @@ elements:
        - [ 'torus', 'Torus' ]
        - [ 'mobius', 'Möbius strip' ]
        - [ 'klein', 'Klein bottle' ]
+       - [ 'streetmap', 'Street map' ]
      constraints:
       - type: AutoSet
         message: Please, a valid topology...
@@ -150,7 +151,7 @@ elements:
        - [ 'me', 'Me' ]
        - [ 'opponent', 'Opponent' ]
      
-   - label: Quantity
+   - label: Number of games.
      name: quantity
      type: Select
      value_range:
