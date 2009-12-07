@@ -7,8 +7,12 @@ use Math::Trig qw/acos pi rad2deg/;
 use Imager;
 #This module fetches & processes & inserts street map data from openstreetmaps.
 
-has osc_file => (
+has osm_filename => (
    is => 'ro',
+   isa => 'Str',
+);
+has osm_src => (
+   is => 'rw',
    isa => 'Str',
 );
 
@@ -25,13 +29,16 @@ has w => (is => 'ro',isa => 'Num',lazy => 1, default => sub{$_[0]->maxlon - $_[0
 
 sub fetch {
    my $self = shift;
-   if ($self->osc_file){
-      my $ref = XMLin ($self->osc_file, 
-         #ForceArray => [ 'way' ],
+   if ($self->osm_filename){
+      eval "use File::Slurp";
+      my $src = read_file ($self->osm_filename);
+      my $ref = XMLin ($src, 
+         ForceArray => [ 'tag' ],
          KeyAttr => { node => '+id' },
          ValueAttr => [ 'value', 'ref' ],
       );
       $self->data($ref);
+      $self->osm_src($src);
    }
    else {die}
 }
@@ -54,15 +61,20 @@ sub process{
    #}
    #Actually forget Ways, just use the nodes, with sequential connections from the ways :)
    for my $way (@$ways){
+      #only roads
+      next unless grep {$_->{k} eq 'highway'} @{$way->{tag}};
       for my $i (1..$#{$way->{nd}}){
          my $m = $way->{nd}[$i-1];
          my $n = $way->{nd}[$i];
-         next unless $nodes->{$n} and $nodes->{$m};
+         #see if it's a building or something.
+         unless ($nodes->{$n} and $nodes->{$m}){
+            next;
+         }
          $nodes->{$n}{ref}{$m} = $nodes->{$m};
          $nodes->{$m}{ref}{$n} = $nodes->{$n};
       }
    }
-   #now delete those which are out of the map
+   #now delete those which are out of the map 
    for my $node (values %$nodes){
       next if $node->{lat} < $self->maxlat
           and $node->{lat} > $self->minlat
@@ -83,7 +95,7 @@ sub process{
          #my $node = $nodes->{$key};
          my @others = values %{$node->{ref}};
          if (@others < 2){ #delete.
-            $fin=1;
+            $fin=0;
             delete $others[0]->{ref}->{$node->{id}};
             delete $nodes->{$node->{id}};
             next;
@@ -103,7 +115,7 @@ sub process{
          }
       }
    }
-   $self->draw;
+   #$self->draw;
    #warn join "\n", map {$_->{id}} values %$nodes;
 }
 
@@ -150,7 +162,16 @@ sub draw{
 
 sub insert_dbic{
    my ($self, $schema) = @_;
-   
+   my $rs = $schema->resultset('basilisk::Schema::Streetmap');
+   $rs->create({
+      name => 'spoo',
+      data => Storable::nfreeze $self->data,
+      original_osm => $self->osm_src,
+      minlon => $self->minlon,
+      minlat => $self->minlat,
+      maxlon => $self->maxlon,
+      maxlat => $self->maxlat,
+   });
 }
 
 
