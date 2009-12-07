@@ -2,7 +2,7 @@ package basilisk::Streets;
 use Moose;
 use XML::Simple;
 use Modern::Perl;
-use List::Util qw/shuffle/;
+use List::Util qw/shuffle sum min/;
 use Math::Trig qw/acos pi rad2deg/;
 use Imager;
 #This module fetches & processes & inserts street map data from openstreetmaps.
@@ -26,6 +26,12 @@ has maxlat => (is=>'ro', isa=>'Num',lazy=>1,default=> sub {$_[0]->data->{bounds}
 has maxlon => (is=>'ro', isa=>'Num',lazy=>1,default=> sub {$_[0]->data->{bounds}{maxlon}} );
 has h => (is => 'ro',isa => 'Num',lazy => 1, default => sub{$_[0]->maxlat - $_[0]->minlat} );
 has w => (is => 'ro',isa => 'Num',lazy => 1, default => sub{$_[0]->maxlon - $_[0]->minlon} );
+
+has congeal_dist => ( #todo: base this on size of stone in pixels.
+   is => 'ro',isa => 'Num', lazy => 1,
+   default => sub{ my $self=shift; 
+               return (min($self->h, $self->w)/20) }
+);
 
 sub fetch {
    my $self = shift;
@@ -92,31 +98,92 @@ sub process{
    until ($fin){
       $fin=1;
       for my $node (shuffle values %$nodes){
-         #my $node = $nodes->{$key};
+         die 'blah' if $node->{ref}{$node->{id}};
+         #skip if already deleted
+         next unless $nodes->{$node->{id}};
          my @others = values %{$node->{ref}};
          if (@others < 2){ #delete.
             $fin=0;
-            delete $others[0]->{ref}->{$node->{id}};
+            delete $others[0]->{ref}->{$node->{id}} if $others[0];
             delete $nodes->{$node->{id}};
             next;
          }
-         next unless @others == 2;
-         if (colinearish($others[0], $node, $others[1])){
-            #congeal. (remove 1 node) 
-            $fin=0;
-            #die %$node unless $node->{id};
-            #die "\n\n\n" .  join ('|',%{$others[0]->{ref}}) . "\n\n\n" . join ('|',%{$others[1]->{ref}}) . "\n\n\n" unless $node->{id};
-            $others[0]->{ref}->{$others[1]->{id}} = $others[1];
-            $others[1]->{ref}->{$others[0]->{id}} = $others[0];
-            #die %{$others[0]->{ref}};
-            delete $others[0]->{ref}->{$node->{id}};
-            delete $others[1]->{ref}->{$node->{id}};
-            delete $nodes->{$node->{id}}
+         if (@others == 2){
+            if (colinearish($others[0], $node, $others[1])){
+               #congeal its 2 lines. (remove 1 node) 
+               $fin=0;
+               $others[0]->{ref}->{$others[1]->{id}} = $others[1];
+               $others[1]->{ref}->{$others[0]->{id}} = $others[0];
+               delete $others[0]->{ref}->{$node->{id}};
+               delete $others[1]->{ref}->{$node->{id}};
+               delete $nodes->{$node->{id}}
+            }
          }
       }
    }
+   #now congeal groups of nodes that are somewhat close.
+   $fin=1;
+   until ($fin){
+      $fin=1;
+      warn scalar values %$nodes;
+      for my $node (shuffle values %$nodes){
+         next unless $nodes->{$node->{id}};
+         $fin=0 if $self->congeal_adequately($node);
+      }
+   }
+   #to be neat, here we buhlete unnecessary flags
+   for my $node (values %$nodes){
+      delete $node->{congealed_adequately};
+   }
    #$self->draw;
    #warn join "\n", map {$_->{id}} values %$nodes;
+}
+sub congeal_adequately{
+   my ($self, $node) = @_;
+   return 0 if $node->{congealed_adequately};
+   my @nodes = ($node, values %{$node->{ref}});
+  # warn join '/',map{$_->{id}}@nodes;$self->draw and die if rand()<.001;
+   for my $i (0..$#nodes-1){
+      for my $j($i+1..$#nodes){
+         if ($self->near_enough($nodes[$i], $nodes[$j])){
+            $self->congeal_nodes($nodes[$i], $nodes[$j]);
+            $nodes[$i]{congealed_adequately} = 0;
+            return 1;
+         }
+      }
+   }
+   $node->{congealed_adequately} = 1;
+   return 0;
+}
+sub near_enough{
+   my ($self, $n1,$n2) = @_;
+   #warn sqrt(($n2->{lat}-$n1->{lat})**2 + ($n1->{lon}-$n2->{lon})**2) . "|||" . $self->congeal_dist;
+   return 1 if sqrt(($n2->{lat}-$n1->{lat})**2 + ($n1->{lon}-$n2->{lon})**2) < $self->congeal_dist;
+}
+
+sub congeal_nodes{
+   my ($self, @nodes) = @_;
+   #merge into the node with the smallest id
+   @nodes = sort {$a->{id} <=> $b->{id}} @nodes;
+   my $avg_lat = sum (map {$_->{lat}} @nodes) / @nodes;
+   my $avg_lon = sum (map {$_->{lon}} @nodes) / @nodes;
+   #warn join '[]',map {$_->{lat}} @nodes;
+   #warn sum (map {$_->{lat}} @nodes);
+   #warn $avg_lat;
+   #warn "\n\n" . join "\n", map {join('|',%{$_}) . ':::::' . join'/',%{$_->{ref}}} @nodes;
+   $nodes[0]{lat} = $avg_lat;
+   $nodes[0]{lon} = $avg_lon;
+   for my $i (1..$#nodes){
+      my $melt = $nodes[$i];
+      for my $meltref (values %{$melt->{ref}}){
+         next if $nodes[0] == $meltref;
+         $nodes[0]->{ref}{$meltref->{id}} = $meltref;
+         $meltref->{ref}{$nodes[0]->{id}} = $nodes[0];
+         delete $meltref->{ref}{$melt->{id}};
+      }
+      delete $self->data->{nodes}{$melt->{id}};
+      delete $nodes[0]{ref}{$melt->{id}};
+   }
 }
 
 sub colinearish{
@@ -125,6 +192,7 @@ sub colinearish{
    my @v2 = ($n3->{lat} - $n2->{lat}, $n3->{lon} - $n2->{lon});
    @v1 = normalize(@v1);
    @v2 = normalize(@v2);
+   die join '|', map {$_->{'lon'}.','.$_->{'lat'}}($n1,$n2,$n3) unless (($v1[0] or $v1[1]) and ($v2[0] or $v2[1]));
    my $angle = abs acos($v1[0]*$v2[0] + $v1[1]*$v2[1]);
    #warn rad2deg $angle;
    return 1 if $angle < (pi / 6);
@@ -133,7 +201,7 @@ sub colinearish{
 sub normalize{
    my ($x,$y) = @_;
    my $r = sqrt($x**2 + $y**2);
-   return ($x/$r, $y/$r);
+   return ($x/$r, $y/$r) if $r;
 }
 
 sub draw{
