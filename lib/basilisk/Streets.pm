@@ -122,7 +122,7 @@ sub process{
       }
    }
    #now congeal groups of nodes that are somewhat close.
-   $fin=1;
+   $fin=0;
    until ($fin){
       $fin=1;
       warn scalar values %$nodes;
@@ -141,8 +141,19 @@ sub process{
 sub congeal_adequately{
    my ($self, $node) = @_;
    return 0 if $node->{congealed_adequately};
+   $self->draw and die if rand()<.001;
+   my @others = (values %{$node->{ref}});
+   for my $o (@others){
+      if ($self->near_enough($node, $o)){
+         $self->congeal_nodes($node, $o);
+         return 1;
+      }
+   }
+   $node->{congealed_adequately} = 1;
+   return 0;
+   
    my @nodes = ($node, values %{$node->{ref}});
-  # warn join '/',map{$_->{id}}@nodes;$self->draw and die if rand()<.001;
+   warn join '/',map{$_->{id}}@nodes;$self->draw and die if rand()<.001;
    for my $i (0..$#nodes-1){
       for my $j($i+1..$#nodes){
          if ($self->near_enough($nodes[$i], $nodes[$j])){
