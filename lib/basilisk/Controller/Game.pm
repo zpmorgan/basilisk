@@ -607,7 +607,6 @@ sub get_game_moves : Private {
 }
 
 
-
 #also provide list of groups marked as dead
 sub provide_all_chains : Private {
    my ($self, $c, $deads) = @_;
@@ -681,6 +680,42 @@ sub deltas : Chained('game') Args(0){
    $c->response->body (to_json (\@deltas));
    $c->detach
 }
+
+#for the client-side js polling loop.
+sub moves_after : Chained('game') Args(1){ 
+   my ($self, $c, $after_move) = @_;
+   my ($game, $rulemap) = @{$c->stash}{ qw/game rulemap/ };
+   my @move_rows = $game->search_related ( 'moves', {
+      movenum => {'>' => $after_move},
+   }, {
+      select => ['movenum', 'delta', 'gid', 'position_id', 'move', 'phase']
+   });
+   
+   #deltas are not enough. we need to pass more info, like type of move, etc.
+   #so provide @moves (in json), a list of hashes starting after move $after_move
+   #also, later it might help to pass info about current phase and stuff..
+   my @moves;
+   for my $mv (@move_rows){
+      my $delta =  $mv->delta;
+      unless ($delta){
+         $delta = $rulemap->delta ($mv->previous_board, $mv->board);
+         $delta = to_json($delta);
+         $mv->set_column('delta' => $delta);
+         $mv->update;
+      }
+      $delta = from_json($delta);
+      push @moves, {
+         delta => $delta,
+         move => $mv->move,
+         phase => $mv->phase,
+      }
+   }
+   
+   $c->response->content_type ('text/json');
+   $c->response->body (to_json ([@moves]));
+   $c->detach;
+}
+
 
 
 1;

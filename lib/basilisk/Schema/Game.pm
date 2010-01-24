@@ -263,8 +263,9 @@ sub signal_fin_intent{
 #call this right after it's created
 sub clear_fin_intent{
    my ($self) = @_;
-   my ($last_move) = $self->find_related ('moves', {}, {
+   my ($last_move) = $self->search_related ('moves', {}, {
       order_by => 'movenum DESC',
+      rows=>1
    });
    
    #can not always use $self->fin() here. see above..

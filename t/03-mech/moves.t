@@ -25,7 +25,7 @@ $mech->get_ok('/game/' . $game->id);
 $mech->title_like ( qr/move 0/i , 'correct initial movenum in title');
 $mech->get_ok('/game/' . $game->id . '/move/3-5'); #f3
 $mech->title_like ( qr/move 1/i , 'move succeeds');
-diag $mech->title;
+#diag $mech->title;
 
 is ($schema->game($gid)->phase, 1, 'game phase after move1');
 my $move = $schema->game($gid)->find_related ('moves', {});
