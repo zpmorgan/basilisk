@@ -10,7 +10,7 @@ use parent 'basilisk::Schema';
 
 use basilisk::Util qw/pass_hash/;
 
-#So cat doesn't print out all it's junk:
+#So cat doesn't print out all its junk:
 $ENV{CATALYST_DEBUG}=0;
 #specify test db path:
 $ENV{BASILISK_DSN}= 'dbi:SQLite:t/var/basilisk.db'; 
