@@ -1,0 +1,12 @@
+</div>
+
+<table id="pagefoot" class="pagefoot">
+ <tr>
+  <td align="left" id="campaign"> Save the basilisks. </td>
+  <td align="right" id="proverb" width="40%">
+     [% rand_proverb() %]
+  </td>
+ </tr>
+</table>
+</body>
+</html>

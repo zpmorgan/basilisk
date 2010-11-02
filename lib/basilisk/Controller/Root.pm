@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller::HTML::FormFu';
 
-use basilisk::Constants qw{IMG_BASE URL_BASE MESSAGE_NOT_SEEN};
+use basilisk::Constants qw{IMG_BASE URL_BASE STATIC_BASE MESSAGE_NOT_SEEN};
 use basilisk::Util qw{random_proverb};
 
 
@@ -13,6 +13,11 @@ __PACKAGE__->config->{namespace} = '';
 
 
 sub index :Path Args(0) FormConfig('login'){
+   my ( $self, $c ) = @_;
+   $c->stash->{template} = 'index.tt';
+}
+
+sub indexBLAH :Global Args(0) FormConfig('login'){
    my ( $self, $c ) = @_;
    
    # Hello World
@@ -58,6 +63,7 @@ sub end : ActionClass('RenderView') {
    #set some tt vars for header
    my $url_base = $c->stash->{url_base} = URL_BASE;
    my $img_base = $c->stash->{img_base} = IMG_BASE;
+   my $static_base = $c->stash->{static_base} = STATIC_BASE;
    
    if ($c->stash->{message}){ #TT can't do this at runtime?
       $c->stash->{message} =~ s/\[\%\s?url_base\s?\%\]/$url_base/;

@@ -1,0 +1,52 @@
+html{
+display: inline-block;
+background:none repeat scroll 0 0 #000000;
+color:#FFFFFF;
+}
+
+body {
+   
+   margin: 0px;
+   padding: 10px;
+   width: 100%; display: inline-block;
+}
+
+nav {
+   background:none repeat scroll 0 0 #222222;
+   border:1px solid grey;
+   float:left;
+  /* width:214px;*/
+}
+
+section {
+   background:none repeat scroll 0 0 #000000;
+   border:1px solid grey;
+   float:left;
+}
+
+section#content {
+   background:none repeat scroll 0 0 #8D999D;
+   width:100%;
+}
+
+footer {
+   clear:both;
+   float:left;
+   width: 100%;
+}
+
+#footcontent {
+   background:none repeat scroll 0 0 #5D596D;
+   width: 100%;
+   margin: 10px;
+}
+
+a:link {
+background:none repeat scroll 0 0 transparent;
+color:#88aabb;
+}
+
+a:visited {
+background:none repeat scroll 0 0 transparent;
+color:#669990;
+}

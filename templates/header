@@ -1,7 +1,8 @@
-<html>
+<!DOCTYPE html>
+
+<html lang=en-US>
 <head>
- <title>[% title %]</title>
-</head>
+<title>Basilisk Go Server - [% title %]</title>
 
 <script language="javascript">
    //pass some global globals
@@ -9,94 +10,40 @@
    var userid = [% userid ? userid : 0 %];
    var img_base = '[% img_base %]';
    var url_base = '[% url_base %]';
+   var static_base = '[% static_base %]';
 </script>
 
-<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/reset/reset-min.css"> 
-<link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/2.7.0/build/base/base-min.css"> 
-<link rel='stylesheet' media='all' href='[%url_base%]/basilisk.css' type='text/css'>
+<link rel="stylesheet" type="text/css" href="[%static_base%]/reset-min.css">
+<link rel="stylesheet" type="text/css" href="[%static_base%]/base-min.css">
+<link rel="stylesheet" type="text/css" href="[%static_base%]/ui-darkness/jquery-ui-1.8.5.custom.css">
+<link rel='stylesheet' type="text/css"  href='[%static_base%]/basilisk.css'>
 
-<script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/jquery-1.4.3.js"></script>
-<script type="text/javascript" src="[%url_base%]/jquery.form-2.24.js"></script>
-[% IF include_ui %]
-   <link type="text/css" href="http://jquery-ui.googlecode.com/svn/tags/latest/themes/base/ui.all.css" rel="stylesheet" />
-   <script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/ui.core.js"></script>
-   <script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/ui.tabs.js"></script>
-   <script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/ui.slider.js"></script>
-   <script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/ui.draggable.js"></script>
-   <script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/ui.resizable.js"></script>
-   <script type="text/javascript" src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/ui.dialog.js"></script>
-  
-[% END %]
+<!-- script type="text/javascript" src="[%url_base%]/jquery.form-2.24.js"></script -->
+<script type="text/javascript" src="[%static_base%]/jquery-1.4.2.min.js"></script>
+<script type="text/javascript" src="[%static_base%]/jquery-ui-1.8.5.custom.min.js"></script>
 
-[% IF logged_in  #XML Feed  %]
-   <link rel="alternate" type="application/atom+xml" title="Your waiting games" href="[%url_base%]/games_rss/[%username%]">
-[% END %]
-
-
+ 
+ 
+</head>
 <body>
 
-<table id="pagehead" class="pagehead" >
- <tr>
-  <td align="left"><b>Basilisk Go Server</b></td>
-[% IF logged_in %]
-   <td align="right"> <a href="[%url_base%]/status"><b>Logged in as: [%username%] </b></a></td>
-[% ELSE %]
-   <td align="right" link="#ffff22" vlink="#aaeeaa"> <a href="[%url_base%]/login"><b>Log in</b></a> </td>
-[% END %]
- </tr>
-</table>
+   <section id="content">
+   
+   <nav>
+      <img src="[% img_base %]/Baziliszkusz.jpg" width="100px">
+      <hr>
+      <ul>
+         <li> News </li>
+         <li> Play </li>
+         <li> Archive </li>
+      </ul>
+   </nav>
+   
+   
 
 
-<table id="pageMenu" align="left">
- <tr><td>
-   <img src="[% img_base %]/Baziliszkusz.jpg" width="100px">
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/about">About</a>
- </tr></td>
 
-[% IF logged_in %]
- <tr><td>
-   <a href="[%url_base%]/status">Status</a>
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/userinfo">User info</a>
- </tr></td>
-[% ELSE %]
- <tr><td>
-   <a href="[%url_base%]/login">Log in</a>
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/register">Register</a>
- </tr></td>
-[% END %]
 
- <tr><td>
-   <a href="[%url_base%]/waiting_room">Waiting room</a>
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/games">Games</a>
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/players">Players</a>
- </tr></td>
 
-[% IF logged_in %]
- <tr><td>
-   <a href="[%url_base%]/messages">Messages ([% unseen_count %])</a>
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/invite">Invitations</a>
- </tr></td>
- <tr><td>
-   <a href="[%url_base%]/logout">Log out</a>
- </tr></td>
-[% END %]
-
-</table>
-<div align="center">
-[%# IF msg %]
- <span id="msg" style="color:blue; font-weight: bold;">[% msg %]</span><br>
-[%# END %]
 
 

@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use base 'Exporter';
 
-our @EXPORT_OK = qw (IMG_BASE URL_BASE  
+our @EXPORT_OK = qw (IMG_BASE URL_BASE STATIC_BASE 
          GAME_RUNNING GAME_FINISHED GAME_PAUSED
          INVITEE_OPEN INVITEE_ACCEPTED INVITEE_REJECTED
          INVITE_OPEN  INVITE_ACCEPTED  INVITE_REJECTED
@@ -17,6 +17,7 @@ use constant {
    # These are different on the span server:
    IMG_BASE => '/g',
    URL_BASE => '',
+   STATIC_BASE => '/static',
    # IMG_BASE => '/basilisk/g,
    # URL_BASE => '/basilisk/go,
 

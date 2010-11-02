@@ -23,21 +23,16 @@ use Catalyst qw/-Debug
 /;
  #               Authentication
  #               Authorization::Roles
-our $VERSION = '0.01';
+#our $VERSION = '0.04';
 
-
-
-# Configure the application.
-#
-# Note that settings in basilisk.conf (or other external
-# configuration file that you set up manually) take precedence
-# over this when using ConfigLoader. Thus configuration
-# details given here can function as a default configuration,
-# with an external configuration file acting as an override for
-# local deployment.
-
-#__PACKAGE__->config( name => 'basilisk' );
-
+basilisk->config(
+   static => {
+      include_path => [
+         '/root/static',
+         'root',
+      ],
+   },
+);
 
 
 # Start the application
