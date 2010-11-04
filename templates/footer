@@ -1,7 +1,10 @@
 
-</section>
+  
 
-<footer>
+</section>
+</div>
+
+<footer class="stickyfooter">
    <table id="footcontent">
     <tr>
      <td align="left" id="campaign"> Save the basilisks. </td>

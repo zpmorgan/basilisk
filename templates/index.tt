@@ -1,6 +1,19 @@
 
 [% INCLUDE header %]
 
-Howdy.
+<section id="news">
+   Howdy.
+   <h2>News</h2>
+   <article>
+      <h3> Rewrite </h3>
+      <p>
+      This server is going through an interface rewrite. The main goals are to support both
+      realtime and correspondence games, and to make it more pleasant to start
+      games and challenge people. Ranks will probably be involved somehow. 
+      <p>
+      Compatibility with the old database will probably be broken.
+   </article>
+</section>
+
 [% INCLUDE footer %] 
  

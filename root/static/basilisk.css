@@ -1,31 +1,63 @@
+
+* {
+	/*background:none repeat scroll 0 0 #000000;*/
+}
+
 html{
-display: inline-block;
-background:none repeat scroll 0 0 #000000;
-color:#FFFFFF;
+   display: inline-block;
+   color:#FFFFFF;
+   background:none repeat scroll 0 0 #000000;
 }
 
 body {
-   
+   text-align:left;
    margin: 0px;
-   padding: 10px;
-   width: 100%; display: inline-block;
+   padding: 0px;
+   width: 100%;
+   display: inline-block;
+   background:none repeat scroll 0 0 #000000;
 }
 
-nav {
+div#main{
+   text-align:center;
+   padding: 20px;
+   float:left;
+}
+
+nav#usernav {
    background:none repeat scroll 0 0 #222222;
    border:1px solid grey;
    float:left;
+   margin: 10px;
+   
   /* width:214px;*/
 }
 
+#navtable{
+   font-size:14px;
+}
+#navtable tbody tr td{
+   list-style:none outside none;
+   border:3px solid #BDBDBD;
+   padding: 0px 15px;
+   -moz-border-radius:10px 10px 10px 10px;
+   border-radius:10px 10px 10px 10px;
+}
+
 section {
-   background:none repeat scroll 0 0 #000000;
+   /*background:none repeat scroll 0 0 #000000;*/
    border:1px solid grey;
-   float:left;
 }
 
 section#content {
    background:none repeat scroll 0 0 #8D999D;
+   width:80%;
+   float:right;
+}
+div#page {
+   background:none repeat scroll 0 0 #8D999D;
+   display: inline-block;
+   
    width:100%;
 }
 
@@ -38,7 +70,16 @@ footer {
 #footcontent {
    background:none repeat scroll 0 0 #5D596D;
    width: 100%;
+   margin: 0px;
+}
+
+section#news{
    margin: 10px;
+   width: 50%;
+   float:left;
+   border:1px solid grey;
+   -moz-border-radius:10px 10px 10px 10px;
+   border-radius:10px 10px 10px 10px;
 }
 
 a:link {
@@ -50,3 +91,38 @@ a:visited {
 background:none repeat scroll 0 0 transparent;
 color:#669990;
 }
+
+
+/*
+
+Sticky Footer by Ryan Fait
+http://ryanfait.com/
+
+*/
+/*
+* {
+	margin: 0;
+}
+html, body {
+	height: 100%;
+}
+.wrapper {
+	min-height: 100%;
+	height: auto !important;
+	height: 100%;
+	margin: 0 auto -57px; /* the bottom margin is the negative value of the footer's height */
+}
+/*
+
+Sticky Footer by Ryan Fait
+http://ryanfait.com/
+
+*/
+/*
+div.push {
+	height: 57px; /* .push must be the same height as .footer */
+/*
+}
+footer.stickyfooter{
+	height: 57px; /* .push must be the same height as .footer }*/
+

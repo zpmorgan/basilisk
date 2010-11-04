@@ -12,7 +12,7 @@ use basilisk::Util qw{random_proverb};
 __PACKAGE__->config->{namespace} = '';
 
 
-sub index :Path Args(0) FormConfig('login'){
+sub index :Path Args(0) {
    my ( $self, $c ) = @_;
    $c->stash->{template} = 'index.tt';
 }

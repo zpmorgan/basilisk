@@ -26,20 +26,21 @@
  
 </head>
 <body>
-
-   <section id="content">
+      
+   <div id="page" class="wrapper"> <!-- for sticky footer -->
    
-   <nav>
-      <img src="[% img_base %]/Baziliszkusz.jpg" width="100px">
-      <hr>
-      <ul>
-         <li> News </li>
-         <li> Play </li>
-         <li> Archive </li>
-      </ul>
-   </nav>
-   
-   
+      <nav id="usernav">
+         <table id="navtable">
+            <tr><td> <img src="[% img_base %]/Baziliszkusz.jpg" width="100px"> </td></tr>
+            <tr><td> <a href="[% url_base %]">News</a> </td></tr>
+            <tr><td> <a href="[% url_base %]/play">Play </a></td></tr>
+            <tr><td> <a href="[% url_base %]/archives">Archive </a></td></tr>
+            <tr><td> <a href="[% url_base %]/prefs">Preferences </a></td></tr>
+         </table>
+      </nav>
+      
+      
+      <section id="content">
 
 
 
