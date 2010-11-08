@@ -1,5 +1,5 @@
 
-[% INCLUDE header %]
+[% INCLUDE header  DISPLAYNAV=1 %]
 
 <section id="news">
    Howdy.

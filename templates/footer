@@ -1,19 +1,13 @@
 
-  
+   </section>
+   </div>
 
-</section>
+<div id="footWrapper">
+   <div id="campaign-box"> <div id="campaign"> Save the basilisks. </div> </div>
+   <div id="proverb-box"> 
+       <div id="proverb"> [% rand_proverb() %] </div>
+   </div>
 </div>
-
-<footer class="stickyfooter">
-   <table id="footcontent">
-    <tr>
-     <td align="left" id="campaign"> Save the basilisks. </td>
-     <td align="right" id="proverb" width="40%">
-        [% rand_proverb() %]
-     </td>
-    </tr>
-   </table>
-</footer>
 </body>
 </html>
 

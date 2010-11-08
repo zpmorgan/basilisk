@@ -1,0 +1,10 @@
+
+[%INCLUDE 'header'%]
+
+<table class="arena">
+  
+  <tr><td> <a href="[% url_base %]/selfgame"> new game with self. </a> <td><tr>
+  
+</table>
+
+[%INCLUDE 'footer'%]

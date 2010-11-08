@@ -1,0 +1,8 @@
+
+[%INCLUDE 'header' pageType='game' %]
+
+<div class="board"> </div>
+
+<div class="result"> </div>
+
+[%INCLUDE 'footer'%]

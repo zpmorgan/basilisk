@@ -11,6 +11,7 @@
    var img_base = '[% img_base %]';
    var url_base = '[% url_base %]';
    var static_base = '[% static_base %]';
+   var pageType = "[% pageType %]";
 </script>
 
 <link rel="stylesheet" type="text/css" href="[%static_base%]/reset-min.css">
@@ -21,14 +22,16 @@
 <!-- script type="text/javascript" src="[%url_base%]/jquery.form-2.24.js"></script -->
 <script type="text/javascript" src="[%static_base%]/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="[%static_base%]/jquery-ui-1.8.5.custom.min.js"></script>
+<script type="text/javascript" src="[%static_base%]/basilisk.js"></script>
 
  
  
 </head>
 <body>
-      
-   <div id="page" class="wrapper"> <!-- for sticky footer -->
+
+   <div id="contentWrapper">
    
+      [% IF DISPLAYNAV %]
       <nav id="usernav">
          <table id="navtable">
             <tr><td> <img src="[% img_base %]/Baziliszkusz.jpg" width="100px"> </td></tr>
@@ -38,6 +41,7 @@
             <tr><td> <a href="[% url_base %]/prefs">Preferences </a></td></tr>
          </table>
       </nav>
+      [% END %]
       
       
       <section id="content">
