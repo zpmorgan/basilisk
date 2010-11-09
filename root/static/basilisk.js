@@ -77,8 +77,8 @@ Renderer.prototype.renderCell = function(row,col){
 
 var timeout;
 
-function poll_server{
-   $.ajax(
+function poll_server(){
+   $.ajax({
       dataType: "json",
       type: "POST",
       success: function(data) {
@@ -86,7 +86,7 @@ function poll_server{
          //alert('Load was performed.');
       }
 
-   );
+   });
    timeout = setTimeout("poll_server{};" ,1000);
 }
 
