@@ -1,18 +1,16 @@
-#!/usr/bin/perl
+package arteebas;
+
 use Modern::Perl;
 use JSON;
-use FCGI;
+#use FCGI;
 my $json = new JSON;
 
 use lib 'lib';
-use lib::basilisk::Rulemap;
+use basilisk::Rulemap;
 
 
+#this file is meh.
 
-#my $fcgi_socket = FCGI::OpenSocket( '/tmp/realtime_basilisk.socket', 100000 );
-#my $request = FCGI::Request(\*STDIN, \*STDOUT, \*STDERR, \%ENV, $fcgi_socket);
-
-my $req = FCGI::Request();
 
 # $games{id} = {events => [game events], rulemap => $rulemap, players => @players, result=>'B+2.5'}
 # example $game_event = {type => 'move','message',etc. , msg=>$str' or move=> 'B H2', diff=>{diff}, }
@@ -23,7 +21,12 @@ my %players;
 
 
 sub process_input{
-   my $input = shift;
+   my $blah = shift;
+   my $cgi = shift;
+   warn $cgi->PrintEnv;
+   #warn values %{$cgi};
+   die $cgi->{".cgi_error"} if $cgi->{".cgi_error"};
+   my $input = {};
    my $context = $input->{context};
    my $action = $input->{action};
    my $response = {};
@@ -43,24 +46,4 @@ sub process_input{
    return $response;
 }
 
-
-
-
-while($req->Accept() >= 0) {
-   
-   my $input;
-   {
-      local $\;
-      $input = <STDIN>;
-   }
-   #say STDERR $input;
-   my $response = process_input ($json->decode ($input));
-   #say STDERR $json->encode($output);
-   
-   print("Content-type: text/json\r\n\r\n");
-   say $json->encode ($response);
-   
-   #$req->Finish();
-}
-
-say  $req->Accept();
+1;
