@@ -2,13 +2,13 @@ package basilisk::Controller::Registration;
 
 use strict;
 use warnings;
-use parent 'Catalyst::Controller::HTML::FormFu';
+use parent 'Catalyst::Controller';
 
 use basilisk::Util qw/pass_hash/;
 
 __PACKAGE__->config->{namespace} = '';
 
-sub login :Global FormConfig('login'){
+sub login :Global {
    my ( $self, $c ) = @_;
    $c->stash->{template} = 'login.tt';
    if ($c->session->{logged_in}){
@@ -54,7 +54,7 @@ sub logout :Global {
    $c->stash->{template} = 'message.tt';
    $c->delete_session('on logout');
 }
-sub register :Global FormConfig {
+sub register :Global {
    my ( $self, $c ) = @_;
    if ($c->session->{logged_in}){
       $c->stash->{message} = "You are already logged in, <b>".$c->session->{name} .

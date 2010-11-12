@@ -1,14 +1,12 @@
 package basilisk::Controller::Root;
 use strict;
 use warnings;
-use parent 'Catalyst::Controller::HTML::FormFu';
+use parent 'Catalyst::Controller';
 
 use basilisk::Constants qw{IMG_BASE URL_BASE STATIC_BASE MESSAGE_NOT_SEEN};
 use basilisk::Util qw{random_proverb};
 
 
-# this is so the path doesn't need prefix /root/
-# but I'm only using global actions anyways..
 __PACKAGE__->config->{namespace} = '';
 
 

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
-use basilisk::Rulemap;
+#use basilisk::Rulemap;
 
 __PACKAGE__->config->{namespace} = 'game';
 

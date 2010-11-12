@@ -21,7 +21,6 @@ requires 'Moose';
 requires 'Test::WWW::Mechanize::Catalyst';
 requires 'XML::Atom::SimpleFeed';
 requires 'Number::Tolerant';
-requires 'Catalyst::Controller::HTML::FormFu';
 requires 'Template::Plugin::DateTime';
 requires 'Math::Random::MT::Auto';
 requires 'Catalyst::Plugin::Session::Store::FastMmap';
