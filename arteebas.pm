@@ -25,7 +25,7 @@ sub process_input{
    my $cgi = shift;
    warn $cgi->PrintEnv;
    #warn values %{$cgi};
-   die $cgi->{".cgi_error"} if $cgi->{".cgi_error"};
+   #die $cgi->{".cgi_error"} if $cgi->{".cgi_error"};
    my $input = {};
    my $context = $input->{context};
    my $action = $input->{action};
@@ -42,8 +42,8 @@ sub process_input{
       if ($action eq 'move'){
          
       }
-   }
-   return $response;
+   }return 'foo';
+   return [ 200, [34,43], [ 34, to_json($response) ] , 444];
 }
 
 1;
