@@ -5,7 +5,7 @@ use warnings;
 use FindBin '$Bin';
 use lib "$Bin/../lib";
 use basilisk::Schema;
-use basilisk::Util qw/pass_hash pack_board board_from_text/;
+use basilisk::Util qw/pass_salty_hash/; # pack_board board_from_text/;
 
 my $dbfile = 'basilisk.db';
 unlink $dbfile if -e $dbfile;
@@ -18,44 +18,45 @@ my $schema = basilisk::Schema->connect($dsn, $user, $pass) or
 print "Deploying schema to $dsn\n";
 $schema->deploy;
 
+my @rands = map {rand()} 1..10;
 
 #make up some data
 my $player_rs = $schema->resultset('Player');
 my $row = $player_rs->create({
-    name=>"plutocrat",
-    pass=> pass_hash "s4p5i6k7e"
+   id=>1,
+   name=>"basilisk",
+   salt=> $rands[0],
+   pass=> pass_salty_hash ( "clever_pass", $rands[0]),
 });
 $row = $player_rs->create({
-    name=>"cannon",
-    pass=> pass_hash "cannon"
-});
-$row = $player_rs->create({
-    name=>"georgia",
-    pass=> pass_hash "georgia"
+   id => 11,
+   name=>"zpmorgan",
+   salt=> 4828307124981724, #my own credit card number to ensure security :)
+   pass=> pass_salty_hash ("clever_pass", $rands[1]),
 });
 
 #make empty vanilla game with cannon and georgia
-my $ruleset_rs = $schema->resultset('Ruleset');
-my $new_ruleset = $ruleset_rs->create({h=>6,w=>6}); #default everything
-
 my $game_rs = $schema->resultset('Game');
 my $new_game = $game_rs->create({
-   ruleset => $new_ruleset->id,
+   rules => '{"h":6,"w":6}',
+   
 });
+   
 
 my $p2g_rs = $schema->resultset('Player_to_game');
 $p2g_rs->create({
-   pid  => 2, #cannon
+   pid  => 11, #zpmorgan
    gid  => $new_game->id,
    entity => 0,
-   expiration => 0,
 });
 $p2g_rs->create({
-   pid  => 3, #georgia
+   pid  => 11, #zpmorgan
    gid  => $new_game->id,
    entity => 1,
-   expiration => 0,
 });
+
+
+__END__
 
 
 #2nd game--make toroidal, with some initial position#initialize with some position.

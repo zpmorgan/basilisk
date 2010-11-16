@@ -9,7 +9,6 @@ __PACKAGE__->add_columns(
     'entity'         => { data_type => 'INTEGER'}, #typically either 0 or 1
     #time remaining:  store a time of a player's 'expiration', 0=nolimit
     #TODO: implement
-    'expiration'      => { data_type => 'INTEGER', default_value => 0},
 );
 __PACKAGE__->set_primary_key('gid', 'entity');
 __PACKAGE__->belongs_to (player => 'basilisk::Schema::Player', 'pid');
@@ -19,7 +18,6 @@ sub sqlt_deploy_hook {
     my($self, $table) = @_;
     $table->add_index(name => idx_p2g_players , fields => [qw/pid/]);
     $table->add_index(name => idx_p2g_games , fields => [qw/gid/]);
-    $table->add_index(name => idx_xpr , fields => [qw/expiration/]);
 }
 
 1;

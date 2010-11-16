@@ -9,9 +9,8 @@ __PACKAGE__->add_columns(
     'position'      => { data_type => 'TEXT'},
 );
 __PACKAGE__->set_primary_key('id');
-__PACKAGE__->has_many (start_of_game => 'basilisk::Schema::Game', 'initial_position');
+#__PACKAGE__->has_many (start_of_game => 'basilisk::Schema::Game', 'initial_position');
 __PACKAGE__->has_many (moves => 'basilisk::Schema::Move', 'position_id');
-__PACKAGE__->belongs_to (ruleset => 'basilisk::Schema::Ruleset');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;

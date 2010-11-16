@@ -22,7 +22,7 @@
 <!-- script type="text/javascript" src="[%url_base%]/jquery.form-2.24.js"></script -->
 <script type="text/javascript" src="[%static_base%]/jquery-1.4.2.min.js"></script>
 <script type="text/javascript" src="[%static_base%]/jquery-ui-1.8.5.custom.min.js"></script>
-<script type="text/javascript" src="[%static_base%]/basilisk.js"></script>
+<script type="text/javascript" src="[%static_base%]/basilisk.js?[% rando() %]"></script>
 
  
  

@@ -4,7 +4,7 @@ use strict;
 use warnings;
 use parent 'Catalyst::Controller';
 
-use basilisk::Util qw/pass_hash/;
+use basilisk::Util qw/pass_salty_hash/;
 
 __PACKAGE__->config->{namespace} = '';
 

@@ -12,17 +12,16 @@ __PACKAGE__->table('Player');
 __PACKAGE__->add_columns(
     'id'        => { data_type => 'INTEGER', is_auto_increment => 1 },
     'name'      => { data_type => 'TEXT'},
-    'pass'      => { data_type => 'BLOB' }, #hashed
-    'current_rating' => { data_type => 'INTEGER', is_nullable => 1 },
+    'salt'      => { data_type => 'TEXT'},
+    'pass'      => { data_type => 'TEXT' }, #salty hash
+    'provisional_rating' => { data_type => 'INTEGER', is_nullable => 1 },
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'pid');
 __PACKAGE__->many_to_many( games => 'player_to_game', 'game');
-__PACKAGE__->has_many(proposed_games => 'basilisk::Schema::Game_proposal', 'proposer');
-__PACKAGE__->might_have (rating => 'basilisk::Schema::Rating', {'foreign.id' => 'self.current_rating'});
-__PACKAGE__->has_many(all_ratings => 'basilisk::Schema::Rating', 'pid');
-__PACKAGE__->has_many (comments => 'basilisk::Schema::Comment', 'sayeth');
-__PACKAGE__->has_many (invites => 'basilisk::Schema::Invite', 'inviter');
+#__PACKAGE__->has_many(proposed_games => 'basilisk::Schema::Game_proposal', 'proposer');
+#__PACKAGE__->might_have (rating => 'basilisk::Schema::Rating', {'foreign.id' => 'self.current_rating'});
+#__PACKAGE__->has_many(all_ratings => 'basilisk::Schema::Rating', 'pid');
 
 sub sqlt_deploy_hook {
     my($self, $table) = @_;
@@ -39,9 +38,7 @@ sub grant_rating{ #initially, before any games, player must have rating
       rating_volatility => 0.06,
    );
 }
-sub update_rating{
-   my $self = shift;
-}
+
 
 #used for status page, and rss feed.
 #return game id, your side...,

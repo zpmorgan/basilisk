@@ -1,6 +1,10 @@
 
 [%INCLUDE 'header' pageType='game' %]
 
+<script type="text/javascript">
+   var gameid = [% gameid %];
+</script>
+
 <div class="board"> </div>
 
 <div class="result"> </div>

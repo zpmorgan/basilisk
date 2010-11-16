@@ -4,7 +4,7 @@ use warnings;
 
 use parent 'Exporter';
 
-our @EXPORT_OK = qw (veryRandShuffle veryRand  random_proverb  pass_hash
+our @EXPORT_OK = qw (veryRandShuffle veryRand  random_proverb  pass_salty_hash
            board_from_text unpack_position empty_board empty_pos pack_board ensure_position_size
            cycle_desc to_percent
 );
@@ -103,11 +103,11 @@ sub board_to_text{
    return $text;
 }
 
-use Digest::MD5 'md5'; # qw(md5 md5_hex md5_base64);
+use Digest::SHA 'sha512_hex';
 
-sub pass_hash{ #returns binary md5sum
-   my $passwd = shift;
-   my $hash = md5 $passwd;
+sub pass_salty_hash{ #returns binary md5sum
+   my ($passwd, $salt) = @_;
+   my $hash = sha512_hex ($passwd . $salt);
    return $hash;
 }
 
@@ -115,7 +115,6 @@ sub veryRand{
    eval "use Math::Random::MT::Auto 'rand'";
    return rand(shift)
 }
-
 sub veryRandShuffle{
    eval "use Math::Random::MT::Auto 'shuffle'";
    return shuffle(@_)

@@ -13,6 +13,7 @@ requires 'parent';
 requires 'Config::General'; # This should reflect the config file format you've chosen
                  # See Catalyst::Plugin::ConfigLoader for supported formats
 # these are guesses:
+requires 'Digest::SHA';
 requires 'DBIx::Class';
 requires 'Template';
 requires 'DBD::SQLite';
@@ -22,7 +23,7 @@ requires 'Test::WWW::Mechanize::Catalyst';
 requires 'XML::Atom::SimpleFeed';
 requires 'Number::Tolerant';
 requires 'Template::Plugin::DateTime';
-requires 'Math::Random::MT::Auto';
+#requires 'Math::Random::MT::Auto';
 requires 'Catalyst::Plugin::Session::Store::FastMmap';
 requires 'Catalyst::Model::DBIC::Schema';
 requires 'SQL::Translator';

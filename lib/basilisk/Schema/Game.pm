@@ -12,18 +12,32 @@ use basilisk::Constants qw{ GAME_RUNNING GAME_FINISHED GAME_PAUSED
 __PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Game');
 __PACKAGE__->add_columns(
-    id               => { data_type => 'INTEGER', is_auto_increment => 1 },
-    ruleset          => { data_type => 'INTEGER'},
-    status           => { data_type => 'INTEGER', default_value => GAME_RUNNING },
-    result           => { data_type => 'TEXT', is_nullable => 1},
-    initial_position => { data_type => 'INTEGER', is_nullable => 1 },
-    #phase-- phase_description is in ruleset
-    phase => { data_type => 'INTEGER', default_value => 0 },
-    #to sort by most recently active, this stores a time.
-    perturbation => { data_type => 'INTEGER', default_value => 0 },
-    #use a trigger in db after new moves
-    number_of_moves => { data_type => 'INTEGER', default_value => 0 },
+   id               => { data_type => 'INTEGER', is_auto_increment => 1 },
+   #initial_position => { data_type => 'INTEGER', is_nullable => 1 },
+   #phase-- one of those defined by phase_description
+   #phase => { data_type => 'INTEGER', default_value => 0 },
+   #to sort by most recently active, this stores a time.
+   #perturbation => { data_type => 'INTEGER', default_value => 0 },
+   #use a trigger in db after new moves
+   #number_of_moves => { data_type => 'INTEGER', default_value => 0 },
+
+
+   #ruleset is not a table any more... it's now a few columns in the Game table.
+  # ruleset          => { data_type => 'INTEGER'},
+   rules => { data_type => 'TEXT', default_value => '{h:19,w:19}'}, #json.
+   rules_description => { data_type => 'TEXT', default_value => 'Moo'}, #english.
+   phase_description => { data_type => 'TEXT', default_value => '0b 1w'},
+   time_system => { data_type => 'INTEGER', default_value => 0}, #0 == no time limits.
+   main_time   => { data_type => 'INTEGER', default_value => '0'}, #in seconds
+   secondary_time   => { data_type => 'INTEGER', default_value => '0'}, #in seconds
+   time_periods   => { data_type => 'INTEGER', default_value => '0'}, #various systems seem to use something of the sort.
+
+   status           => { data_type => 'INTEGER', default_value => GAME_RUNNING },
+   result   => { data_type => 'TEXT', is_nullable => 1 }, # B+resign, etc
 );
+
+
+
 #Here's the num_moves trigger:
 #BEGIN
 #UPDATE Game SET num_moves = (SELECT COUNT (*) FROM Move WHERE gid = new.gid) WHERE id=new.gid;
@@ -31,17 +45,29 @@ __PACKAGE__->add_columns(
 #To reset it in every row:
 #update Game set number_of_moves=(SELECT COUNT (*) FROM Move WHERE gid = id);
 __PACKAGE__->set_primary_key('id');
-__PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');
+#__PACKAGE__->belongs_to(ruleset => 'basilisk::Schema::Ruleset', 'ruleset');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'gid');
 __PACKAGE__->many_to_many( players => 'player_to_game', 'player');
-__PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
-__PACKAGE__->belongs_to (initial_pos => 'basilisk::Schema::Position', 'initial_position');
-__PACKAGE__->has_many(comments => 'basilisk::Schema::Comment', 'gid');
+__PACKAGE__->has_many (events => 'basilisk::Schema::Game_event', 'gameid');
+#__PACKAGE__->has_many(moves => 'basilisk::Schema::Move', 'gid');
+#__PACKAGE__->belongs_to (initial_pos => 'basilisk::Schema::Position', 'initial_position');
+#__PACKAGE__->has_many(comments => 'basilisk::Schema::Comment', 'gid');
 
 sub sqlt_deploy_hook { #indices
     my($self, $table) = @_;
     $table->add_index(name => idx_status => fields => [qw/status/]);
 }
+
+sub get_events_after{
+   my ($self, $eventnum) = @_;
+   return $self->search_related ('events' , {
+      'event_number' => {'>' => $eventnum},
+   });
+}
+
+
+
+
 
 #maybe this should give the movenum of the most recent move.
 #maybe that would be more reliable?
