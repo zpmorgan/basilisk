@@ -9,8 +9,9 @@ __PACKAGE__->table('Game_event');
 __PACKAGE__->add_columns(
    gameid => {data_type => 'INTEGER'},
    event_number => {data_type => 'INTEGER'},
+   movenum =>  {data_type => 'INTEGER', is_nullable => 1 },
    type => {data_type => 'TEXT'},
-   by => {data_type => 'INTEGER'},
+   by => {data_type => 'INTEGER', is_nullable => 1}, #phase number..
    now_phase => {data_type => 'INTEGER', is_nullable => 1 },
    delta => {data_type => 'TEXT', is_nullable => 1}, #JSON.
    time => {data_type => 'INTEGER'},

@@ -40,6 +40,7 @@ Game.prototype.post_event = function (event){
 }
 
 Game.prototype.attemptMove = function(node){
+   var this_game = this;
    $.ajax({
       url: url_base + "/rt/game",
       data: {
@@ -50,11 +51,18 @@ Game.prototype.attemptMove = function(node){
       },
       dataType: "json",
       type: "POST",
+      
       success: function(data) {
-         this.post_events (data.after, data.events);
+         if (data.err){
+            console.log('error: '+ data.err);
+         }
+         else{
+            this_game.post_events (data.after, data.events);
+         }
       }
    });
 }
+
 
 
 function Renderer (game){ //Canvas renderer.
@@ -64,10 +72,13 @@ function Renderer (game){ //Canvas renderer.
    this._lineColor = "black";
    this._scrolledX = 0;
    this._scrolledY = 0;
-   this._padding = 20; // for labels
-   this._halfLine = 15;
+   this._padding = 40; // for labels
    this._wrapX = 0;
    this._wrapY = 0;
+   
+   //both?
+   this._cellSize = 30;
+   this._halfLine = 15;
 }
 
 Renderer.prototype.renderBoard = function(){
@@ -130,17 +141,15 @@ Renderer.prototype.renderStone = function(node, color){
 }
 
 
-//note: delta is a hash, indexed by node name.
+//note: delta is a hash, with {add:{nodes},remove:{nodes}}
+// add&remove are indexed by node name; values are like {stone:'b'}
 Renderer.prototype.renderDelta = function(delta){
    var ctx = this._ctx;
-   for (var node in delta){
-      var change = delta[node];
-      var changeType = change.shift();
-      if (changeType == 'add'){
-         var stoneColor = change[0].stone;
-         console.debug('receivedMove: ' + node + ':' + stoneColor);
-         this.renderStone(node, stoneColor);
-      }
+   var additions = delta.add;
+   for (var node in additions){
+      var stoneColor = additions[node].stone;
+      console.debug('receivedMove: ' + node + ':' + stoneColor);
+      this.renderStone(node, stoneColor);
    }
 }
 
@@ -149,7 +158,10 @@ function canvas_mousedown_cb(e){
    var x = toCanvasX (e);
    var y = toCanvasY (e);
    if (e.which == 1){
-      game.attemptMove ('3-3');
+      var row = parseInt ((y - R._padding) / R._cellSize);
+      var col = parseInt ((x - R._padding) / R._cellSize);
+      console.log(row.toString() + '-' + col.toString());
+      active_game.attemptMove (row.toString() + '-' + col.toString());
    }
 }
 

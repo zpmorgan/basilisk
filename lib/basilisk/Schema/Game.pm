@@ -66,16 +66,69 @@ sub get_events_after{
 }
 
 
+sub player_can_move{
+   my ($self, $playerid) = @_;
+   my ($entity, $side) = $self->current_phase;
+   return 0 unless defined $entity;
+   my $p2g = $self->find_related('player_to_game', {entity=>$entity} );
+   return $side if $p2g->pid == $playerid; 
+}
 
+sub current_phase{
+   my $self = shift;
+   my $pd = $self->phase_description;
+   my $phase_num = $self->current_phase_num;
+   return unless defined $phase_num;
+   my @phases = split ' ', $pd;
+   my ($entity, $side) = split '', $phases[$phase_num];
+   return ($entity, $side);
+   
+}
 
+sub current_phase_num{
+   my $self = shift;
+   #return if $self->active == 0;
+   my $lastmove = $self->last_move;
+   if ($lastmove){ 
+      return $lastmove->now_phase;
+   }
+   return 0;
+   #else die'no lastmove'
+}
 
-#maybe this should give the movenum of the most recent move.
-#maybe that would be more reliable?
-#maybe there will be actual_movenums that dont count thinking/resigning phases..
+sub num_entities{
+   my $self = shift;
+   return $self->num_entities;
+}
+sub num_phases{
+   my $self = shift;
+   return $self->num_phases;
+}
+
+sub initial_phase{
+   my $self = shift;
+   my @phases = split ' ', $self->phase_description;
+   return $phases[0];
+}
+
+sub last_move{
+   my $self = shift;
+   my $lastmove = $self->search_related( 'events', {
+      type => 'move',
+   }, {
+      order_by => { -desc => 'movenum' },
+   }) -> first;
+   return $lastmove;
+}
+
 sub num_moves{ 
    my $self = shift;
-   return $self->count_related('moves');
+   return $self->last_move->movenum('moves');
 }
+
+
+################################################################33333
+
 
 sub player_to_move{
    my $self = shift;
@@ -91,37 +144,7 @@ sub player_to_move_name{ #rm?
    #die "no player as entity $entity in game ".$self->id;
 }
 
-sub shift_phase{
-   my ($self, $phase) = @_;
-   die unless defined $phase;
-   unless (defined $phase){
-      $phase = ($self->phase + 1) % $self->ruleset->num_phases
-   }
-   $self->set_column('phase', $phase);
-   $self->set_column('perturbation', time());
-   $self->update;
-}
-sub turn{ #return 'who' and 'what'
-   my $self = shift;
-   my $pd = $self->ruleset->phase_description;
-   my @phases = split ' ', $pd;
-   my ($entity, $side) = split '', $phases[$self->phase];
-   return ($entity, $side);
-}
-sub num_entities{
-   my $self = shift;
-   return $self->ruleset->num_entities;
-}
-sub num_phases{
-   my $self = shift;
-   return $self->ruleset->num_phases;
-}
 
-sub last_move{
-   my $self = shift;
-   my $mvnum = $self->num_moves;
-   return $self->search_related ('moves', {}, {order_by => 'movenum DESC'})->first;
-}
 sub last_move_string{ 
    my $c = shift;
    #my $mvnum = $c->stash->{game}->num_moves;
@@ -182,19 +205,19 @@ sub initial_board{
    return empty_board($self->size);
 }
 
-sub size{
-   my $self = shift;
-   return $self->ruleset->size
-}
-
-sub h{
-   my $self = shift;
-   return $self->ruleset->h
-}
-sub w{
-   my $self = shift;
-   return $self->ruleset->w
-}
+#~ sub size{
+   #~ my $self = shift;
+   #~ return $self->ruleset->size
+#~ }
+#~ 
+#~ sub h{
+   #~ my $self = shift;
+   #~ return $self->ruleset->h
+#~ }
+#~ sub w{
+   #~ my $self = shift;
+   #~ return $self->ruleset->w
+#~ }
 sub sides{
    my $self = shift;
    return $self->ruleset->sides
