@@ -87,7 +87,9 @@ sub games : Global{
       my $p2g_rs = $games_rs->search_related ('player_to_game', {}, #all related
          {
             join => ['player'],
-            select => ['player.name', $gid_col, 'player_to_game.pid', 'player_to_game.entity', 'status'],
+            select => ['player.name', $gid_col, 
+               'player_to_game.pid', 
+               'player_to_game.entity', 'me.status'],
             as => ['pname', 'gid', 'pid', 'side', 'status'],
          });
       $num_games = $games_rs->count();
