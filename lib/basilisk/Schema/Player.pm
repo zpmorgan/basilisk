@@ -13,7 +13,7 @@ __PACKAGE__->add_columns(
     'id'        => { data_type => 'INTEGER', is_auto_increment => 1 },
     'name'      => { data_type => 'TEXT'},
     'pass'      => { data_type => 'BLOB' }, #hashed
-    'current_rating' => { data_type => 'INTEGER', default => 1 },
+    'current_rating' => { data_type => 'INTEGER', default_value => 1 },
 );
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->has_many(player_to_game => 'basilisk::Schema::Player_to_game', 'pid');
