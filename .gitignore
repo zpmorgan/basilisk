@@ -2,3 +2,5 @@
 # Untracked files:
 .dotest
 *.db
+*.swp
+
