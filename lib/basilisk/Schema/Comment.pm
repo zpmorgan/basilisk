@@ -2,7 +2,7 @@ package basilisk::Schema::Comment;
 use base qw/DBIx::Class/;
 
     
-__PACKAGE__->load_components(qw/UTF8Columns Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Comment');
 __PACKAGE__->add_columns(
     id      => { data_type => 'INTEGER', is_auto_increment => 1},
@@ -11,7 +11,6 @@ __PACKAGE__->add_columns(
     sayeth  => { data_type => 'INTEGER'},
     time    => { data_type => 'INTEGER'},#epoch
 );
-__PACKAGE__->utf8_columns(qw/comment/);
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to (speaker => 'basilisk::Schema::Player', 'sayeth');

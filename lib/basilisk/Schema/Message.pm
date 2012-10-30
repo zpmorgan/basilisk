@@ -3,7 +3,7 @@ use base qw/DBIx::Class/;
 
 use basilisk::Constants qw/MESSAGE_NOT_SEEN/;
     
-__PACKAGE__->load_components(qw/UTF8Columns Core/);
+__PACKAGE__->load_components(qw/Core/);
 __PACKAGE__->table('Message');
 __PACKAGE__->add_columns(
     'id'       => { data_type => 'INTEGER',  is_auto_increment => 1},
@@ -15,7 +15,6 @@ __PACKAGE__->add_columns(
     'time'     => { data_type => 'INTEGER', is_nullable => 0},#epoch
     'invite'   => { data_type => 'INTEGER', is_nullable => 1},
 );
-__PACKAGE__->utf8_columns(qw/message subject/);
 
 __PACKAGE__->set_primary_key('id');
 __PACKAGE__->belongs_to (sayeth => 'basilisk::Schema::Player', 'sayeth');
