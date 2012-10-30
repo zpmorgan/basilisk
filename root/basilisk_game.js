@@ -674,8 +674,9 @@ $(document).ready(function() {
    
    //set up comment submission form
    //by binding 'new_comment' form and provide a simple callback function 
-   $('#new_comment').ajaxForm(function(json, success, object) { 
-      var msg_plus_data = eval ('('+json+')');
+   $('#new_comment').ajaxForm(function(retval, success, object) { 
+      //console.log(object);
+      var msg_plus_data = retval; // parsing is automatic now? $.parseJSON(json);
       var msg = msg_plus_data [0];
       if (msg == 'success'){
          var comments_data = msg_plus_data[1];
